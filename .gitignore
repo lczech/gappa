@@ -54,3 +54,4 @@ build/
 *~
 *.swp
 TODO
+extern/

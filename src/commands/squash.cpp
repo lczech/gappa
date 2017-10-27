@@ -24,7 +24,6 @@
 #include "commands/squash.hpp"
 
 #include "tools/input.hpp"
-#include "tools/std.hpp"
 
 #include "CLI/CLI.hpp"
 #include "genesis/placement/function/operators.hpp"
@@ -40,10 +39,10 @@
 //      Setup
 // =================================================================================================
 
-std::unique_ptr<SquashOptions> setup_squash( CLI::App& app )
+void setup_squash( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto opt = make_unique<SquashOptions>();
+    auto opt = std::make_shared<SquashOptions>();
     auto sub = app.add_subcommand( "squash", "performs squash clustering.", true );
 
     // Fill in options.
@@ -54,11 +53,10 @@ std::unique_ptr<SquashOptions> setup_squash( CLI::App& app )
     // TODO add option for selcting the distance measure: kr/emd or nhd
 
     // Set the run function as callback to be called when this subcommand is issued.
-    sub->set_callback( [&]() {
+    // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
+    sub->set_callback( [opt]() {
         run_squash( *opt );
     });
-
-    return opt;
 }
 
 // =================================================================================================

@@ -47,7 +47,7 @@ struct SquashOptions
 //      Functions
 // =================================================================================================
 
-std::unique_ptr<SquashOptions> setup_squash( CLI::App& app );
+void setup_squash( CLI::App& app );
 void run_squash( SquashOptions const& options );
 
 #endif // include guard

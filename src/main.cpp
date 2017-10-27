@@ -37,23 +37,14 @@ int main( int argc, char** argv )
     CLI::App app{ "gappa - Genesis Applications for Phylogenetic Placement Analysis" };
     app.require_subcommand( 1 );
 
-    // Set up all subcommands and capture their option objects,
-    // so that they still live when the parsing happens.
-    auto squash_opt = setup_squash( app );
+    // Set up all subcommands.
+    setup_squash( app );
 
     try {
         app.parse( argc, argv );
     } catch ( CLI::ParseError const& e ) {
         return app.exit( e );
     }
-
-    // for( auto const& sub : app.get_subcommands() ) {
-    //     std::cout << "Subcommand:" << sub->get_name() << std::endl;
-    //
-    //     if( sub->get_name() == "squash" ) {
-    //         squash_main( *squash_opt );
-    //     }
-    // }
 
     return 0;
 }

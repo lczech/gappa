@@ -43,7 +43,10 @@ void setup_squash( CLI::App& app )
 {
     // Create the options and subcommand objects.
     auto opt = std::make_shared<SquashOptions>();
-    auto sub = app.add_subcommand( "squash", "performs squash clustering.", true );
+    auto sub = app.add_subcommand(
+        "squash",
+        "performs squash clustering."
+    );
 
     // Fill in options.
     sub->add_option( "placefiles", opt->jplace_paths, "List of jplace files to process." )

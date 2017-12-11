@@ -42,8 +42,7 @@ void setup_tog( CLI::App& app )
     auto opt = std::make_shared<TogOptions>();
     auto sub = app.add_subcommand(
         "tog",
-        "makes a tree with each of the reads represented as a pendant edge.",
-        true
+        "makes a tree with each of the reads represented as a pendant edge."
     );
 
     // Common options.

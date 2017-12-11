@@ -38,21 +38,29 @@ project ( gappa CXX )
 #   Build Options
 # --------------------------------------------------------------------------------------------------
 
-set (CMAKE_BUILD_TYPE RELEASE)
+# Define build type option with list of valid values. Default is RELEASE.
+set( GAPPA_BUILD_TYPE RELEASE CACHE STRING "Build type. Either RELEASE or DEBUG." )
+set_property( CACHE GAPPA_BUILD_TYPE PROPERTY STRINGS RELEASE DEBUG )
+
+# Use our build type option as default for the CMake build type.
+set (CMAKE_BUILD_TYPE ${GAPPA_BUILD_TYPE} )
+message (STATUS "Gappa build type: ${CMAKE_BUILD_TYPE}")
+
+# Store everything in `bin`.
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
 # By default, we build a fully static version. This works with GCC, but might cause trouble with
 # Clang, so we offer this option, which disables statical linking of system libraries.
 # Genesis on the other hand is always linked statically, in order to be able to move around the
 # final binary at least on the same system.
-option ( BUILD_STATIC  "Build the static version of the executable." ON )
+option ( GAPPA_BUILD_STATIC  "Build the static version of the executable." ON )
 
-if( BUILD_STATIC AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if( GAPPA_BUILD_STATIC AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     string(ASCII 27 Esc)
     message( STATUS "${Esc}[31m"
         "Compiler is not GCC. This might cause trouble with statically linking system libraries "
         "on Linux systems. If the compilation fails with some linking error, try a different compiler, "
-        "or try to not build statically by deactivating the CMake option 'BUILD_STATIC'. "
+        "or try to not build statically by deactivating the CMake option 'GAPPA_BUILD_STATIC'. "
     "${Esc}[0m" )
 endif()
 
@@ -68,18 +76,23 @@ set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG" )
 set (CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG" )
 
-IF(BUILD_STATIC)
+IF(GAPPA_BUILD_STATIC)
     # Use different ways of telling CMake to build static, just to be sure.
     SET(BUILD_SHARED_LIBRARIES OFF)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
     link_libraries("-static")
 ENDIF()
-message( STATUS "Static linking of system libraries: ${BUILD_STATIC}")
+message( STATUS "Static linking of system libraries: ${GAPPA_BUILD_STATIC}")
 
 # --------------------------------------------------------------------------------------------------
 #   Dependencies
 # --------------------------------------------------------------------------------------------------
+
+# Make sure we use the same build type for genesis.
+# Otherwise, we get linker errors because of different std lib implementations.
+# Been there, done that...
+SET( GENESIS_BUILD_TYPE ${CMAKE_BUILD_TYPE} )
 
 # Add Genesis as dependency.
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs/genesis)

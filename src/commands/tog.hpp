@@ -26,6 +26,8 @@
 
 #include "CLI/CLI.hpp"
 
+#include "options/jplace_input.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,9 +36,8 @@
 //      Options
 // =================================================================================================
 
-struct TogOptions
+struct TogOptions : public JplaceInputOptions
 {
-    std::vector<std::string> jplace_paths;
     std::string out_dir = ".";
 
     std::string name_prefix = "";

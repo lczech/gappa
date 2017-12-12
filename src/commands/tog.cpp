@@ -23,8 +23,6 @@
 
 #include "commands/tog.hpp"
 
-#include "tools/input.hpp"
-
 #include "CLI/CLI.hpp"
 
 #include "genesis/placement/formats/jplace_reader.hpp"
@@ -45,11 +43,14 @@ void setup_tog( CLI::App& app )
         "makes a tree with each of the reads represented as a pendant edge."
     );
 
+    // Add common options.
+    opt->add_jplace_input_options( sub );
+
     // Common options.
-    sub->add_option(
-        "placefiles", opt->jplace_paths,
-        "List of jplace files to process."
-    )->required()->check(CLI::ExistingFile);
+    // sub->add_option(
+    //     "placefiles", opt->jplace_paths,
+    //     "List of jplace files to process."
+    // )->required()->check(CLI::ExistingFile);
     sub->add_option(
         "--out-dir", opt->out_dir,
         "Specify the directory to write files to.", true
@@ -86,8 +87,8 @@ void run_tog( TogOptions const& options )
     using namespace genesis;
     using namespace genesis::placement;
 
-    auto const jplace_files = get_jplace_files( options.jplace_paths );
-    auto const file_names   = get_file_names( jplace_files );
+    auto const jplace_files = options.jplace_file_paths();
+    auto const file_names   = options.jplace_base_file_names();
 
     auto reader = JplaceReader();
     // TODO dont report errors in jplace. offer subcommand for that
@@ -99,6 +100,8 @@ void run_tog( TogOptions const& options )
     // so the assignment does not change.
 
     // TODO mention in wiki that multiple files are possible and how they are named.
+
+    // TODO OpenMP this!
 
     for( size_t i = 0; i < jplace_files.size(); ++i ) {
         // Read the sample and make the tree.

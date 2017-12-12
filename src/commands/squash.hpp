@@ -26,6 +26,8 @@
 
 #include "CLI/CLI.hpp"
 
+#include "options/jplace_input.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,12 +36,13 @@
 //      Options
 // =================================================================================================
 
-struct SquashOptions
+class SquashOptions : public JplaceInputOptions
 {
+public:
+
     bool point_mass = false;
     bool normalize = false;
 
-    std::vector<std::string> jplace_paths;
     std::string out_dir = ".";
 };
 

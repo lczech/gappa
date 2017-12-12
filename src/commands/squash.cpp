@@ -23,8 +23,6 @@
 
 #include "commands/squash.hpp"
 
-#include "tools/input.hpp"
-
 #include "CLI/CLI.hpp"
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/function/functions.hpp"
@@ -48,9 +46,12 @@ void setup_squash( CLI::App& app )
         "performs squash clustering."
     );
 
+    // Add common options.
+    opt->add_jplace_input_options( sub );
+
     // Fill in options.
-    sub->add_option( "placefiles", opt->jplace_paths, "List of jplace files to process." )
-       ->required();
+    // sub->add_option( "placefiles", opt->jplace_paths, "List of jplace files to process." )
+    //    ->required();
     sub->add_option( "--out-dir", opt->out_dir, "Specify the directory to write files to.", true );
 
     // TODO add option for selcting the distance measure: kr/emd or nhd
@@ -70,8 +71,18 @@ void run_squash( SquashOptions const& options )
 {
     using namespace genesis;
 
-    std::cout << "Files:" << "\n";
-    for( auto const& e : options.jplace_paths ) {
+    std::cout << "CLI:" << "\n";
+    for( auto const& e : options.cli_paths() ) {
+        std::cout << " - " << e << "\n";
+    }
+
+    std::cout << "File paths:" << "\n";
+    for( auto const& e : options.jplace_file_paths() ) {
+        std::cout << " - " << e << "\n";
+    }
+
+    std::cout << "File names:" << "\n";
+    for( auto const& e : options.jplace_base_file_names() ) {
         std::cout << " - " << e << "\n";
     }
     return;

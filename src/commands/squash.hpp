@@ -28,6 +28,7 @@
 
 #include "main.hpp"
 #include "options/jplace_input.hpp"
+#include "options/output_dir.hpp"
 
 #include <memory>
 #include <string>
@@ -37,14 +38,14 @@
 //      Options
 // =================================================================================================
 
-class SquashOptions : public JplaceInputOptions
+class SquashOptions
+    : public JplaceInputOptions
+    , public OutputDirOptions
 {
 public:
 
     bool point_mass = false;
-    bool normalize = false;
-
-    std::string out_dir = ".";
+    bool normalize = false; // TODO unused
 };
 
 // =================================================================================================
@@ -52,6 +53,6 @@ public:
 // =================================================================================================
 
 void setup_squash( CLI::App& app, MainOptions const& main_opt );
-void run_squash( MainOptions const& main_opt, SquashOptions const& options );
+void run_squash( SquashOptions const& options, MainOptions const& main_opt );
 
 #endif // include guard

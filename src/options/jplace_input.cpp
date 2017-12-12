@@ -66,11 +66,15 @@ void JplaceInputOptions::print_jplace_input_options( size_t verbosity ) const
         return;
     } else if( verbosity == 1 ) {
         std::cout << "Found " << files.size() << " jplace files.\n";
-    } else if( verbosity == 1 ) {
-        std::cout << "Found " << files.size() << " jplace files:\n";
+    } else if( verbosity == 2 ) {
+        std::cout << "Found " << files.size() << " jplace files: ";
         for( auto const& file : files ) {
-            std::cout << "  - " << genesis::utils::file_basename( file ) << "\n";
+            if( &file != &files[0] ) {
+                std::cout << ",  ";
+            }
+            std::cout << genesis::utils::file_basename( file );
         }
+        std::cout << "\n";
     } else {
         std::cout << "Found " << files.size() << " jplace files:\n";
 

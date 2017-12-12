@@ -24,6 +24,7 @@
 #include "commands/squash.hpp"
 
 #include "CLI/CLI.hpp"
+
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
@@ -48,18 +49,20 @@ void setup_squash( CLI::App& app, MainOptions const& main_opt )
 
     // Add common options.
     opt->add_jplace_input_options( sub );
+    opt->add_output_dir_options( sub );
 
-    // Fill in options.
-    // sub->add_option( "placefiles", opt->jplace_paths, "List of jplace files to process." )
-    //    ->required();
-    sub->add_option( "--out-dir", opt->out_dir, "Directory to write files to", true );
+    // Fill in custom options.
+    sub->add_option(
+        "--point-mass", opt->point_mass,
+        "Treat every pquery as a point mass concentrated on the highest-weight placement"
+    );
 
     // TODO add option for selcting the distance measure: kr/emd or nhd
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [&main_opt, opt]() {
-        run_squash( main_opt, *opt );
+    sub->set_callback( [ opt, &main_opt ]() {
+        run_squash( *opt, main_opt );
     });
 }
 
@@ -67,12 +70,17 @@ void setup_squash( CLI::App& app, MainOptions const& main_opt )
 //      Run
 // =================================================================================================
 
-void run_squash( MainOptions const& main_opt, SquashOptions const& options )
+void run_squash( SquashOptions const& options, MainOptions const& main_opt )
 {
     using namespace genesis;
 
+    // Check if any of the files we are going to produce already exists. If so, fail early.
+    options.check_nonexistent_output_files({ "cluster.newick" });
+
+    // Print some user output.
     options.print_jplace_input_options( main_opt.verbosity() );
 
+    // Get the samples.
     auto sample_set = options.sample_set();
 
     if( options.point_mass ) {
@@ -89,7 +97,7 @@ void run_squash( MainOptions const& main_opt, SquashOptions const& options )
 
     // LOG_INFO << "Writing cluster tree";
     std::ofstream file_clust_tree;
-    utils::file_output_stream( options.out_dir + "/cluster.newick",  file_clust_tree );
+    utils::file_output_stream( options.out_dir() + "cluster.newick",  file_clust_tree );
     file_clust_tree << squash_cluster_tree( sc, options.jplace_base_file_names() );
 
     // LOG_INFO << "Writing fat trees";

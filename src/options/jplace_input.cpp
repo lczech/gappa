@@ -26,9 +26,14 @@
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/utils/core/fs.hpp"
 
+#include <iostream>
 #include <stdexcept>
 
-using namespace genesis::placement;
+// Relative path resolution for printing.
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <linux/limits.h>
 
 // =================================================================================================
 //      Setup Functions
@@ -36,13 +41,13 @@ using namespace genesis::placement;
 
 void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
 {
-    auto opt = sub->add_option(
+    auto opt_placefiles = sub->add_option(
         "placefiles",
         jplace_paths_,
-        "List of jplace files or directories to process."
+        "List of jplace files or directories to process"
     );
-    opt->required();
-    opt->check([]( std::string const& path ){
+    opt_placefiles->required();
+    opt_placefiles->check([]( std::string const& path ){
         if( ! genesis::utils::path_exists( path ) ) {
             return std::string( "Path is neither a file nor a directory: " + path );
         }
@@ -53,6 +58,35 @@ void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
+
+void JplaceInputOptions::print_jplace_input_options( size_t verbosity ) const
+{
+    auto const files = jplace_file_paths();
+    if( verbosity == 0 ) {
+        return;
+    } else if( verbosity == 1 ) {
+        std::cout << "Found " << files.size() << " jplace files.\n";
+    } else if( verbosity == 1 ) {
+        std::cout << "Found " << files.size() << " jplace files:\n";
+        for( auto const& file : files ) {
+            std::cout << "  - " << genesis::utils::file_basename( file ) << "\n";
+        }
+    } else {
+        std::cout << "Found " << files.size() << " jplace files:\n";
+
+        char resolved_path[PATH_MAX];
+        for( auto const& file : files ) {
+            auto ptr = realpath( file.c_str(), resolved_path );
+            if( errno == 0 ) {
+                std::cout << "  - " << ptr << "\n";
+            } else {
+                std::cout << "  - " << file << "\n";
+                // use std::strerror(errno) to get error message
+                errno = 0;
+            }
+        }
+    }
+}
 
 std::vector<std::string> const& JplaceInputOptions::cli_paths() const
 {
@@ -79,10 +113,12 @@ std::vector<std::string> JplaceInputOptions::jplace_file_paths() const
     }
 }
 
-SampleSet JplaceInputOptions::sample_set() const
+genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 {
-    auto reader = genesis::placement::JplaceReader();
     // TODO dont report errors in jplace. offer subcommand for that
+    // TODO nope. also report them here. just not while reading, but use a validator function.
+
+    auto reader = genesis::placement::JplaceReader();
     return reader.from_files( jplace_file_paths() );
 }
 

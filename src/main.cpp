@@ -23,7 +23,12 @@
 
 #include "CLI/CLI.hpp"
 
+#include "main.hpp"
 #include "commands/squash.hpp"
+
+// =================================================================================================
+//      Main Program
+// =================================================================================================
 
 int main( int argc, char** argv )
 {
@@ -36,9 +41,14 @@ int main( int argc, char** argv )
 
     CLI::App app{ "gappa - Genesis Applications for Phylogenetic Placement Analysis" };
     app.require_subcommand( 1 );
+    app.fallthrough( true );
+
+    // Add app-wide options.
+    MainOptions main_opt;
+    main_opt.add_main_options( app );
 
     // Set up all subcommands.
-    setup_squash( app );
+    setup_squash( app, main_opt );
 
     try {
         app.parse( argc, argv );

@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_SQUASH_H_
-#define GAPPA_COMMANDS_SQUASH_H_
+#ifndef GAPPA_MAIN_H_
+#define GAPPA_MAIN_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,10 +26,6 @@
 
 #include "CLI/CLI.hpp"
 
-#include "main.hpp"
-#include "options/jplace_input.hpp"
-
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,21 +33,49 @@
 //      Options
 // =================================================================================================
 
-class SquashOptions : public JplaceInputOptions
+class MainOptions
 {
 public:
 
-    bool point_mass = false;
-    bool normalize = false;
+    // -------------------------------------------------------------------------
+    //     Setup Functions
+    // -------------------------------------------------------------------------
 
-    std::string out_dir = ".";
+    void add_main_options( CLI::App& app )
+    {
+        auto v_s = app.add_option(
+            "--verbosity",
+            verbosity_,
+            "Verbosity level [0-3]",
+            true
+        );
+        auto v_c = app.add_flag(
+            "-v",
+            verbosity_cnt_,
+            "Verbosity; add multiple times for more (-vvv)"
+        );
+        v_s->excludes( v_c );
+        v_c->excludes( v_s );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Run Functions
+    // -------------------------------------------------------------------------
+
+    size_t verbosity() const
+    {
+        return ( verbosity_cnt_ > 0 ? verbosity_cnt_ + 1 : verbosity_ );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Option Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    size_t verbosity_ = 1;
+    size_t verbosity_cnt_ = 0;
+
 };
-
-// =================================================================================================
-//      Functions
-// =================================================================================================
-
-void setup_squash( CLI::App& app, MainOptions const& main_opt );
-void run_squash( MainOptions const& main_opt, SquashOptions const& options );
 
 #endif // include guard

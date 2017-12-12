@@ -64,6 +64,11 @@ public:
     // -------------------------------------------------------------------------
 
     /**
+     * @brief Print some user output related to these options.
+     */
+    void print_jplace_input_options( size_t verbosity = 0 ) const;
+
+    /**
      * @brief Return the list of paths as provided by the user, that is, without processing.
      */
     std::vector<std::string> const& cli_paths() const;

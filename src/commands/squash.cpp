@@ -37,7 +37,7 @@
 //      Setup
 // =================================================================================================
 
-void setup_squash( CLI::App& app )
+void setup_squash( CLI::App& app, MainOptions const& main_opt )
 {
     // Create the options and subcommand objects.
     auto opt = std::make_shared<SquashOptions>();
@@ -52,14 +52,14 @@ void setup_squash( CLI::App& app )
     // Fill in options.
     // sub->add_option( "placefiles", opt->jplace_paths, "List of jplace files to process." )
     //    ->required();
-    sub->add_option( "--out-dir", opt->out_dir, "Specify the directory to write files to.", true );
+    sub->add_option( "--out-dir", opt->out_dir, "Directory to write files to", true );
 
     // TODO add option for selcting the distance measure: kr/emd or nhd
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [opt]() {
-        run_squash( *opt );
+    sub->set_callback( [&main_opt, opt]() {
+        run_squash( main_opt, *opt );
     });
 }
 
@@ -67,54 +67,39 @@ void setup_squash( CLI::App& app )
 //      Run
 // =================================================================================================
 
-void run_squash( SquashOptions const& options )
+void run_squash( MainOptions const& main_opt, SquashOptions const& options )
 {
     using namespace genesis;
 
-    std::cout << "CLI:" << "\n";
-    for( auto const& e : options.cli_paths() ) {
-        std::cout << " - " << e << "\n";
+    options.print_jplace_input_options( main_opt.verbosity() );
+
+    auto sample_set = options.sample_set();
+
+    if( options.point_mass ) {
+        for( auto& sample : sample_set ) {
+            placement::filter_n_max_weight_placements( sample.sample );
+        }
     }
 
-    std::cout << "File paths:" << "\n";
-    for( auto const& e : options.jplace_file_paths() ) {
-        std::cout << " - " << e << "\n";
-    }
+    auto mass_trees = convert_sample_set_to_mass_trees( sample_set );
 
-    std::cout << "File names:" << "\n";
-    for( auto const& e : options.jplace_base_file_names() ) {
-        std::cout << " - " << e << "\n";
-    }
-    return;
+    // LOG_INFO << "Starting squash clustering";
+    auto sc = tree::squash_clustering( std::move( mass_trees.first ));
+    // LOG_INFO << "Finished squash clustering";
 
-    // auto const jplace_files = get_jplace_files( options.jplace_paths );
-    // auto sample_set = get_sample_set( jplace_files, false );
-    //
-    // if( options.point_mass ) {
-    //     for( auto& sample : sample_set ) {
-    //         placement::filter_n_max_weight_placements( sample.sample );
-    //     }
-    // }
-    //
-    // auto mass_trees = convert_sample_set_to_mass_trees( sample_set );
-    //
-    // // LOG_INFO << "Starting squash clustering";
-    // auto sc = tree::squash_clustering( std::move( mass_trees.first ));
-    // // LOG_INFO << "Finished squash clustering";
-    //
-    // // LOG_INFO << "Writing cluster tree";
-    // std::ofstream file_clust_tree;
-    // utils::file_output_stream( options.out_dir + "/cluster.newick",  file_clust_tree );
-    // file_clust_tree << squash_cluster_tree( sc, get_file_names( jplace_files ));
-    //
-    // // LOG_INFO << "Writing fat trees";
-    // for( size_t i = 0; i < sc.clusters.size(); ++i ) {
-    //     // auto const& cc = sc.clusters[i];
-    //
-    //     // auto const cv = tree::mass_tree_mass_per_edge( cc.tree );
-    //     // auto const colors = counts_to_colors(cv, false);
-    //
-    //     // write_color_tree_to_nexus( avg_tree, colors, options.out_dir + "/tree_" + std::to_string(i) + ".nexus" );
-    //     // write_color_tree_to_svg( avg_tree, colors, options.out_dir + "/tree_" + std::to_string(i) );
-    // }
+    // LOG_INFO << "Writing cluster tree";
+    std::ofstream file_clust_tree;
+    utils::file_output_stream( options.out_dir + "/cluster.newick",  file_clust_tree );
+    file_clust_tree << squash_cluster_tree( sc, options.jplace_base_file_names() );
+
+    // LOG_INFO << "Writing fat trees";
+    for( size_t i = 0; i < sc.clusters.size(); ++i ) {
+        // auto const& cc = sc.clusters[i];
+
+        // auto const cv = tree::mass_tree_mass_per_edge( cc.tree );
+        // auto const colors = counts_to_colors(cv, false);
+
+        // write_color_tree_to_nexus( avg_tree, colors, options.out_dir + "/tree_" + std::to_string(i) + ".nexus" );
+        // write_color_tree_to_svg( avg_tree, colors, options.out_dir + "/tree_" + std::to_string(i) );
+    }
 }

@@ -26,8 +26,6 @@
 
 #include "CLI/CLI.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-
 #include <string>
 #include <vector>
 
@@ -56,18 +54,7 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_output_dir_options( CLI::App* sub )
-    {
-        sub->add_option(
-            "--out-dir",
-            out_dir_,
-            "Directory to write files to",
-            true
-        )->check( CLI::ExistingDirectory );
-
-        // TODO instead of expecting an existing dir, create it if needed.
-        // TODO add function to overwrite files, which sets the genesis option for this
-    }
+    void add_output_dir_options( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -76,32 +63,19 @@ public:
     /**
      * @brief Return the normalized output dir provided by the user.
      */
-    std::string out_dir() const
-    {
-        return genesis::utils::dir_normalize_path( out_dir_ );
-    }
+    std::string out_dir() const;
 
     /**
      * @brief Check whether any of the files in @p filenames exist in the out dir.
      * If so, print an error message and throw an error.
      */
-    void check_nonexistent_output_files( std::vector<std::string> const& filenames ) const
-    {
-        using namespace genesis::utils;
-
-        std::string dir = dir_normalize_path( out_dir_ );
-        for( auto const& file : filenames ) {
-            if( file_exists( dir + file ) ) {
-                throw CLI::ValidationError(
-                    "--out-dir (" + out_dir_ +  ")", "Output file already exists: " + file
-                );
-            }
-        }
-    }
+    void check_nonexistent_output_files( std::vector<std::string> const& filenames ) const;
 
     // -------------------------------------------------------------------------
     //     Option Members
     // -------------------------------------------------------------------------
+
+private:
 
     std::string out_dir_ = ".";
 

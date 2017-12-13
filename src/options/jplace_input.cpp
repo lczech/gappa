@@ -110,6 +110,12 @@ std::vector<std::string> JplaceInputOptions::jplace_base_file_names() const
 
 std::vector<std::string> JplaceInputOptions::jplace_file_paths() const
 {
+    // TODO check for file existence
+    // TODO use mutable cache vec to avoid recomp.
+    // TODO add sample( size_t ) function that just reads one file, using the proper jplace reader settings
+    // TODO add/offer validity checks etc
+    // TODO offer avg tree option
+
     if( resolve_paths_ ) {
         return resolve_jplace_paths_();
     } else {

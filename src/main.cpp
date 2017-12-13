@@ -23,8 +23,9 @@
 
 #include "CLI/CLI.hpp"
 
-#include "main.hpp"
 #include "commands/squash.hpp"
+#include "options/general.hpp"
+#include "tools/version.hpp"
 
 // =================================================================================================
 //      Main Program
@@ -39,16 +40,19 @@ int main( int argc, char** argv )
     // utils::Options::get().number_of_threads( 4 );
     // LOG_BOLD << utils::Options::get().info();
 
-    CLI::App app{ "gappa - Genesis Applications for Phylogenetic Placement Analysis" };
+    CLI::App app{ gappa_header() };
     app.require_subcommand( 1 );
     app.fallthrough( true );
 
     // Add app-wide options.
-    MainOptions main_opt;
-    main_opt.add_main_options( app );
+    GeneralOptions opt_general;
+    opt_general.add_general_options( app );
 
     // Set up all subcommands.
-    setup_squash( app, main_opt );
+    setup_squash( app, opt_general );
+
+    // TODO print invocation
+    // TODO use cli groups
 
     try {
         app.parse( argc, argv );

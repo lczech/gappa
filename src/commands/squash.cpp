@@ -38,7 +38,7 @@
 //      Setup
 // =================================================================================================
 
-void setup_squash( CLI::App& app, MainOptions const& main_opt )
+void setup_squash( CLI::App& app, GeneralOptions const& opt_general )
 {
     // Create the options and subcommand objects.
     auto opt = std::make_shared<SquashOptions>();
@@ -61,8 +61,8 @@ void setup_squash( CLI::App& app, MainOptions const& main_opt )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ opt, &main_opt ]() {
-        run_squash( *opt, main_opt );
+    sub->set_callback( [ opt, &opt_general ]() {
+        run_squash( *opt, opt_general );
     });
 }
 
@@ -70,7 +70,7 @@ void setup_squash( CLI::App& app, MainOptions const& main_opt )
 //      Run
 // =================================================================================================
 
-void run_squash( SquashOptions const& options, MainOptions const& main_opt )
+void run_squash( SquashOptions const& options, GeneralOptions const& opt_general )
 {
     using namespace genesis;
 
@@ -78,7 +78,7 @@ void run_squash( SquashOptions const& options, MainOptions const& main_opt )
     options.check_nonexistent_output_files({ "cluster.newick" });
 
     // Print some user output.
-    options.print_jplace_input_options( main_opt.verbosity() );
+    options.print_jplace_input_options( opt_general.verbosity() );
 
     // Get the samples.
     auto sample_set = options.sample_set();

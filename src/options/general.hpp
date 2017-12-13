@@ -1,5 +1,5 @@
-#ifndef GAPPA_MAIN_H_
-#define GAPPA_MAIN_H_
+#ifndef GAPPA_OPTIONS_GENERAL_H_
+#define GAPPA_OPTIONS_GENERAL_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,6 +26,8 @@
 
 #include "CLI/CLI.hpp"
 
+#include "tools/version.hpp"
+
 #include <string>
 #include <vector>
 
@@ -33,7 +35,7 @@
 //      Options
 // =================================================================================================
 
-class MainOptions
+class GeneralOptions
 {
 public:
 
@@ -41,31 +43,18 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_main_options( CLI::App& app )
-    {
-        auto v_s = app.add_option(
-            "--verbosity",
-            verbosity_,
-            "Verbosity level [0-3]",
-            true
-        );
-        auto v_c = app.add_flag(
-            "-v",
-            verbosity_cnt_,
-            "Verbosity; add multiple times for more (-vvv)"
-        );
-        v_s->excludes( v_c );
-        v_c->excludes( v_s );
-    }
+    void add_general_options( CLI::App& app );
 
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
 
-    size_t verbosity() const
-    {
-        return ( verbosity_cnt_ > 0 ? verbosity_cnt_ + 1 : verbosity_ );
-    }
+    void print_general_options() const;
+
+    size_t verbosity() const;
+    size_t threads() const;
+
+    void callback();
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -75,6 +64,7 @@ private:
 
     size_t verbosity_ = 1;
     size_t verbosity_cnt_ = 0;
+    size_t threads_ = 1;
 
 };
 

@@ -26,8 +26,8 @@
 
 #include "CLI/CLI.hpp"
 
-#include "main.hpp"
 #include "options/jplace_input.hpp"
+#include "options/general.hpp"
 #include "options/output_dir.hpp"
 
 #include <memory>
@@ -52,7 +52,7 @@ public:
 //      Functions
 // =================================================================================================
 
-void setup_squash( CLI::App& app, MainOptions const& main_opt );
-void run_squash( SquashOptions const& options, MainOptions const& main_opt );
+void setup_squash( CLI::App& app, GeneralOptions const& opt_general );
+void run_squash( SquashOptions const& options, GeneralOptions const& opt_general );
 
 #endif // include guard

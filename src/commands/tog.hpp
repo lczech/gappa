@@ -27,6 +27,7 @@
 #include "CLI/CLI.hpp"
 
 #include "options/jplace_input.hpp"
+#include "options/output_dir.hpp"
 
 #include <memory>
 #include <string>
@@ -36,11 +37,13 @@
 //      Options
 // =================================================================================================
 
-struct TogOptions : public JplaceInputOptions
+class TogOptions
+    : public JplaceInputOptions
+    , public OutputDirOptions
 {
-    std::string out_dir = ".";
+public:
 
-    std::string name_prefix = "";
+    std::string leaf_prefix = "";
     bool fully_resolve = false;
 };
 

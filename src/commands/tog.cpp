@@ -45,20 +45,11 @@ void setup_tog( CLI::App& app )
 
     // Add common options.
     opt->add_jplace_input_options( sub );
+    opt->add_output_dir_options( sub );
 
-    // Common options.
-    // sub->add_option(
-    //     "placefiles", opt->jplace_paths,
-    //     "List of jplace files to process."
-    // )->required()->check(CLI::ExistingFile);
+    // Fill in custom options.
     sub->add_option(
-        "--out-dir", opt->out_dir,
-        "Specify the directory to write files to.", true
-    )->check(CLI::ExistingDirectory);
-
-    // Specific options.
-    sub->add_option(
-        "--name-prefix", opt->name_prefix,
+        "--name-prefix", opt->leaf_prefix,
         "Specify a prefix to be added to all new leaf nodes.",
         true
     );
@@ -87,8 +78,12 @@ void run_tog( TogOptions const& options )
     using namespace genesis;
     using namespace genesis::placement;
 
-    auto const jplace_files = options.jplace_file_paths();
-    auto const file_names   = options.jplace_base_file_names();
+    // Prepare output file names and check if any of them already exists. If so, fail early.
+    std::vector<std::string> out_tree_files;
+    for( auto const& bfn : options.jplace_base_file_names() ) {
+        out_tree_files.push_back( bfn + ".newick" );
+    }
+    options.check_nonexistent_output_files( out_tree_files );
 
     auto reader = JplaceReader();
     // TODO dont report errors in jplace. offer subcommand for that
@@ -103,13 +98,13 @@ void run_tog( TogOptions const& options )
 
     // TODO OpenMP this!
 
+    auto const jplace_files = options.jplace_file_paths();
     for( size_t i = 0; i < jplace_files.size(); ++i ) {
         // Read the sample and make the tree.
         auto const sample = reader.from_file( jplace_files[i] );
-        auto const tog    = labelled_tree( sample, options.fully_resolve, options.name_prefix );
+        auto const tog    = labelled_tree( sample, options.fully_resolve, options.leaf_prefix );
 
         // Write output to file.
-        auto const out_file = utils::dir_normalize_path( options.out_dir ) + file_names[i];
-        tree::DefaultTreeNewickWriter().to_file( tog, out_file );
+        tree::DefaultTreeNewickWriter().to_file( tog, options.out_dir() + out_tree_files[i] );
     }
 }

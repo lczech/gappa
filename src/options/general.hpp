@@ -45,11 +45,15 @@ public:
 
     void add_general_options( CLI::App& app );
 
+    void set_command_line_args( int const argc, char const* const* argv );
+
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
 
-    void print_general_options() const;
+    void print_general_options( CLI::App const& app ) const;
+
+    std::string command_line() const;
 
     size_t verbosity() const;
     size_t threads() const;
@@ -65,6 +69,8 @@ private:
     size_t verbosity_ = 1;
     size_t verbosity_cnt_ = 0;
     size_t threads_ = 1;
+
+    std::vector<std::string> command_line_;
 
 };
 

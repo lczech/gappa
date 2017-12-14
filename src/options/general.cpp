@@ -60,20 +60,29 @@ void GeneralOptions::add_general_options( CLI::App& app )
     );
 
     // Run the app wide callback
-    app.set_callback([ this ](){
+    app.set_callback([ this, &app ](){
         callback();
-        print_general_options();
+        print_general_options( app );
     });
 
     // Footer
     app.set_footer( gappa_title() );
 }
 
+void GeneralOptions::set_command_line_args( int const argc, char const* const* argv )
+{
+    // Store all arguments in the array.
+    command_line_.clear();
+    for (int i = 0; i < argc; i++) {
+        command_line_.push_back(argv[i]);
+    }
+}
+
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
 
-void GeneralOptions::print_general_options() const
+void GeneralOptions::print_general_options( CLI::App const& app ) const
 {
     if( verbosity() == 0 ) {
         return;
@@ -82,9 +91,27 @@ void GeneralOptions::print_general_options() const
     // Print our nice header.
     std::cout << gappa_header() << "\n";
 
+    // TODO print subcommand that is about to run.
+
     if( verbosity() > 1 ) {
-        std::cout << "Number of threads: " << threads() << "\n";
+        std::cout << "Invocation:        " << command_line() << "\n";
+
+        for( auto const& sub : app.get_subcommands() ) {
+            std::cout << "Subcommand:        " << sub->get_name() << "\n";
+        }
+
+        std::cout << "Threads:           " << threads() << "\n";
+        std::cout << "\n";
     }
+}
+
+std::string GeneralOptions::command_line() const
+{
+    std::string ret = "";
+    for (size_t i = 0; i < command_line_.size(); ++i) {
+        ret += ( i==0 ? "" : " " ) + command_line_[i];
+    }
+    return ret;
 }
 
 size_t GeneralOptions::verbosity() const

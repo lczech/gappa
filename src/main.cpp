@@ -46,6 +46,7 @@ int main( int argc, char** argv )
 
     // Add app-wide options.
     GeneralOptions opt_general;
+    opt_general.set_command_line_args( argc, argv );
     opt_general.add_general_options( app );
 
     // Set up all subcommands.

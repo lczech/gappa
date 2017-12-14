@@ -90,19 +90,17 @@ void GeneralOptions::print_general_options( CLI::App const& app ) const
 
     // Print our nice header.
     std::cout << gappa_header() << "\n";
-
-    // TODO print subcommand that is about to run.
-
-    if( verbosity() > 1 ) {
-        std::cout << "Invocation:        " << command_line() << "\n";
-
-        for( auto const& sub : app.get_subcommands() ) {
-            std::cout << "Subcommand:        " << sub->get_name() << "\n";
-        }
-
-        std::cout << "Threads:           " << threads() << "\n";
-        std::cout << "\n";
+    if( verbosity() == 1 ) {
+        return;
     }
+
+    // More verbose output.
+    std::cout << "Invocation:        " << command_line() << "\n";
+    for( auto const& sub : app.get_subcommands() ) {
+        std::cout << "Subcommand:        " << sub->get_name() << "\n";
+    }
+    std::cout << "Threads:           " << threads() << "\n";
+    std::cout << "\n";
 }
 
 std::string GeneralOptions::command_line() const

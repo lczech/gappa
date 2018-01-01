@@ -1,9 +1,9 @@
-#ifndef GAPPA_OPTIONS_GENERAL_H_
-#define GAPPA_OPTIONS_GENERAL_H_
+#ifndef GAPPA_OPTIONS_GLOBAL_H_
+#define GAPPA_OPTIONS_GLOBAL_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,10 +32,10 @@
 #include <vector>
 
 // =================================================================================================
-//      Options
+//      Global Options
 // =================================================================================================
 
-class GeneralOptions
+class GlobalOptions
 {
 public:
 
@@ -58,7 +58,7 @@ public:
     size_t verbosity() const;
     size_t threads() const;
 
-    void callback();
+    void init();
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -73,5 +73,11 @@ private:
     std::vector<std::string> command_line_;
 
 };
+
+// =================================================================================================
+//      Global Instance
+// =================================================================================================
+
+extern GlobalOptions global_options;
 
 #endif // include guard

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,9 @@
 
 void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
 {
+    // TODO put in options group. same for all other options
+    // TODO add avg tree option?!
+
     auto opt_placefiles = sub->add_option(
         "placefiles",
         jplace_paths_,

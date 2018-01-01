@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include "CLI/CLI.hpp"
 
 #include "commands/squash.hpp"
-#include "options/general.hpp"
+#include "options/global.hpp"
 #include "tools/version.hpp"
 
 // =================================================================================================
@@ -44,13 +44,12 @@ int main( int argc, char** argv )
     app.require_subcommand( 1 );
     app.fallthrough( true );
 
-    // Add app-wide options.
-    GeneralOptions opt_general;
-    opt_general.set_command_line_args( argc, argv );
-    opt_general.add_general_options( app );
+    // Add app-wide global options.
+    global_options.set_command_line_args( argc, argv );
+    global_options.add_general_options( app );
 
     // Set up all subcommands.
-    setup_squash( app, opt_general );
+    setup_squash( app );
 
     // TODO print invocation
     // TODO use cli groups

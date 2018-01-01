@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 #include "CLI/CLI.hpp"
 
 #include "options/jplace_input.hpp"
-#include "options/general.hpp"
 #include "options/output_dir.hpp"
 
 #include <memory>
@@ -52,7 +51,7 @@ public:
 //      Functions
 // =================================================================================================
 
-void setup_squash( CLI::App& app, GeneralOptions const& opt_general );
-void run_squash( SquashOptions const& options, GeneralOptions const& opt_general );
+void setup_squash( CLI::App& app );
+void run_squash( SquashOptions const& options );
 
 #endif // include guard

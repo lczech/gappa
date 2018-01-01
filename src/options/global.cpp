@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "options/general.hpp"
+#include "options/global.hpp"
 
 #include "tools/version.hpp"
 
@@ -35,7 +35,7 @@
 //      Setup Functions
 // =================================================================================================
 
-void GeneralOptions::add_general_options( CLI::App& app )
+void GlobalOptions::add_general_options( CLI::App& app )
 {
     // Verbosity
     auto v_s = app.add_option(
@@ -49,6 +49,11 @@ void GeneralOptions::add_general_options( CLI::App& app )
         verbosity_cnt_,
         "Verbosity; add multiple times for more (-vvv)"
     );
+    // auto v_q = app.add_flag(
+    //     "--quiet",
+    //     verbosity_cnt_,
+    //     "Verbosity; add multiple times for more (-vvv)"
+    // );
     v_s->excludes( v_c );
     v_c->excludes( v_s );
 
@@ -61,7 +66,7 @@ void GeneralOptions::add_general_options( CLI::App& app )
 
     // Run the app wide callback
     app.set_callback([ this, &app ](){
-        callback();
+        init();
         print_general_options( app );
     });
 
@@ -69,7 +74,7 @@ void GeneralOptions::add_general_options( CLI::App& app )
     app.set_footer( gappa_title() );
 }
 
-void GeneralOptions::set_command_line_args( int const argc, char const* const* argv )
+void GlobalOptions::set_command_line_args( int const argc, char const* const* argv )
 {
     // Store all arguments in the array.
     command_line_.clear();
@@ -82,7 +87,7 @@ void GeneralOptions::set_command_line_args( int const argc, char const* const* a
 //      Run Functions
 // =================================================================================================
 
-void GeneralOptions::print_general_options( CLI::App const& app ) const
+void GlobalOptions::print_general_options( CLI::App const& app ) const
 {
     if( verbosity() == 0 ) {
         return;
@@ -103,7 +108,7 @@ void GeneralOptions::print_general_options( CLI::App const& app ) const
     std::cout << "\n";
 }
 
-std::string GeneralOptions::command_line() const
+std::string GlobalOptions::command_line() const
 {
     std::string ret = "";
     for (size_t i = 0; i < command_line_.size(); ++i) {
@@ -112,17 +117,17 @@ std::string GeneralOptions::command_line() const
     return ret;
 }
 
-size_t GeneralOptions::verbosity() const
+size_t GlobalOptions::verbosity() const
 {
     return ( verbosity_cnt_ > 0 ? verbosity_cnt_ + 1 : verbosity_ );
 }
 
-size_t GeneralOptions::threads() const
+size_t GlobalOptions::threads() const
 {
     return threads_;
 }
 
-void GeneralOptions::callback()
+void GlobalOptions::init()
 {
     // If user did not provide number, use hardware value.
     #if defined( GENESIS_PTHREADS )
@@ -143,3 +148,9 @@ void GeneralOptions::callback()
     // Set number of threads for genesis.
     genesis::utils::Options::get().number_of_threads( threads_ );
 }
+
+// =================================================================================================
+//      Global Instance
+// =================================================================================================
+
+GlobalOptions global_options;

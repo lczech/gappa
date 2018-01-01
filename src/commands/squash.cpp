@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 
 #include "commands/squash.hpp"
 
+#include "options/global.hpp"
+
 #include "CLI/CLI.hpp"
 
 #include "genesis/placement/function/operators.hpp"
@@ -38,7 +40,7 @@
 //      Setup
 // =================================================================================================
 
-void setup_squash( CLI::App& app, GeneralOptions const& opt_general )
+void setup_squash( CLI::App& app )
 {
     // Create the options and subcommand objects.
     auto opt = std::make_shared<SquashOptions>();
@@ -61,8 +63,8 @@ void setup_squash( CLI::App& app, GeneralOptions const& opt_general )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ opt, &opt_general ]() {
-        run_squash( *opt, opt_general );
+    sub->set_callback( [ opt ]() {
+        run_squash( *opt );
     });
 }
 
@@ -70,7 +72,7 @@ void setup_squash( CLI::App& app, GeneralOptions const& opt_general )
 //      Run
 // =================================================================================================
 
-void run_squash( SquashOptions const& options, GeneralOptions const& opt_general )
+void run_squash( SquashOptions const& options )
 {
     using namespace genesis;
 
@@ -78,7 +80,7 @@ void run_squash( SquashOptions const& options, GeneralOptions const& opt_general
     options.check_nonexistent_output_files({ "cluster.newick" });
 
     // Print some user output.
-    options.print_jplace_input_options( opt_general.verbosity() );
+    options.print_jplace_input_options( global_options.verbosity() );
 
     // Get the samples.
     auto sample_set = options.sample_set();

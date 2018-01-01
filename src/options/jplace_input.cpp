@@ -23,17 +23,13 @@
 
 #include "options/jplace_input.hpp"
 
+#include "tools/file_input.hpp"
+
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/utils/core/fs.hpp"
 
 #include <iostream>
 #include <stdexcept>
-
-// Relative path resolution for printing.
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <linux/limits.h>
 
 // =================================================================================================
 //      Setup Functions
@@ -62,37 +58,9 @@ void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
 //      Run Functions
 // =================================================================================================
 
-void JplaceInputOptions::print_jplace_input_options( size_t verbosity ) const
+void JplaceInputOptions::print_jplace_input_options() const
 {
-    auto const files = jplace_file_paths();
-    if( verbosity == 0 ) {
-        return;
-    } else if( verbosity == 1 ) {
-        std::cout << "Found " << files.size() << " jplace files.\n";
-    } else if( verbosity == 2 ) {
-        std::cout << "Found " << files.size() << " jplace files: ";
-        for( auto const& file : files ) {
-            if( &file != &files[0] ) {
-                std::cout << ",  ";
-            }
-            std::cout << genesis::utils::file_basename( file );
-        }
-        std::cout << "\n";
-    } else {
-        std::cout << "Found " << files.size() << " jplace files:\n";
-
-        char resolved_path[PATH_MAX];
-        for( auto const& file : files ) {
-            auto ptr = realpath( file.c_str(), resolved_path );
-            if( errno == 0 ) {
-                std::cout << "  - " << ptr << "\n";
-            } else {
-                std::cout << "  - " << file << "\n";
-                // use std::strerror(errno) to get error message
-                errno = 0;
-            }
-        }
-    }
+    print_file_paths( jplace_file_paths(), "jplace" );
 }
 
 std::vector<std::string> const& JplaceInputOptions::cli_paths() const
@@ -120,7 +88,7 @@ std::vector<std::string> JplaceInputOptions::jplace_file_paths() const
     // TODO offer avg tree option
 
     if( resolve_paths_ ) {
-        return resolve_jplace_paths_();
+        return resolve_file_paths( jplace_paths_, "jplace" );
     } else {
         return jplace_paths_;
     }
@@ -133,31 +101,4 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 
     auto reader = genesis::placement::JplaceReader();
     return reader.from_files( jplace_file_paths() );
-}
-
-// =================================================================================================
-//      Helper Functions
-// =================================================================================================
-
-std::vector<std::string> JplaceInputOptions::resolve_jplace_paths_() const
-{
-    std::vector<std::string> result;
-    using namespace genesis::utils;
-    for( auto const& path : jplace_paths_ ) {
-        if( is_file( path ) ) {
-
-            result.push_back( path );
-
-        } else if( is_dir( path ) ) {
-
-            auto const list = dir_list_files( path, true, ".*\\.jplace$" );
-            for( auto const& jplace : list ) {
-                result.push_back( jplace );
-            }
-
-        } else {
-            throw std::runtime_error( "Not a valid file or directory: " + path );
-        }
-    }
-    return result;
 }

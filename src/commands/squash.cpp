@@ -80,7 +80,7 @@ void run_squash( SquashOptions const& options )
     options.check_nonexistent_output_files({ "cluster.newick" });
 
     // Print some user output.
-    options.print_jplace_input_options( global_options.verbosity() );
+    options.print_jplace_input_options();
 
     // Get the samples.
     auto sample_set = options.sample_set();

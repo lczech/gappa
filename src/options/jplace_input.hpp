@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public:
     /**
      * @brief Print some user output related to these options.
      */
-    void print_jplace_input_options( size_t verbosity = 0 ) const;
+    void print_jplace_input_options() const;
 
     /**
      * @brief Return the list of paths as provided by the user, that is, without processing.
@@ -92,26 +92,10 @@ public:
     genesis::placement::SampleSet sample_set() const;
 
     // -------------------------------------------------------------------------
-    //     Helper Functions
+    //     Option Members
     // -------------------------------------------------------------------------
 
 private:
-
-    /**
-     * @brief Given a list of paths, find all jplace files.
-     *
-     * This function takes the list of paths. For each of them, it checks whether it is a file or a
-     * directory. Files are immediately added to the result list, while directories are scanned
-     * for any `.jplace` files in them, which are then added to the result list.
-     *
-     * This allows the users to hand over either their own files (no matter their extension), or
-     * whole directory paths for convenience, which then however only use files ending in `.jplace`.
-     */
-    std::vector<std::string> resolve_jplace_paths_() const;
-
-    // -------------------------------------------------------------------------
-    //     Option Members
-    // -------------------------------------------------------------------------
 
     std::vector<std::string> jplace_paths_;
     bool resolve_paths_ = true;

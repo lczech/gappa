@@ -38,24 +38,28 @@
 void GlobalOptions::add_general_options( CLI::App& app )
 {
     // Verbosity
-    auto v_s = app.add_option(
+    auto opt_verb_l = app.add_option(
         "--verbosity",
         verbosity_,
         "Verbosity level [0-3]",
         true
     );
-    auto v_c = app.add_flag(
+    auto opt_verb_s = app.add_flag(
         "-v",
         verbosity_cnt_,
         "Verbosity; add multiple times for more (-vvv)"
     );
-    // auto v_q = app.add_flag(
-    //     "--quiet",
-    //     verbosity_cnt_,
-    //     "Verbosity; add multiple times for more (-vvv)"
-    // );
-    v_s->excludes( v_c );
-    v_c->excludes( v_s );
+    auto opt_verb_q = app.add_flag(
+        "--quiet",
+        verbosity_quiet_,
+        "Set verbosity to 0, that is, only report errors and warnings"
+    );
+    opt_verb_l->excludes( opt_verb_s );
+    opt_verb_l->excludes( opt_verb_q );
+    opt_verb_s->excludes( opt_verb_l );
+    opt_verb_s->excludes( opt_verb_q );
+    opt_verb_q->excludes( opt_verb_l );
+    opt_verb_q->excludes( opt_verb_s );
 
     // Threads
     app.add_option(
@@ -119,7 +123,7 @@ std::string GlobalOptions::command_line() const
 
 size_t GlobalOptions::verbosity() const
 {
-    return ( verbosity_cnt_ > 0 ? verbosity_cnt_ + 1 : verbosity_ );
+    return verbosity_quiet_ == true ? 0 : ( verbosity_cnt_ > 0 ? verbosity_cnt_ + 1 : verbosity_ );
 }
 
 size_t GlobalOptions::threads() const

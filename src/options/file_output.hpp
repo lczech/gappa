@@ -68,6 +68,8 @@ public:
     /**
      * @brief Check whether any of the files in @p filenames exist in the out dir.
      * If so, print an error message and throw an error.
+     *
+     * Regex filenames are allowed, e.g., in order to check a range of files like `out_[0-9]+.txt`.
      */
     void check_nonexistent_output_files( std::vector<std::string> const& filenames ) const;
 

@@ -33,12 +33,14 @@
 
 void FileOutputOptions::add_output_dir_options( CLI::App* sub )
 {
-    sub->add_option(
+    auto opt_out_dir = sub->add_option(
         "--out-dir",
         out_dir_,
         "Directory to write files to",
         true
-    )->check( CLI::ExistingDirectory );
+    );
+    opt_out_dir->check( CLI::ExistingDirectory );
+    opt_out_dir->group( "Output Files" );
 
     // TODO instead of expecting an existing dir, create it if needed.
     // TODO add function to overwrite files, which sets the genesis option for this
@@ -57,12 +59,22 @@ void FileOutputOptions::check_nonexistent_output_files( std::vector<std::string>
 {
     using namespace genesis::utils;
 
+    // Check if any of the files exists. Old version without regex.
+    // std::string const dir = dir_normalize_path( out_dir_ );
+    // for( auto const& file : filenames ) {
+    //     if( file_exists( dir + file ) ) {
+    //         throw CLI::ValidationError(
+    //             "--out-dir (" + out_dir_ +  ")", "Output file already exists: " + file
+    //         );
+    //     }
+    // }
+
     // Check if any of the files exists.
-    std::string const dir = dir_normalize_path( out_dir_ );
     for( auto const& file : filenames ) {
-        if( file_exists( dir + file ) ) {
+        auto const dir_cont = dir_list_contents( out_dir_, true, file );
+        if( ! dir_cont.empty() ) {
             throw CLI::ValidationError(
-                "--out-dir (" + out_dir_ +  ")", "Output file already exists: " + file
+                "--out-dir (" + out_dir_ +  ")", "Output path already exists: " + file
             );
         }
     }

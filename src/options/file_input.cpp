@@ -45,11 +45,13 @@ void FileInputOptions::add_file_input_options(
 ){
     // TODO put in options group. same for all other options
 
+    // Store file type info.
     file_type_ = type;
     file_ext_  = extension;
 
+    // Input files as positional arguments.
     auto opt_input_files = sub->add_option(
-        type + "_files",
+        type + "_paths",
         raw_paths_,
         "List of " + type + " files or directories to process"
     );
@@ -60,6 +62,7 @@ void FileInputOptions::add_file_input_options(
         }
         return std::string();
     });
+    opt_input_files->group( "Input Files" );
 }
 
 // =================================================================================================
@@ -88,7 +91,7 @@ std::vector<std::string> const& FileInputOptions::input_file_paths() const
         } else {
             // throw std::runtime_error( "Not a valid file or directory: " + path );
             throw CLI::ValidationError(
-                file_type_ + "_files", "Not a valid file or directory: " + path
+                file_type_ + "_paths", "Not a valid file or directory: " + path
             );
         }
     }

@@ -68,6 +68,7 @@ private:
 
     size_t verbosity_ = 1;
     size_t verbosity_cnt_ = 0;
+    bool   verbosity_quiet_ = false;
     size_t threads_ = 1;
 
     std::vector<std::string> command_line_;

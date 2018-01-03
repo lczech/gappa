@@ -80,7 +80,7 @@ void run_squash( SquashOptions const& options )
     options.check_nonexistent_output_files({ "cluster.newick" });
 
     // Print some user output.
-    options.print_jplace_input_options();
+    options.input_files_print();
 
     // Get the samples.
     auto sample_set = options.sample_set();
@@ -100,7 +100,7 @@ void run_squash( SquashOptions const& options )
     // LOG_INFO << "Writing cluster tree";
     std::ofstream file_clust_tree;
     utils::file_output_stream( options.out_dir() + "cluster.newick",  file_clust_tree );
-    file_clust_tree << squash_cluster_tree( sc, options.jplace_base_file_names() );
+    file_clust_tree << squash_cluster_tree( sc, options.input_files_base_file_names() );
 
     // LOG_INFO << "Writing fat trees";
     for( size_t i = 0; i < sc.clusters.size(); ++i ) {

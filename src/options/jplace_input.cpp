@@ -23,10 +23,6 @@
 
 #include "options/jplace_input.hpp"
 
-#include "tools/file_input.hpp"
-
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/utils/core/fs.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -40,65 +36,25 @@ void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
     // TODO put in options group. same for all other options
     // TODO add avg tree option?!
 
-    auto opt_placefiles = sub->add_option(
-        "placefiles",
-        jplace_paths_,
-        "List of jplace files or directories to process"
-    );
-    opt_placefiles->required();
-    opt_placefiles->check([]( std::string const& path ){
-        if( ! genesis::utils::path_exists( path ) ) {
-            return std::string( "Path is neither a file nor a directory: " + path );
-        }
-        return std::string();
-    });
+    add_file_input_options( sub, "jplace", "jplace" );
 }
 
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
 
-void JplaceInputOptions::print_jplace_input_options() const
+genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
 {
-    print_file_paths( jplace_file_paths(), "jplace" );
-}
-
-std::vector<std::string> const& JplaceInputOptions::cli_paths() const
-{
-    return jplace_paths_;
-}
-
-std::vector<std::string> JplaceInputOptions::jplace_base_file_names() const
-{
-    using namespace genesis::utils;
-
-    auto jplace_files = jplace_file_paths();
-    for( auto& path : jplace_files ) {
-        path = file_filename( file_basename( path ));
-    }
-    return jplace_files;
-}
-
-std::vector<std::string> JplaceInputOptions::jplace_file_paths() const
-{
-    // TODO check for file existence
-    // TODO use mutable cache vec to avoid recomp.
-    // TODO add sample( size_t ) function that just reads one file, using the proper jplace reader settings
-    // TODO add/offer validity checks etc
-    // TODO offer avg tree option
-
-    if( resolve_paths_ ) {
-        return resolve_file_paths( jplace_paths_, "jplace" );
-    } else {
-        return jplace_paths_;
-    }
+    return reader_.from_file( input_file_path( index ) );
 }
 
 genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 {
+    // TODO add sample( size_t ) function that just reads one file, using the proper jplace reader settings
     // TODO dont report errors in jplace. offer subcommand for that
     // TODO nope. also report them here. just not while reading, but use a validator function.
+    // TODO offer avg tree option
+    // TODO add/offer validity checks etc
 
-    auto reader = genesis::placement::JplaceReader();
-    return reader.from_files( jplace_file_paths() );
+    return reader_.from_files( input_file_paths() );
 }

@@ -26,8 +26,11 @@
 
 #include "CLI/CLI.hpp"
 
+#include "options/file_input.hpp"
+
 #include "genesis/placement/sample.hpp"
 #include "genesis/placement/sample_set.hpp"
+#include "genesis/placement/formats/jplace_reader.hpp"
 
 #include <string>
 #include <vector>
@@ -37,6 +40,7 @@
 // =================================================================================================
 
 class JplaceInputOptions
+    : public FileInputOptions
 {
 public:
 
@@ -64,27 +68,12 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Print some user output related to these options.
-     */
-    void print_jplace_input_options() const;
-
-    /**
-     * @brief Return the list of paths as provided by the user, that is, without processing.
-     */
-    std::vector<std::string> const& cli_paths() const;
-
-    /**
-     * @brief Get the file names of the provided files, i.e., without directory and ending.
+     * @brief Read in the jplace files at @p index in the list of input files and return it.
      *
-     * This function calls genesis::utils::file_basename() and genesis::utils::file_filename() for
-     * all paths. The result is for example useful for user output.
+     * See FileInputOptions::input_file_count() for the number of input files (valid range for the index)
+     * and FileInputOptions::input_file_paths() for their list.
      */
-    std::vector<std::string> jplace_base_file_names() const;
-
-    /**
-     * @brief Get the resolved full file paths of all jplace files provided by the user.
-     */
-    std::vector<std::string> jplace_file_paths() const;
+    genesis::placement::Sample sample( size_t index ) const;
 
     /**
      * @brief Read in jplace files and return them as a SampleSet.
@@ -97,8 +86,7 @@ public:
 
 private:
 
-    std::vector<std::string> jplace_paths_;
-    bool resolve_paths_ = true;
+    genesis::placement::JplaceReader reader_;
 
 };
 

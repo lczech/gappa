@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -80,12 +80,12 @@ void run_tog( TogOptions const& options )
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
     std::vector<std::string> out_tree_files;
-    for( auto const& bfn : options.jplace_base_file_names() ) {
+    for( auto const& bfn : options.input_files_base_file_names() ) {
         out_tree_files.push_back( bfn + ".newick" );
     }
     options.check_nonexistent_output_files( out_tree_files );
 
-    auto reader = JplaceReader();
+    // auto reader = JplaceReader();
     // TODO dont report errors in jplace. offer subcommand for that
 
     // TODO add support for external trees, e.g., bootstrap trees.
@@ -98,10 +98,10 @@ void run_tog( TogOptions const& options )
 
     // TODO OpenMP this!
 
-    auto const jplace_files = options.jplace_file_paths();
-    for( size_t i = 0; i < jplace_files.size(); ++i ) {
+    for( size_t i = 0; i < options.input_file_count(); ++i ) {
         // Read the sample and make the tree.
-        auto const sample = reader.from_file( jplace_files[i] );
+        // auto const sample = reader.from_file( jplace_files[i] );
+        auto const sample = options.sample( i );
         auto const tog    = labelled_tree( sample, options.fully_resolve, options.leaf_prefix );
 
         // Write output to file.

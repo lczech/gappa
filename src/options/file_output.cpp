@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "options/output_dir.hpp"
+#include "options/file_output.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 
@@ -31,7 +31,7 @@
 //      Setup Functions
 // =================================================================================================
 
-void OutputDirOptions::add_output_dir_options( CLI::App* sub )
+void FileOutputOptions::add_output_dir_options( CLI::App* sub )
 {
     sub->add_option(
         "--out-dir",
@@ -48,12 +48,12 @@ void OutputDirOptions::add_output_dir_options( CLI::App* sub )
 //      Run Functions
 // =================================================================================================
 
-std::string OutputDirOptions::out_dir() const
+std::string FileOutputOptions::out_dir() const
 {
     return genesis::utils::dir_normalize_path( out_dir_ );
 }
 
-void OutputDirOptions::check_nonexistent_output_files( std::vector<std::string> const& filenames ) const
+void FileOutputOptions::check_nonexistent_output_files( std::vector<std::string> const& filenames ) const
 {
     using namespace genesis::utils;
 

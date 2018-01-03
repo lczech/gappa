@@ -27,7 +27,7 @@
 #include "CLI/CLI.hpp"
 
 #include "options/jplace_input.hpp"
-#include "options/output_dir.hpp"
+#include "options/file_output.hpp"
 
 #include <memory>
 #include <string>
@@ -39,7 +39,7 @@
 
 class SquashOptions
     : public JplaceInputOptions
-    , public OutputDirOptions
+    , public FileOutputOptions
 {
 public:
 

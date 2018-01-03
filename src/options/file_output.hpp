@@ -1,9 +1,9 @@
-#ifndef GAPPA_OPTIONS_OUTPUT_DIR_H_
-#define GAPPA_OPTIONS_OUTPUT_DIR_H_
+#ifndef GAPPA_OPTIONS_FILE_OUTPUT_H_
+#define GAPPA_OPTIONS_FILE_OUTPUT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 //      Output Directory Options
 // =================================================================================================
 
-class OutputDirOptions
+class FileOutputOptions
 {
 public:
 
@@ -41,14 +41,14 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    OutputDirOptions()  = default;
-    virtual ~OutputDirOptions() = default;
+    FileOutputOptions()  = default;
+    virtual ~FileOutputOptions() = default;
 
-    OutputDirOptions( OutputDirOptions const& other ) = default;
-    OutputDirOptions( OutputDirOptions&& )            = default;
+    FileOutputOptions( FileOutputOptions const& other ) = default;
+    FileOutputOptions( FileOutputOptions&& )            = default;
 
-    OutputDirOptions& operator= ( OutputDirOptions const& other ) = default;
-    OutputDirOptions& operator= ( OutputDirOptions&& )            = default;
+    FileOutputOptions& operator= ( FileOutputOptions const& other ) = default;
+    FileOutputOptions& operator= ( FileOutputOptions&& )            = default;
 
     // -------------------------------------------------------------------------
     //     Setup Functions

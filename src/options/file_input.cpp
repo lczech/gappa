@@ -127,7 +127,7 @@ void FileInputOptions::input_files_print() const
         std::cout << "Found " << files.size() << type << " files: ";
         for( auto const& file : files ) {
             if( &file != &files[0] ) {
-                std::cout << ",  ";
+                std::cout << ", ";
             }
             std::cout << genesis::utils::file_basename( file );
         }

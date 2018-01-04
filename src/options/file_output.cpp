@@ -26,6 +26,7 @@
 #include "genesis/utils/core/fs.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 // =================================================================================================
 //      Setup Functions
@@ -33,17 +34,38 @@
 
 void FileOutputOptions::add_output_dir_options( CLI::App* sub )
 {
-    auto opt_out_dir = sub->add_option(
-        "--out-dir",
-        out_dir_,
-        "Directory to write files to",
-        true
-    );
-    opt_out_dir->check( CLI::ExistingDirectory );
-    opt_out_dir->group( output_files_group_name() );
+    add_output_dir_options( sub, {{ "", "Directory to write files to", "." }} );
+}
 
-    // TODO instead of expecting an existing dir, create it if needed.
-    // TODO add function to overwrite files, which sets the genesis option for this
+void FileOutputOptions::add_output_dir_options(
+    CLI::App* sub,
+    std::vector<NamedOutputDir> const& names
+) {
+    for( auto const& entry : names ) {
+        auto const optname = "--" + entry.name + ( entry.name.empty() ? "" : "-" ) + "out-dir";
+
+        if( out_dirs_.count( entry.name ) > 0 ) {
+            throw std::domain_error(
+                "Output dir '" + optname + "dir' added multipe times to options."
+            );
+        }
+
+        // Add default entry.
+        out_dirs_[ entry.name ] = entry.initial_value;
+
+        // Add option
+        auto opt_out_dir = sub->add_option(
+            optname,
+            out_dirs_[ entry.name ],
+            entry.description,
+            true
+        );
+        opt_out_dir->check( CLI::ExistingDirectory );
+        opt_out_dir->group( output_files_group_name() );
+
+        // TODO instead of expecting an existing dir, create it if needed.
+        // TODO add function to overwrite files, which sets the genesis option for this
+    }
 }
 
 // =================================================================================================
@@ -52,29 +74,51 @@ void FileOutputOptions::add_output_dir_options( CLI::App* sub )
 
 std::string FileOutputOptions::out_dir() const
 {
-    return genesis::utils::dir_normalize_path( out_dir_ );
+    return out_dir( "" );
 }
 
-void FileOutputOptions::check_nonexistent_output_files( std::vector<std::string> const& filenames ) const
+std::string FileOutputOptions::out_dir( std::string const& name ) const
 {
+    if( out_dirs_.count( name ) == 0 ) {
+        auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
+        throw std::domain_error(
+            "Output dir '" + optname + "' not part of the options."
+        );
+    }
+    return genesis::utils::dir_normalize_path( out_dirs_.at( name ));
+}
+
+void FileOutputOptions::check_nonexistent_output_files(
+    std::vector<std::string> const& filenames
+) const {
+    return check_nonexistent_output_files( filenames, "" );
+}
+
+void FileOutputOptions::check_nonexistent_output_files(
+    std::vector<std::string> const& filenames, std::string const& name
+) const {
     using namespace genesis::utils;
 
+    // Get basic strings
+    auto const outdir = out_dir( name );
+    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
+
     // Check if any of the files exists. Old version without regex.
-    // std::string const dir = dir_normalize_path( out_dir_ );
+    // std::string const dir = dir_normalize_path( outdir );
     // for( auto const& file : filenames ) {
     //     if( file_exists( dir + file ) ) {
     //         throw CLI::ValidationError(
-    //             "--out-dir (" + out_dir_ +  ")", "Output file already exists: " + file
+    //             "--out-dir (" + outdir +  ")", "Output file already exists: " + file
     //         );
     //     }
     // }
 
     // Check if any of the files exists.
     for( auto const& file : filenames ) {
-        auto const dir_cont = dir_list_contents( out_dir_, true, file );
+        auto const dir_cont = dir_list_contents( outdir, true, file );
         if( ! dir_cont.empty() ) {
             throw CLI::ValidationError(
-                "--out-dir (" + out_dir_ +  ")", "Output path already exists: " + file
+                optname + " (" + outdir +  ")", "Output path already exists: " + file
             );
         }
     }
@@ -86,7 +130,10 @@ void FileOutputOptions::check_nonexistent_output_files( std::vector<std::string>
     auto const adj = std::adjacent_find( cpy.begin(), cpy.end() ) ;
     if( adj != cpy.end() ) {
         throw CLI::ValidationError(
-            "--out-dir", "Output file name used multiple times: " + ( *adj )
+            optname, "Output file name used multiple times: " + ( *adj )
         );
     }
+
+    // TODO there is a change that multiple named output dirs are set to the same real dir,
+    // and that then files with the same names are written.
 }

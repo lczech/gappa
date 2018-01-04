@@ -27,9 +27,7 @@
 
 #include "genesis/utils/core/options.hpp"
 
-#ifdef GENESIS_PTHREADS
-#    include <thread>
-#endif
+#include <thread>
 
 // =================================================================================================
 //      Setup Functions
@@ -134,13 +132,9 @@ size_t GlobalOptions::threads() const
 void GlobalOptions::init()
 {
     // If user did not provide number, use hardware value.
-    #if defined( GENESIS_PTHREADS )
-
-        if( threads_ == 0 ) {
-            threads_ = std::thread::hardware_concurrency();
-        }
-
-    #endif
+    if( threads_ == 0 ) {
+        threads_ = std::thread::hardware_concurrency();
+    }
 
     // If hardware value is not available, just use 1 thread.
     // This is executed both when the above ifdef is not compiled and

@@ -27,6 +27,8 @@
 #include "CLI/CLI.hpp"
 
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 // =================================================================================================
@@ -36,6 +38,17 @@
 class FileOutputOptions
 {
 public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs, Enums, Structs
+    // -------------------------------------------------------------------------
+
+    struct NamedOutputDir
+    {
+        std::string name;
+        std::string description;
+        std::string initial_value;
+    };
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -54,7 +67,20 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Add a single output dir, with an option named "--out-dir".
+     */
     void add_output_dir_options( CLI::App* sub );
+
+    /**
+     * @brief Add multiple output dirs, with options named "--name-out-dir",
+     * according to the given list of names.
+     *
+     * The list contains entries of output directores to be added to the options.
+     */
+    void add_output_dir_options(
+        CLI::App* sub, std::vector<NamedOutputDir> const& dirs
+    );
 
     std::string output_files_group_name() const
     {
@@ -66,17 +92,32 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return the normalized output dir provided by the user.
+     * @brief Return the normalized output dir for the single dir "--out-dir".
      */
     std::string out_dir() const;
 
     /**
-     * @brief Check whether any of the files in @p filenames exist in the out dir.
+     * @brief Return the normalized output dir for the named dir "--name-out-dir".
+     */
+    std::string out_dir( std::string const& name ) const;
+
+    /**
+     * @brief Check whether any of the files in @p filenames exist in the the single dir "--out-dir".
      * If so, print an error message and throw an error.
      *
      * Regex filenames are allowed, e.g., in order to check a range of files like `out_[0-9]+.txt`.
      */
     void check_nonexistent_output_files( std::vector<std::string> const& filenames ) const;
+
+    /**
+     * @brief Check whether any of the files in @p filenames exist in a named dir "--name-out-dir".
+     * If so, print an error message and throw an error.
+     *
+     * Regex filenames are allowed, e.g., in order to check a range of files like `out_[0-9]+.txt`.
+     */
+    void check_nonexistent_output_files(
+        std::vector<std::string> const& filenames, std::string const& name
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -84,7 +125,8 @@ public:
 
 private:
 
-    std::string out_dir_ = ".";
+    // Map from dir names to paths.
+    std::unordered_map<std::string, std::string> out_dirs_;
 
 };
 

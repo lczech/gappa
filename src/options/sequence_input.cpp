@@ -39,6 +39,8 @@ const std::string SequenceInputOptions::phylip_extensions_ = "phylip|phy";
 
 SequenceInputOptions::SequenceInputOptions()
 {
+    fasta_reader_.to_upper( false );
+    phylip_reader_.to_upper( false );
     phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kAutomatic );
 }
 

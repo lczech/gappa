@@ -66,6 +66,11 @@ protected:
         CLI::App* sub, std::string const& type, std::string const& extension
     );
 
+    std::string input_files_group_name() const
+    {
+        return "Input";
+    }
+
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
@@ -117,6 +122,13 @@ public:
      * all paths. The result is for example useful for user output.
      */
     std::vector<std::string> input_files_base_file_names() const;
+
+    /**
+     * @brief Get the file name of the file at the index, i.e., without directory and ending.
+     *
+     * This function is the same as input_files_base_file_names(), just for one file.
+     */
+    std::string input_files_base_file_name( size_t index ) const;
 
     // -------------------------------------------------------------------------
     //     Option Members

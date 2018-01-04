@@ -56,6 +56,11 @@ public:
 
     void add_output_dir_options( CLI::App* sub );
 
+    std::string output_files_group_name() const
+    {
+        return "Output";
+    }
+
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------

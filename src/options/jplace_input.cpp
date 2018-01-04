@@ -23,7 +23,6 @@
 
 #include "options/jplace_input.hpp"
 
-
 #include <iostream>
 #include <stdexcept>
 

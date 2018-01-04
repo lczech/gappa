@@ -43,8 +43,6 @@
 void FileInputOptions::add_file_input_options(
     CLI::App* sub, std::string const& type, std::string const& extension
 ){
-    // TODO put in options group. same for all other options
-
     // Store file type info.
     file_type_ = type;
     file_ext_  = extension;
@@ -62,7 +60,7 @@ void FileInputOptions::add_file_input_options(
         }
         return std::string();
     });
-    opt_input_files->group( "Input Files" );
+    opt_input_files->group( input_files_group_name() );
 }
 
 // =================================================================================================
@@ -165,4 +163,10 @@ std::vector<std::string> FileInputOptions::input_files_base_file_names() const
         path = file_filename( file_basename( path ));
     }
     return paths;
+}
+
+std::string FileInputOptions::input_files_base_file_name( size_t index ) const
+{
+    using namespace genesis::utils;
+    return file_filename( file_basename( input_file_path( index )));
 }

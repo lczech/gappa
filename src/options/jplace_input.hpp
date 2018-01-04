@@ -80,6 +80,11 @@ public:
      */
     genesis::placement::SampleSet sample_set() const;
 
+    genesis::placement::JplaceReader const& reader() const
+    {
+        return reader_;
+    }
+
     // -------------------------------------------------------------------------
     //     Option Members
     // -------------------------------------------------------------------------

@@ -40,7 +40,7 @@ void FileOutputOptions::add_output_dir_options( CLI::App* sub )
         true
     );
     opt_out_dir->check( CLI::ExistingDirectory );
-    opt_out_dir->group( "Output Files" );
+    opt_out_dir->group( output_files_group_name() );
 
     // TODO instead of expecting an existing dir, create it if needed.
     // TODO add function to overwrite files, which sets the genesis option for this

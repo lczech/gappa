@@ -31,6 +31,7 @@
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/formats/fasta_input_iterator.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
+#include "genesis/sequence/functions/labels.hpp"
 
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_source.hpp"
@@ -39,11 +40,32 @@
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/sha256.hpp"
 
+// #include <sparsepp/spp.h>
+
 #include <cstdio>
 #include <fstream>
-#include <regex>
 #include <unordered_map>
 #include <unordered_set>
+
+// =================================================================================================
+//      Typedefs
+// =================================================================================================
+
+/**
+ * @brief Hash to use.
+ */
+using HashFunction = genesis::utils::SHA256;
+
+/**
+ * @brief Data type for storing a hash map from digests to chunk numbers.
+ */
+using ChunkHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
+// using ChunkHashMap = spp::sparse_hash_map< HashFunction::DigestType, size_t >;
+
+/**
+ * @brief Data type for storing per input file frequencies.
+ */
+using AbundancesHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
 
 // =================================================================================================
 //      Setup
@@ -55,37 +77,62 @@ void setup_chunkify( CLI::App& app )
     auto opt = std::make_shared<ChunkifyOptions>();
     auto sub = app.add_subcommand(
         "chunkify",
-        "Chunkify a set of fasta files and create an abundance map."
+        "Chunkify a set of fasta files and create abundance maps."
     );
 
-    // Add common options.
-    opt->add_fasta_input_options( sub );
-    opt->add_output_dir_options( sub );
+    // -----------------------------------------------------------
+    //     Add common options
+    // -----------------------------------------------------------
 
-    // Fill in custom options.
-    auto opt_amf = sub->add_option(
-        "--abundance-map-file",
-        opt->abundance_map_file,
-        "File path for the abundance map",
+    opt->add_fasta_input_options( sub );
+    opt->add_output_dir_options( sub, {
+        { "chunks", "Directory to write chunk fasta files to.", "chunks" },
+        { "abundances", "Directory to write abundance map files to.", "abundances" }
+    });
+
+    // -----------------------------------------------------------
+    //     Fill in custom options
+    // -----------------------------------------------------------
+
+    // Abundance File Prefix
+    auto opt_afp = sub->add_option(
+        "--abundance-file-prefix",
+        opt->abundance_file_prefix,
+        "File path prefix for the abundance maps.",
         true
     );
-    opt_amf->group( opt->output_files_group_name() );
+    opt_afp->group( opt->output_files_group_name() );
 
+    // Chunk File Prefix
     auto opt_cfp = sub->add_option(
         "--chunk-file-prefix",
         opt->chunk_file_prefix,
-        "File path prefix for the fasta chunks",
+        "File path prefix for the fasta chunks.",
         true
     );
     opt_cfp->group( opt->output_files_group_name() );
 
+    // Chunk Size
     auto opt_cs = sub->add_option(
         "--chunk-size",
         opt->chunk_size,
-        "Number of sequences per chunk file",
+        "Number of sequences per chunk file.",
         true
     );
     opt_cs->group( opt->output_files_group_name() );
+
+    // Minimum Abundance
+    auto opt_ma = sub->add_option(
+        "--min-abundance",
+        opt->min_abundance,
+        "Minimum abundance of a sequence per file. Sequences below are filtered out.",
+        true
+    );
+    opt_ma->group( opt->output_files_group_name() );
+
+    // -----------------------------------------------------------
+    //     Callback
+    // -----------------------------------------------------------
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -98,48 +145,77 @@ void setup_chunkify( CLI::App& app )
 //      Helpers
 // =================================================================================================
 
-namespace std
-{
-    /**
-     * @brief Hash function for SHA256 digestes.
-     *
-     * Basically, we re-hash from 256 bit to 64 bit. This is ugly, but currently faster to implement
-     * than a custom container that uses the full hash width. Might work on this in the future.
-     */
-    template<>
-    struct hash<genesis::utils::SHA256::DigestType>
-    {
-        using argument_type = genesis::utils::SHA256::DigestType;
-        using result_type   = std::size_t;
+void write_chunk_file(
+    ChunkifyOptions const& options,
+    genesis::sequence::SequenceSet const& chunk,
+    size_t chunk_count
+) {
+    using namespace genesis::sequence;
 
-        result_type operator()( argument_type const& s ) const {
-            result_type hash = 0;
-            hash ^= s[0] ^ ( static_cast<result_type>( s[1] ) << 32 );
-            hash ^= s[2] ^ ( static_cast<result_type>( s[3] ) << 32 );
-            hash ^= s[4] ^ ( static_cast<result_type>( s[5] ) << 32 );
-            hash ^= s[6] ^ ( static_cast<result_type>( s[7] ) << 32 );
-            return hash;
-        }
-    };
+    // Prepare fata writer.
+    auto writer = FastaWriter();
+    writer.enable_metadata(false);
+    writer.line_length( 0 );
+
+    // Generate output file name.
+    auto const ofn
+        = options.out_dir( "chunks" )
+        + options.chunk_file_prefix
+        + std::to_string( chunk_count )
+        + ".fasta"
+    ;
+
+    // Write
+    writer.to_file( chunk, ofn );
 }
 
-size_t guess_sequence_abundance( genesis::sequence::Sequence const& seq )
-{
-    // Prepare static regex (no need to re-compile it on every function call).
-    // Matches either ";size=123;" or "_123"
-    static const std::string expr = "(?:[;]?size=([0-9]+)[;]?)|(?:_([0-9]+)$)";
-    static std::regex pattern( expr );
+void write_abundance_map_file(
+    ChunkifyOptions const& options,
+    ChunkHashMap const& hash_to_chunk,
+    AbundancesHashMap const& seq_abundances,
+    size_t input_file_counter
+) {
+    using namespace genesis::utils;
 
-    // Run the expression.
-    std::smatch matches;
-    if( std::regex_search( seq.label(), matches, pattern )) {
-        size_t res;
-        std::string const num = ( matches[1].str().empty() ? matches[2].str() : matches[1].str() );
-        sscanf( num.c_str(), "%zu", &res );
-        return res;
-    } else {
-        return 1;
+    // Base name of the current input file
+    auto const base_fn = options.input_files_base_file_name( input_file_counter );
+
+    // Pprepare a new abundance file
+    auto const fn
+        = options.out_dir( "abundances" )
+        + options.abundance_file_prefix
+        + base_fn
+        + ".json"
+    ;
+    std::ofstream ofs;
+    file_output_stream( fn, ofs );
+    ofs << "{\n";
+
+    // Write name of the input file for later identification.
+    ofs << "  \"" << base_fn << "\": {";
+
+    // TODO write meta data: gappa version, invocation, which hash function, which fields are written
+
+    // Write abundance information for this file.
+    bool is_first = true;
+    for( auto seq_it = seq_abundances.begin(); seq_it != seq_abundances.end(); ++seq_it ) {
+
+        // Print comma for all but the first entry.
+        if( ! is_first ) {
+            ofs << ",";
+        }
+        is_first = false;
+        ofs << "\n";
+
+        // Print sequence data.
+        ofs << "    \"" << HashFunction::digest_to_hex( seq_it->first ) << "\": [ ";
+        ofs << hash_to_chunk.at(seq_it->first) << ", " << seq_it->second << " ]";
     }
+
+    // Finish the file.
+    ofs << "\n  }\n";
+    ofs << "}\n";
+    ofs.close();
 }
 
 // =================================================================================================
@@ -151,117 +227,100 @@ void run_chunkify( ChunkifyOptions const& options )
     using namespace genesis::utils;
     using namespace genesis::sequence;
 
+    // -----------------------------------------------------------
+    //     Input File Preparations
+    // -----------------------------------------------------------
+
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.check_nonexistent_output_files({
-        options.abundance_map_file,
-        options.chunk_file_prefix + "[0-9]+.fasta"
-    });
+    options.check_nonexistent_output_files(
+        { options.abundance_file_prefix + ".*\\.json" },
+        "abundances"
+    );
+    options.check_nonexistent_output_files(
+        { options.chunk_file_prefix + "[0-9]+\\.fasta" },
+        "chunks"
+    );
 
     // Print some user output.
     options.input_files_print();
 
-    // Prepare abundance output.
-    std::ofstream abundance_map_file;
-    file_output_stream( options.out_dir() + options.abundance_map_file, abundance_map_file );
-    abundance_map_file << "{\n";
+    // -----------------------------------------------------------
+    //     Iterate Input Files
+    // -----------------------------------------------------------
 
-    // Sequences hashes, mapping to the chunk number where we store them.
-    std::unordered_map< SHA256::DigestType, size_t > hash_to_chunk;
+    // Sequences hashes, mapping to the chunk number where they are stored,
+    // i.e. where they first occured.
+    ChunkHashMap hash_to_chunk;
 
     // Collect sequences for the current chunk here.
-    SequenceSet chunk;
+    SequenceSet current_chunk;
     size_t chunk_count = 0;
-    size_t seqs_count = 0;
-
-    // Prepare fata writer.
-    auto writer = FastaWriter();
-    writer.enable_metadata(false);
-    writer.line_length( 0 );
-
-    // Helper function to write a chunk.
-    auto flush_chunk = [ &writer, &options ]( SequenceSet const& chunk, size_t chunk_count ){
-        auto const ofn
-            = options.out_dir()
-            + options.chunk_file_prefix
-            + to_string( chunk_count )
-            + ".fasta"
-        ;
-
-        writer.to_file( chunk, ofn );
-    };
+    size_t total_seqs_count = 0;
+    size_t min_abun_count = 0;
 
     // Iterate fasta files
     for( size_t fi = 0; fi < options.input_file_count(); ++fi ) {
         auto const& fasta_filename = options.input_file_path( fi );
 
+        // User output
         if( global_options.verbosity() >= 2 ) {
             std::cout << "Processing file " << ( fi + 1 ) << " of " << options.input_file_count();
             std::cout << ": " << fasta_filename << "\n";
         }
 
-        // Count identical sequences, accesses via their hash.
-        std::unordered_map< SHA256::DigestType, size_t > seq_freqs;
+        // Count identical sequences of this fasta file, accesses via their hash.
+        AbundancesHashMap seq_abundances;
 
         // Iterate sequences
         InputStream instr( make_unique< FileInputSource >( fasta_filename ));
-        auto it = FastaInputIterator( instr, options.fasta_reader() );
-        while( it ) {
+        for( auto it = FastaInputIterator( instr, options.fasta_reader() ); it; ++it ) {
+            ++total_seqs_count;
 
-            // Get hash.
-            auto const hash_digest = SHA256::from_string_digest( it->sites() );
+            // Check for min abundance.
+            auto const abundance = guess_sequence_abundance( *it );
+            if( abundance < options.min_abundance ) {
+                continue;
+            }
+            ++min_abun_count;
 
-            // Increment seq counters.
-            seq_freqs[ hash_digest ] += guess_sequence_abundance( *it );
-            ++seqs_count;
+            // Increment seq abundance for this file.
+            auto const hash_digest = HashFunction::from_string_digest( it->sites() );
+            seq_abundances[ hash_digest ] += abundance;
 
             // We saw that sequence before. Don't need to add it to the chunk.
             if( hash_to_chunk.count( hash_digest ) > 0 ) {
-                ++it;
                 continue;
             }
 
             // New sequence: never saw that hash before. Add it to the chunk, store chunk num.
+            current_chunk.add( Sequence( HashFunction::digest_to_hex( hash_digest ), it->sites() ));
             hash_to_chunk[ hash_digest ] = chunk_count;
-            chunk.add( Sequence( SHA256::digest_to_hex( hash_digest ), it->sites() ));
 
             // If a chunk is full, flush it.
-            if( chunk.size() == options.chunk_size ) {
-                flush_chunk( chunk, chunk_count );
+            if( current_chunk.size() >= options.chunk_size ) {
+                write_chunk_file( options, current_chunk, chunk_count );
                 ++chunk_count;
-                chunk.clear();
+                current_chunk.clear();
             }
-
-            // Next sequence.
-            ++it;
         }
 
-        // Write abundance information for this file.
-        abundance_map_file << "  \"" << options.input_files_base_file_name( fi ) << "\": {\n";
-        for( auto seq_it = seq_freqs.begin(); seq_it != seq_freqs.end(); ++seq_it ) {
-            abundance_map_file << "    \"" << SHA256::digest_to_hex( seq_it->first ) << "\": [ ";
-            abundance_map_file << hash_to_chunk.at(seq_it->first) << ", " << seq_it->second << " ]";
-            if( std::next(seq_it) != seq_freqs.end() ) {
-                abundance_map_file << ",";
-            }
-            abundance_map_file << "\n";
-        }
-        abundance_map_file << "  }";
-        if( fi < options.input_file_count() - 1 ) {
-            abundance_map_file << ",";
-        }
-        abundance_map_file << "\n";
+        // Finished a fasta file. Write its abundances.
+        write_abundance_map_file( options, hash_to_chunk, seq_abundances, fi );
     }
 
-    // Flush the remaining chunk.
-    flush_chunk( chunk, chunk_count );
+    // -----------------------------------------------------------
+    //     Finish
+    // -----------------------------------------------------------
 
-    // Finish abundance output.
-    abundance_map_file << "}\n";
-    abundance_map_file.close();
+    // Write the remaining chunk.
+    write_chunk_file( options, current_chunk, chunk_count );
 
     if( global_options.verbosity() >= 1 ) {
-        std::cout << "Processed " << seqs_count << " sequences, thereof ";
-        std::cout << hash_to_chunk.size() << " unique.\n";
-        std::cout << "Produced " << ( chunk_count + 1 ) << " fasta chunk files.";
+        std::cout << "Processed " << total_seqs_count << " sequences, thereof ";
+        std::cout << (total_seqs_count - min_abun_count) << " (";
+        std::cout << ( 100 * (total_seqs_count - min_abun_count) / total_seqs_count );
+        std::cout << "%) filtered due to low abundance.\n";
+        std::cout << "Wrote " << hash_to_chunk.size() << " unique sequences ";
+        std::cout << "in " << ( chunk_count + 1 ) << " fasta chunk files.\n";
     }
 }

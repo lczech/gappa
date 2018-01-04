@@ -42,9 +42,11 @@ class ChunkifyOptions
 {
 public:
 
-    std::string abundance_map_file = "abundances.json";
+    std::string abundance_file_prefix = "abundances_";
     std::string chunk_file_prefix = "chunk_";
+
     size_t      chunk_size = 50000;
+    size_t      min_abundance = 1;
 
 };
 

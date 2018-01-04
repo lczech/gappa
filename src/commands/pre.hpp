@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_PRE_H_
+#define GAPPA_COMMANDS_PRE_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
@@ -23,45 +26,26 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/squash.hpp"
-#include "commands/pre.hpp"
+#include "commands/pre/chunkify.hpp"
 
-#include "options/global.hpp"
-#include "tools/version.hpp"
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Functions
 // =================================================================================================
 
-int main( int argc, char** argv )
+void setup_pre( CLI::App& app )
 {
-    // Activate logging.
-    // utils::Logging::log_to_stdout();
-    // utils::Logging::details.time = true;
-    //
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "pre",
+        "Commands for preprocessing placement data."
+    );
+    sub->require_subcommand( 1 );
 
-    CLI::App app{ gappa_header() };
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
-
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_general_options( app );
-
-    // Set up all subcommands.
-    setup_squash( app );
-    setup_pre( app );
-
-    // TODO print invocation
-    // TODO use cli groups
-
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
-
-    return 0;
+    // Add module subcommands.
+    setup_chunkify( *sub );
 }
+
+#endif // include guard

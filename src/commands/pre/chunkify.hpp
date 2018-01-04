@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_PRE_CHUNKIFY_H_
+#define GAPPA_COMMANDS_PRE_CHUNKIFY_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
@@ -23,45 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/squash.hpp"
-#include "commands/pre.hpp"
+#include "options/sequence_input.hpp"
+#include "options/file_output.hpp"
 
-#include "options/global.hpp"
-#include "tools/version.hpp"
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Options
 // =================================================================================================
 
-int main( int argc, char** argv )
+class ChunkifyOptions
+    : public SequenceInputOptions
+    , public FileOutputOptions
 {
-    // Activate logging.
-    // utils::Logging::log_to_stdout();
-    // utils::Logging::details.time = true;
-    //
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+public:
 
-    CLI::App app{ gappa_header() };
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
+    std::string abundance_map_file = "abundances.json";
+    std::string chunk_file_prefix = "chunk_";
+    size_t      chunk_size = 50000;
 
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_general_options( app );
+};
 
-    // Set up all subcommands.
-    setup_squash( app );
-    setup_pre( app );
+// =================================================================================================
+//      Functions
+// =================================================================================================
 
-    // TODO print invocation
-    // TODO use cli groups
+void setup_chunkify( CLI::App& app );
+void run_chunkify( ChunkifyOptions const& options );
 
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
-
-    return 0;
-}
+#endif // include guard

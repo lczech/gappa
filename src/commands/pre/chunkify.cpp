@@ -40,7 +40,7 @@
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/sha256.hpp"
 
-// #include <sparsepp/spp.h>
+#include <sparsepp/spp.h>
 
 #include <cstdio>
 #include <fstream>
@@ -59,8 +59,8 @@ using HashFunction = genesis::utils::SHA256;
 /**
  * @brief Data type for storing a hash map from digests to chunk numbers.
  */
-using ChunkHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
-// using ChunkHashMap = spp::sparse_hash_map< HashFunction::DigestType, size_t >;
+// using ChunkHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
+using ChunkHashMap = spp::sparse_hash_map< HashFunction::DigestType, size_t >;
 
 /**
  * @brief Data type for storing per input file frequencies.

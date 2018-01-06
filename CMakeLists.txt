@@ -1,5 +1,5 @@
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017 Lucas Czech
+# Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -104,9 +104,6 @@ set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${GENESIS_C_FLAGS}")
 set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${GENESIS_CXX_FLAGS}" )
 set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GENESIS_EXE_LINKER_FLAGS}" )
 
-# Add CLI11 as dependency. It's header-only, so this is easy.
-include_directories( "libs/CLI11/include" )
-
 # Genesis exports the OpenMP variables. We use it to check and give advice in case it is not found.
 if( NOT OPENMP_FOUND )
     string(ASCII 27 Esc)
@@ -116,6 +113,12 @@ if( NOT OPENMP_FOUND )
         "you can add the needed compiler flags to the CMake script. See BUILD.md for details."
     "${Esc}[0m" )
 endif()
+
+# Add CLI11 as dependency. It's header-only, so this is easy.
+include_directories( "libs/CLI11/include" )
+
+# Same for sparse++
+include_directories( "libs/sparsepp" )
 
 # ------------------------------------------------------------------------------
 #   Sources

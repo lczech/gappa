@@ -39,6 +39,11 @@
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/sha256.hpp"
+#include "genesis/utils/tools/sha1.hpp"
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 #include <sparsepp/spp.h>
 
@@ -54,7 +59,7 @@
 /**
  * @brief Hash to use.
  */
-using HashFunction = genesis::utils::SHA256;
+using HashFunction = genesis::utils::SHA1;
 
 /**
  * @brief Data type for storing a hash map from digests to chunk numbers.
@@ -63,9 +68,18 @@ using HashFunction = genesis::utils::SHA256;
 using ChunkHashMap = spp::sparse_hash_map< HashFunction::DigestType, size_t >;
 
 /**
- * @brief Data type for storing per input file frequencies.
+ * @brief Store the data needed to write one abundace file.
  */
-using AbundancesHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
+struct SequenceInfo
+{
+    size_t abundance;
+    size_t chunk_num;
+};
+
+/**
+ * @brief Data type for storing per input file abundances and the chunk num per hash.
+ */
+using AbundancesHashMap = std::unordered_map< std::string, SequenceInfo >;
 
 // =================================================================================================
 //      Setup
@@ -113,22 +127,24 @@ void setup_chunkify( CLI::App& app )
     opt_cfp->group( opt->output_files_group_name() );
 
     // Chunk Size
-    auto opt_cs = sub->add_option(
+    // auto opt_cs =
+    sub->add_option(
         "--chunk-size",
         opt->chunk_size,
         "Number of sequences per chunk file.",
         true
     );
-    opt_cs->group( opt->output_files_group_name() );
+    // opt_cs->group( opt->output_files_group_name() );
 
     // Minimum Abundance
-    auto opt_ma = sub->add_option(
+    // auto opt_ma =
+    sub->add_option(
         "--min-abundance",
         opt->min_abundance,
         "Minimum abundance of a sequence per file. Sequences below are filtered out.",
         true
     );
-    opt_ma->group( opt->output_files_group_name() );
+    // opt_ma->group( opt->output_files_group_name() );
 
     // -----------------------------------------------------------
     //     Callback
@@ -171,7 +187,6 @@ void write_chunk_file(
 
 void write_abundance_map_file(
     ChunkifyOptions const& options,
-    ChunkHashMap const& hash_to_chunk,
     AbundancesHashMap const& seq_abundances,
     size_t input_file_counter
 ) {
@@ -208,8 +223,8 @@ void write_abundance_map_file(
         ofs << "\n";
 
         // Print sequence data.
-        ofs << "    \"" << HashFunction::digest_to_hex( seq_it->first ) << "\": [ ";
-        ofs << hash_to_chunk.at(seq_it->first) << ", " << seq_it->second << " ]";
+        ofs << "    \"" << seq_it->first << "\": [ ";
+        ofs << seq_it->second.chunk_num << ", " << seq_it->second.abundance << " ]";
     }
 
     // Finish the file.
@@ -254,26 +269,33 @@ void run_chunkify( ChunkifyOptions const& options )
 
     // Collect sequences for the current chunk here.
     SequenceSet current_chunk;
+    size_t file_count = 0;
     size_t chunk_count = 0;
     size_t total_seqs_count = 0;
     size_t min_abun_count = 0;
 
     // Iterate fasta files
+    #pragma omp parallel for schedule(dynamic)
     for( size_t fi = 0; fi < options.input_file_count(); ++fi ) {
         auto const& fasta_filename = options.input_file_path( fi );
 
         // User output
-        if( global_options.verbosity() >= 2 ) {
-            std::cout << "Processing file " << ( fi + 1 ) << " of " << options.input_file_count();
-            std::cout << ": " << fasta_filename << "\n";
+        #pragma omp critical(GAPPA_CHUNKIFY_PRINT_PROGRESS)
+        {
+            ++file_count;
+            if( global_options.verbosity() >= 2 ) {
+                std::cout << "Processing file " << file_count << " of " << options.input_file_count();
+                std::cout << ": " << fasta_filename << "\n";
+            }
         }
 
-        // Count identical sequences of this fasta file, accesses via their hash.
+        // Count identical sequences of this fasta file, accessed via their hash.
         AbundancesHashMap seq_abundances;
 
         // Iterate sequences
         InputStream instr( make_unique< FileInputSource >( fasta_filename ));
         for( auto it = FastaInputIterator( instr, options.fasta_reader() ); it; ++it ) {
+            #pragma omp atomic
             ++total_seqs_count;
 
             // Check for min abundance.
@@ -281,31 +303,48 @@ void run_chunkify( ChunkifyOptions const& options )
             if( abundance < options.min_abundance ) {
                 continue;
             }
+            #pragma omp atomic
             ++min_abun_count;
 
-            // Increment seq abundance for this file.
+            // Calculate (relatively expensive) hashes.
             auto const hash_digest = HashFunction::from_string_digest( it->sites() );
-            seq_abundances[ hash_digest ] += abundance;
+            auto const hash_hex = HashFunction::digest_to_hex( hash_digest );
 
-            // We saw that sequence before. Don't need to add it to the chunk.
-            if( hash_to_chunk.count( hash_digest ) > 0 ) {
-                continue;
-            }
+            // Increment seq abundance for this file.
+            auto& seq_abun = seq_abundances[ hash_hex ];
+            seq_abun.abundance += abundance;
 
-            // New sequence: never saw that hash before. Add it to the chunk, store chunk num.
-            current_chunk.add( Sequence( HashFunction::digest_to_hex( hash_digest ), it->sites() ));
-            hash_to_chunk[ hash_digest ] = chunk_count;
+            // The hash calculation above is the main work of this loop.
+            // The rest is "just" setting some values,
+            // but we need a fully blown critical section for them.
+            #pragma omp critical(GAPPA_CHUNKIFY_UPDATE_MAPS)
+            {
+                auto const hash_it = hash_to_chunk.find( hash_digest );
+                if( hash_it != hash_to_chunk.end() ) {
 
-            // If a chunk is full, flush it.
-            if( current_chunk.size() >= options.chunk_size ) {
-                write_chunk_file( options, current_chunk, chunk_count );
-                ++chunk_count;
-                current_chunk.clear();
+                    // We saw that sequence before. Don't need to add it to the chunk,
+                    // just use its chunk count for the current file.
+                    seq_abun.chunk_num = hash_it->second;
+
+                } else {
+
+                    // New sequence: never saw that hash before. Add it to the chunk, store chunk num.
+                    current_chunk.add( Sequence( hash_hex, it->sites() ));
+                    hash_to_chunk[ hash_digest ] = chunk_count;
+                    seq_abun.chunk_num = chunk_count;
+
+                    // If a chunk is full, flush it.
+                    if( current_chunk.size() >= options.chunk_size ) {
+                        write_chunk_file( options, current_chunk, chunk_count );
+                        ++chunk_count;
+                        current_chunk.clear();
+                    }
+                }
             }
         }
 
         // Finished a fasta file. Write its abundances.
-        write_abundance_map_file( options, hash_to_chunk, seq_abundances, fi );
+        write_abundance_map_file( options, seq_abundances, fi );
     }
 
     // -----------------------------------------------------------

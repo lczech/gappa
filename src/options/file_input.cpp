@@ -27,6 +27,7 @@
 
 #include "genesis/utils/core/fs.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -81,7 +82,9 @@ std::vector<std::string> const& FileInputOptions::input_file_paths() const
 
         } else if( is_dir( path ) ) {
 
-            auto const list = dir_list_files( path, true, ".*\\." + file_ext_ + "$" );
+            // Get all files in dir. We sort them to get reproducible order.
+            auto list = dir_list_files( path, true, ".*\\." + file_ext_ + "$" );
+            std::sort( list.begin(), list.end() );
             for( auto const& jplace : list ) {
                 resolved_paths_.push_back( jplace );
             }

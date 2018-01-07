@@ -47,6 +47,7 @@ public:
 
     size_t      chunk_size = 50000;
     size_t      min_abundance = 1;
+    std::string hash_function = "SHA1";
 
 };
 

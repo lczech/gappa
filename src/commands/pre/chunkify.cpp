@@ -38,8 +38,9 @@
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/sha256.hpp"
+#include "genesis/utils/tools/md5.hpp"
 #include "genesis/utils/tools/sha1.hpp"
+#include "genesis/utils/tools/sha256.hpp"
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -55,17 +56,6 @@
 // =================================================================================================
 //      Typedefs
 // =================================================================================================
-
-/**
- * @brief Hash to use.
- */
-using HashFunction = genesis::utils::SHA1;
-
-/**
- * @brief Data type for storing a hash map from digests to chunk numbers.
- */
-// using ChunkHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
-using ChunkHashMap = spp::sparse_hash_map< HashFunction::DigestType, size_t >;
 
 /**
  * @brief Store the data needed to write one abundace file.
@@ -127,24 +117,29 @@ void setup_chunkify( CLI::App& app )
     opt_cfp->group( opt->output_files_group_name() );
 
     // Chunk Size
-    // auto opt_cs =
     sub->add_option(
         "--chunk-size",
         opt->chunk_size,
         "Number of sequences per chunk file.",
         true
     );
-    // opt_cs->group( opt->output_files_group_name() );
 
     // Minimum Abundance
-    // auto opt_ma =
     sub->add_option(
         "--min-abundance",
         opt->min_abundance,
         "Minimum abundance of a sequence per file. Sequences below are filtered out.",
         true
     );
-    // opt_ma->group( opt->output_files_group_name() );
+
+    // Hash Function
+    sub->add_set_ignore_case(
+        "--hash-function",
+        opt->hash_function,
+        { "SHA1", "SHA256", "MD5" },
+        "Hash function for re-naming and identifying sequences.",
+        true
+    );
 
     // -----------------------------------------------------------
     //     Callback
@@ -234,38 +229,25 @@ void write_abundance_map_file(
 }
 
 // =================================================================================================
-//      Run
+//      Main Work Function
 // =================================================================================================
 
-void run_chunkify( ChunkifyOptions const& options )
+template< class HashFunction >
+void run_chunkify_with_hash( ChunkifyOptions const& options )
 {
     using namespace genesis::utils;
     using namespace genesis::sequence;
 
-    // -----------------------------------------------------------
-    //     Input File Preparations
-    // -----------------------------------------------------------
-
-    // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.check_nonexistent_output_files(
-        { options.abundance_file_prefix + ".*\\.json" },
-        "abundances"
-    );
-    options.check_nonexistent_output_files(
-        { options.chunk_file_prefix + "[0-9]+\\.fasta" },
-        "chunks"
-    );
-
-    // Print some user output.
-    options.input_files_print();
-
-    // -----------------------------------------------------------
-    //     Iterate Input Files
-    // -----------------------------------------------------------
+    // using ChunkHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
+    using ChunkHashMap = spp::sparse_hash_map< typename HashFunction::DigestType, size_t >;
 
     // Sequences hashes, mapping to the chunk number where they are stored,
     // i.e. where they first occured.
     ChunkHashMap hash_to_chunk;
+
+    // -----------------------------------------------------------
+    //     Iterate Input Files
+    // -----------------------------------------------------------
 
     // Collect sequences for the current chunk here.
     SequenceSet current_chunk;
@@ -362,4 +344,45 @@ void run_chunkify( ChunkifyOptions const& options )
         std::cout << "Wrote " << hash_to_chunk.size() << " unique sequences ";
         std::cout << "in " << ( chunk_count + 1 ) << " fasta chunk files.\n";
     }
+}
+
+// =================================================================================================
+//      Run
+// =================================================================================================
+
+void run_chunkify( ChunkifyOptions const& options )
+{
+    using namespace genesis::utils;
+
+    // -----------------------------------------------------------
+    //     Input File Preparations
+    // -----------------------------------------------------------
+
+    // Check if any of the files we are going to produce already exists. If so, fail early.
+    options.check_nonexistent_output_files(
+        { options.abundance_file_prefix + ".*\\.json" },
+        "abundances"
+    );
+    options.check_nonexistent_output_files(
+        { options.chunk_file_prefix + "[0-9]+\\.fasta" },
+        "chunks"
+    );
+
+    // Print some user output.
+    options.input_files_print();
+
+    // -----------------------------------------------------------
+    //     Run
+    // -----------------------------------------------------------
+
+    if( options.hash_function == "SHA1" ) {
+        run_chunkify_with_hash<SHA1>( options );
+    } else if( options.hash_function == "SHA256" ) {
+        run_chunkify_with_hash<SHA256>( options );
+    } else if( options.hash_function == "MD5" ) {
+        run_chunkify_with_hash<MD5>( options );
+    } else {
+        throw CLI::ConversionError( "Unknown hash function: " + options.hash_function );
+    }
+
 }

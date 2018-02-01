@@ -50,8 +50,8 @@ void setup_squash( CLI::App& app )
     );
 
     // Add common options.
-    opt->add_jplace_input_options( sub );
-    opt->add_output_dir_options( sub );
+    opt->jplace_input.add_to_app( sub );
+    opt->file_output.add_to_app( sub );
 
     // Fill in custom options.
     sub->add_option(
@@ -77,13 +77,13 @@ void run_squash( SquashOptions const& options )
     using namespace genesis;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.check_nonexistent_output_files({ "cluster.newick" });
+    options.file_output.check_nonexistent_output_files({ "cluster.newick" });
 
     // Print some user output.
-    options.input_files_print();
+    options.jplace_input.print_files();
 
     // Get the samples.
-    auto sample_set = options.sample_set();
+    auto sample_set = options.jplace_input.sample_set();
 
     if( options.point_mass ) {
         for( auto& sample : sample_set ) {
@@ -92,6 +92,7 @@ void run_squash( SquashOptions const& options )
     }
 
     auto mass_trees = convert_sample_set_to_mass_trees( sample_set );
+    sample_set.clear();
 
     // LOG_INFO << "Starting squash clustering";
     auto sc = tree::squash_clustering( std::move( mass_trees.first ));
@@ -99,8 +100,8 @@ void run_squash( SquashOptions const& options )
 
     // LOG_INFO << "Writing cluster tree";
     std::ofstream file_clust_tree;
-    utils::file_output_stream( options.out_dir() + "cluster.newick",  file_clust_tree );
-    file_clust_tree << squash_cluster_tree( sc, options.input_files_base_file_names() );
+    utils::file_output_stream( options.file_output.out_dir() + "cluster.newick",  file_clust_tree );
+    file_clust_tree << squash_cluster_tree( sc, options.jplace_input.base_file_names() );
 
     // LOG_INFO << "Writing fat trees";
     for( size_t i = 0; i < sc.clusters.size(); ++i ) {

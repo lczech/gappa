@@ -88,11 +88,13 @@ void setup_chunkify( CLI::App& app )
     //     Add common options
     // -----------------------------------------------------------
 
-    opt->add_fasta_input_options( sub );
-    opt->add_output_dir_options( sub, {
-        { "chunks", "Directory to write chunk fasta files to.", "chunks" },
-        { "abundances", "Directory to write abundance map files to.", "abundances" }
-    });
+    opt->sequence_input.add_fasta_input_options_to_app( sub );
+    opt->file_output.add_to_app( sub,
+        "chunks", "Directory to write chunk fasta files to.", "chunks"
+    );
+    opt->file_output.add_to_app( sub,
+        "abundances", "Directory to write abundance map files to.", "abundances"
+    );
 
     // -----------------------------------------------------------
     //     Fill in custom options
@@ -105,7 +107,7 @@ void setup_chunkify( CLI::App& app )
         "File path prefix for the abundance maps.",
         true
     );
-    opt_afp->group( opt->output_files_group_name() );
+    opt_afp->group( opt->file_output.group_name() );
 
     // Chunk File Prefix
     auto opt_cfp = sub->add_option(
@@ -114,7 +116,7 @@ void setup_chunkify( CLI::App& app )
         "File path prefix for the fasta chunks.",
         true
     );
-    opt_cfp->group( opt->output_files_group_name() );
+    opt_cfp->group( opt->file_output.group_name() );
 
     // Chunk Size
     sub->add_option(
@@ -170,7 +172,7 @@ void write_chunk_file(
 
     // Generate output file name.
     auto const ofn
-        = options.out_dir( "chunks" )
+        = options.file_output.out_dir( "chunks" )
         + options.chunk_file_prefix
         + std::to_string( chunk_count )
         + ".fasta"
@@ -188,11 +190,11 @@ void write_abundance_map_file(
     using namespace genesis::utils;
 
     // Base name of the current input file
-    auto const base_fn = options.input_files_base_file_name( input_file_counter );
+    auto const base_fn = options.sequence_input.base_file_name( input_file_counter );
 
     // Pprepare a new abundance file
     auto const fn
-        = options.out_dir( "abundances" )
+        = options.file_output.out_dir( "abundances" )
         + options.abundance_file_prefix
         + base_fn
         + ".json"
@@ -258,15 +260,15 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
 
     // Iterate fasta files
     #pragma omp parallel for schedule(dynamic)
-    for( size_t fi = 0; fi < options.input_file_count(); ++fi ) {
-        auto const& fasta_filename = options.input_file_path( fi );
+    for( size_t fi = 0; fi < options.sequence_input.file_count(); ++fi ) {
+        auto const& fasta_filename = options.sequence_input.file_path( fi );
 
         // User output
         #pragma omp critical(GAPPA_CHUNKIFY_PRINT_PROGRESS)
         {
             ++file_count;
             if( global_options.verbosity() >= 2 ) {
-                std::cout << "Processing file " << file_count << " of " << options.input_file_count();
+                std::cout << "Processing file " << file_count << " of " << options.sequence_input.file_count();
                 std::cout << ": " << fasta_filename << "\n";
             }
         }
@@ -276,7 +278,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
 
         // Iterate sequences
         InputStream instr( make_unique< FileInputSource >( fasta_filename ));
-        for( auto it = FastaInputIterator( instr, options.fasta_reader() ); it; ++it ) {
+        for( auto it = FastaInputIterator( instr, options.sequence_input.fasta_reader() ); it; ++it ) {
             #pragma omp atomic
             ++total_seqs_count;
 
@@ -359,17 +361,17 @@ void run_chunkify( ChunkifyOptions const& options )
     // -----------------------------------------------------------
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.check_nonexistent_output_files(
+    options.file_output.check_nonexistent_output_files(
         { options.abundance_file_prefix + ".*\\.json" },
         "abundances"
     );
-    options.check_nonexistent_output_files(
+    options.file_output.check_nonexistent_output_files(
         { options.chunk_file_prefix + "[0-9]+\\.fasta" },
         "chunks"
     );
 
     // Print some user output.
-    options.input_files_print();
+    options.sequence_input.print_files();
 
     // -----------------------------------------------------------
     //     Run

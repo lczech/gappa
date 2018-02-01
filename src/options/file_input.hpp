@@ -54,21 +54,22 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-protected:
-
     /**
      * @brief Add the options to an App.
      *
      * Takes a file type used for help messages, and an extension for valid files.
      * The extenion can be a regex, e.g., `(fas|fasta)`.
      */
-    void add_file_input_options(
-        CLI::App* sub, std::string const& type, std::string const& extension
+    void add_to_app(
+        CLI::App* sub, std::string const& type, std::string const& extension, std::string const& group = "Input"
     );
 
-    std::string input_files_group_name() const
+    /**
+     * @brief Return the group name that this options object was assigned to.
+     */
+    std::string group_name() const
     {
-        return "Input";
+        return group_;
     }
 
     // -------------------------------------------------------------------------
@@ -76,6 +77,13 @@ protected:
     // -------------------------------------------------------------------------
 
 public:
+
+    /**
+     * @brief Get the number of files that were provided by the user.
+     *
+     * Returns `input_file_paths().size()`.
+     */
+    size_t file_count() const;
 
     /**
      * @brief Get the resolved full file paths of all files provided by the user.
@@ -89,31 +97,19 @@ public:
      * whole directory paths for convenience, which then however only use files ending in the
      * extension.
      */
-    std::vector<std::string> const& input_file_paths() const;
-
-    /**
-     * @brief Get the number of files that were provided by the user.
-     *
-     * Returns `input_file_paths().size()`.
-     */
-    size_t input_file_count() const;
+    std::vector<std::string> const& file_paths() const;
 
     /**
      * @brief Get a specific file from the list.
      *
      * Returns `input_file_paths().at( index )`.
      */
-    std::string const& input_file_path( size_t index ) const;
-
-    /**
-     * @brief Print some user output related to these options.
-     */
-    void input_files_print() const;
+    std::string const& file_path( size_t index ) const;
 
     /**
      * @brief Return the list of paths as provided by the user, that is, without processing.
      */
-    std::vector<std::string> const& input_file_cli_paths() const;
+    std::vector<std::string> const& raw_file_paths() const;
 
     /**
      * @brief Get the file names of the provided files, i.e., without directory and ending.
@@ -121,14 +117,19 @@ public:
      * This function calls genesis::utils::file_basename() and genesis::utils::file_filename() for
      * all paths. The result is for example useful for user output.
      */
-    std::vector<std::string> input_files_base_file_names() const;
+    std::vector<std::string> base_file_names() const;
 
     /**
      * @brief Get the file name of the file at the index, i.e., without directory and ending.
      *
-     * This function is the same as input_files_base_file_names(), just for one file.
+     * This function is the same as base_file_names(), just for one file.
      */
-    std::string input_files_base_file_name( size_t index ) const;
+    std::string base_file_name( size_t index ) const;
+
+    /**
+     * @brief Print some user output related to these options.
+     */
+    void print_files() const;
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -141,6 +142,7 @@ private:
 
     std::string file_type_;
     std::string file_ext_;
+    std::string group_;
 
 };
 

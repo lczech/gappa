@@ -32,40 +32,40 @@
 //      Setup Functions
 // =================================================================================================
 
-void FileOutputOptions::add_output_dir_options( CLI::App* sub )
+void FileOutputOptions::add_to_app( CLI::App* sub )
 {
-    add_output_dir_options( sub, {{ "", "Directory to write files to", "." }} );
+    add_to_app( sub, "", "Directory to write files to", "." );
 }
 
-void FileOutputOptions::add_output_dir_options(
+void FileOutputOptions::add_to_app(
     CLI::App* sub,
-    std::vector<NamedOutputDir> const& names
+    std::string const& name,
+    std::string const& description,
+    std::string const& initial_value
 ) {
-    for( auto const& entry : names ) {
-        auto const optname = "--" + entry.name + ( entry.name.empty() ? "" : "-" ) + "out-dir";
+    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
 
-        if( out_dirs_.count( entry.name ) > 0 ) {
-            throw std::domain_error(
-                "Output dir '" + optname + "dir' added multipe times to options."
-            );
-        }
-
-        // Add default entry.
-        out_dirs_[ entry.name ] = entry.initial_value;
-
-        // Add option
-        auto opt_out_dir = sub->add_option(
-            optname,
-            out_dirs_[ entry.name ],
-            entry.description,
-            true
+    if( out_dirs_.count( name ) > 0 ) {
+        throw std::domain_error(
+            "Output dir '" + optname + "dir' added multipe times to options."
         );
-        opt_out_dir->check( CLI::ExistingDirectory );
-        opt_out_dir->group( output_files_group_name() );
-
-        // TODO instead of expecting an existing dir, create it if needed.
-        // TODO add function to overwrite files, which sets the genesis option for this
     }
+
+    // Add default entry.
+    out_dirs_[ name ] = initial_value;
+
+    // Add option
+    auto opt_out_dir = sub->add_option(
+        optname,
+        out_dirs_[ name ],
+        description,
+        true
+    );
+    opt_out_dir->check( CLI::ExistingDirectory );
+    opt_out_dir->group( group_name() );
+
+    // TODO instead of expecting an existing dir, create it if needed.
+    // TODO add function to overwrite files, which sets the genesis option for this
 }
 
 // =================================================================================================

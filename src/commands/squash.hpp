@@ -38,13 +38,14 @@
 // =================================================================================================
 
 class SquashOptions
-    : public JplaceInputOptions
-    , public FileOutputOptions
 {
 public:
 
     bool point_mass = false;
     bool normalize = false; // TODO unused
+
+    JplaceInputOptions jplace_input;
+    FileOutputOptions  file_output;
 };
 
 // =================================================================================================

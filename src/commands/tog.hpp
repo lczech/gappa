@@ -38,13 +38,14 @@
 // =================================================================================================
 
 class TogOptions
-    : public JplaceInputOptions
-    , public FileOutputOptions
 {
 public:
 
     std::string leaf_prefix = "";
     bool fully_resolve = false;
+
+    JplaceInputOptions jplace_input;
+    FileOutputOptions  file_output;
 };
 
 // =================================================================================================

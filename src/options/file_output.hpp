@@ -40,17 +40,6 @@ class FileOutputOptions
 public:
 
     // -------------------------------------------------------------------------
-    //     Typedefs, Enums, Structs
-    // -------------------------------------------------------------------------
-
-    struct NamedOutputDir
-    {
-        std::string name;
-        std::string description;
-        std::string initial_value;
-    };
-
-    // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
@@ -70,19 +59,21 @@ public:
     /**
      * @brief Add a single output dir, with an option named "--out-dir".
      */
-    void add_output_dir_options( CLI::App* sub );
+    void add_to_app( CLI::App* sub );
 
     /**
-     * @brief Add multiple output dirs, with options named "--name-out-dir",
-     * according to the given list of names.
+     * @brief Add a named output dir "--name-out-dir".
      *
-     * The list contains entries of output directores to be added to the options.
+     * Can be called multiple times for commands that output different types of files.
      */
-    void add_output_dir_options(
-        CLI::App* sub, std::vector<NamedOutputDir> const& dirs
+    void add_to_app(
+        CLI::App* sub,
+        std::string const& name,
+        std::string const& description,
+        std::string const& initial_value
     );
 
-    std::string output_files_group_name() const
+    std::string group_name() const
     {
         return "Output";
     }

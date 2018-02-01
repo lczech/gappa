@@ -48,7 +48,7 @@ int main( int argc, char** argv )
 
     // Add app-wide global options.
     global_options.set_command_line_args( argc, argv );
-    global_options.add_general_options( app );
+    global_options.add_to_app( app );
 
     // Set up all subcommands.
     setup_squash( app );

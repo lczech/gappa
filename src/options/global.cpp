@@ -33,7 +33,7 @@
 //      Setup Functions
 // =================================================================================================
 
-void GlobalOptions::add_general_options( CLI::App& app )
+void GlobalOptions::add_to_app( CLI::App& app )
 {
     // Verbosity
     auto opt_verb_l = app.add_option(
@@ -66,10 +66,16 @@ void GlobalOptions::add_general_options( CLI::App& app )
         "Number of threads to use for calculations"
     );
 
+    // TODO add random seed option
+    // TODO add global file overwrite option.
+    // TODO in order to run callbacks for certain options, use ther full functional form!
+    // for example, the allow overwrite option (yet to do), or threads or the like can use this.
+    // then, init is no longer needed
+
     // Run the app wide callback
     app.set_callback([ this, &app ](){
         init();
-        print_general_options( app );
+        print( app );
     });
 
     // Footer
@@ -89,7 +95,7 @@ void GlobalOptions::set_command_line_args( int const argc, char const* const* ar
 //      Run Functions
 // =================================================================================================
 
-void GlobalOptions::print_general_options( CLI::App const& app ) const
+void GlobalOptions::print( CLI::App const& app ) const
 {
     if( verbosity() == 0 ) {
         return;
@@ -121,7 +127,7 @@ std::string GlobalOptions::command_line() const
 
 size_t GlobalOptions::verbosity() const
 {
-    return verbosity_quiet_ == true ? 0 : ( verbosity_cnt_ > 0 ? verbosity_cnt_ + 1 : verbosity_ );
+    return ( verbosity_quiet_ == true ) ? 0 : (( verbosity_cnt_ > 0 ) ? verbosity_cnt_ + 1 : verbosity_ );
 }
 
 size_t GlobalOptions::threads() const

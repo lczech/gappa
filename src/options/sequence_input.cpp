@@ -48,14 +48,16 @@ SequenceInputOptions::SequenceInputOptions()
 //      Setup Functions
 // =================================================================================================
 
-void SequenceInputOptions::add_sequence_input_options( CLI::App* sub )
+void SequenceInputOptions::add_to_app( CLI::App* sub )
 {
-    add_file_input_options( sub, "sequence", "(" + fasta_extensions_ + "|" + phylip_extensions_ + ")" );
+    FileInputOptions::add_to_app(
+        sub, "sequence", "(" + fasta_extensions_ + "|" + phylip_extensions_ + ")"
+    );
 }
 
-void SequenceInputOptions::add_fasta_input_options( CLI::App* sub )
+void SequenceInputOptions::add_fasta_input_options_to_app( CLI::App* sub )
 {
-    add_file_input_options( sub, "sequence", "(" + fasta_extensions_ + ")" );
+    FileInputOptions::add_to_app( sub, "fasta", "(" + fasta_extensions_ + ")" );
 }
 
 // =================================================================================================
@@ -65,11 +67,10 @@ void SequenceInputOptions::add_fasta_input_options( CLI::App* sub )
 genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index ) const
 {
     using namespace genesis::sequence;
-    using namespace genesis::utils;
 
     SequenceSet result;
-    auto const& file_name = input_file_path( index );
-    auto const ext = file_extension( file_name );
+    auto const& file_name = file_path( index );
+    auto const ext = genesis::utils::file_extension( file_name );
 
     if( ext == "phylip" || ext == "phy" ) {
 
@@ -112,7 +113,7 @@ genesis::sequence::SequenceSet SequenceInputOptions::sequence_set_all() const
 {
     using namespace genesis::sequence;
     SequenceSet result;
-    for( size_t i = 0; i < input_file_count(); ++i ) {
+    for( size_t i = 0; i < file_count(); ++i ) {
         auto tmp = sequence_set( i );
         for( auto& seq : tmp ) {
             result.add( std::move( seq ));

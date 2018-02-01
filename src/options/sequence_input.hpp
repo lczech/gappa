@@ -70,12 +70,12 @@ public:
     /**
      * @brief Add options that allow reading any sequence file (fasta or phylip).
      */
-    void add_sequence_input_options( CLI::App* sub );
+    void add_to_app( CLI::App* sub );
 
     /**
      * @brief Add options that allow to read fasta files only.
      */
-    void add_fasta_input_options( CLI::App* sub );
+    void add_fasta_input_options_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions

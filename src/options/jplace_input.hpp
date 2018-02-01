@@ -61,7 +61,7 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_jplace_input_options( CLI::App* sub );
+    void add_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions

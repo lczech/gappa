@@ -43,7 +43,7 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_general_options( CLI::App& app );
+    void add_to_app( CLI::App& app );
 
     void set_command_line_args( int const argc, char const* const* argv );
 
@@ -51,7 +51,7 @@ public:
     //     Run Functions
     // -------------------------------------------------------------------------
 
-    void print_general_options( CLI::App const& app ) const;
+    void print( CLI::App const& app ) const;
 
     std::string command_line() const;
 

@@ -41,18 +41,20 @@
 //      Setup Functions
 // =================================================================================================
 
-void FileInputOptions::add_file_input_options(
-    CLI::App* sub, std::string const& type, std::string const& extension
+void FileInputOptions::add_to_app(
+    CLI::App* sub, std::string const& type, std::string const& extension, std::string const& group
 ){
     // Store file type info.
     file_type_ = type;
     file_ext_  = extension;
+    group_     = group;
 
     // Input files as positional arguments.
     auto opt_input_files = sub->add_option(
         type + "_paths",
         raw_paths_,
-        "List of " + type + " files or directories to process"
+        "List of " + type + " files or directories to process. " +
+        "For directories, only files with the extension ." + extension + " are processed."
     );
     opt_input_files->required();
     opt_input_files->check([]( std::string const& path ){
@@ -61,14 +63,19 @@ void FileInputOptions::add_file_input_options(
         }
         return std::string();
     });
-    opt_input_files->group( input_files_group_name() );
+    opt_input_files->group( group_ );
 }
 
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
 
-std::vector<std::string> const& FileInputOptions::input_file_paths() const
+size_t FileInputOptions::file_count() const
+{
+    return file_paths().size();
+}
+
+std::vector<std::string> const& FileInputOptions::file_paths() const
 {
     if( ! resolved_paths_.empty() ) {
         return resolved_paths_;
@@ -99,21 +106,38 @@ std::vector<std::string> const& FileInputOptions::input_file_paths() const
     return resolved_paths_;
 }
 
-size_t FileInputOptions::input_file_count() const
+std::string const& FileInputOptions::file_path( size_t index ) const
 {
-    return input_file_paths().size();
-}
-
-std::string const& FileInputOptions::input_file_path( size_t index ) const
-{
-    auto const& files = input_file_paths();
+    auto const& files = file_paths();
     if( index >= files.size() ) {
         throw std::runtime_error( "Invalid file index." );
     }
     return files[ index ];
 }
 
-void FileInputOptions::input_files_print() const
+std::vector<std::string> const& FileInputOptions::raw_file_paths() const
+{
+    return raw_paths_;
+}
+
+std::vector<std::string> FileInputOptions::base_file_names() const
+{
+    using namespace genesis::utils;
+
+    auto paths = file_paths();
+    for( auto& path : paths ) {
+        path = file_filename( file_basename( path ));
+    }
+    return paths;
+}
+
+std::string FileInputOptions::base_file_name( size_t index ) const
+{
+    using namespace genesis::utils;
+    return file_filename( file_basename( file_path( index )));
+}
+
+void FileInputOptions::print_files() const
 {
     std::string type = file_type_;
     if( ! type.empty() ) {
@@ -121,7 +145,7 @@ void FileInputOptions::input_files_print() const
     }
 
     // Print list of files, depending on verbosity.
-    auto const& files = input_file_paths();
+    auto const& files = file_paths();
     if( global_options.verbosity() == 0 ) {
         return;
     } else if( global_options.verbosity() == 1 ) {
@@ -150,26 +174,4 @@ void FileInputOptions::input_files_print() const
             }
         }
     }
-}
-
-std::vector<std::string> const& FileInputOptions::input_file_cli_paths() const
-{
-    return raw_paths_;
-}
-
-std::vector<std::string> FileInputOptions::input_files_base_file_names() const
-{
-    using namespace genesis::utils;
-
-    auto paths = input_file_paths();
-    for( auto& path : paths ) {
-        path = file_filename( file_basename( path ));
-    }
-    return paths;
-}
-
-std::string FileInputOptions::input_files_base_file_name( size_t index ) const
-{
-    using namespace genesis::utils;
-    return file_filename( file_basename( input_file_path( index )));
 }

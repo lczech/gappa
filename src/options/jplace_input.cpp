@@ -30,12 +30,12 @@
 //      Setup Functions
 // =================================================================================================
 
-void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
+void JplaceInputOptions::add_to_app( CLI::App* sub )
 {
     // TODO put in options group. same for all other options
     // TODO add avg tree option?!
 
-    add_file_input_options( sub, "jplace", "jplace" );
+    FileInputOptions::add_to_app( sub, "jplace", "jplace", "Jplace Input" );
 }
 
 // =================================================================================================
@@ -44,16 +44,15 @@ void JplaceInputOptions::add_jplace_input_options( CLI::App* sub )
 
 genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
 {
-    return reader_.from_file( input_file_path( index ) );
+    return reader_.from_file( file_path( index ) );
 }
 
 genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 {
-    // TODO add sample( size_t ) function that just reads one file, using the proper jplace reader settings
     // TODO dont report errors in jplace. offer subcommand for that
     // TODO nope. also report them here. just not while reading, but use a validator function.
     // TODO offer avg tree option
     // TODO add/offer validity checks etc
 
-    return reader_.from_files( input_file_paths() );
+    return reader_.from_files( file_paths() );
 }

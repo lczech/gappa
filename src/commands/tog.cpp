@@ -44,8 +44,8 @@ void setup_tog( CLI::App& app )
     );
 
     // Add common options.
-    opt->add_jplace_input_options( sub );
-    opt->add_output_dir_options( sub );
+    opt->jplace_input.add_to_app( sub );
+    opt->file_output.add_to_app( sub );
 
     // Fill in custom options.
     sub->add_option(
@@ -80,10 +80,10 @@ void run_tog( TogOptions const& options )
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
     std::vector<std::string> out_tree_files;
-    for( auto const& bfn : options.input_files_base_file_names() ) {
+    for( auto const& bfn : options.jplace_input.base_file_names() ) {
         out_tree_files.push_back( bfn + ".newick" );
     }
-    options.check_nonexistent_output_files( out_tree_files );
+    options.file_output.check_nonexistent_output_files( out_tree_files );
 
     // auto reader = JplaceReader();
     // TODO dont report errors in jplace. offer subcommand for that
@@ -98,13 +98,13 @@ void run_tog( TogOptions const& options )
 
     // TODO OpenMP this!
 
-    for( size_t i = 0; i < options.input_file_count(); ++i ) {
+    for( size_t i = 0; i < options.jplace_input.file_count(); ++i ) {
         // Read the sample and make the tree.
         // auto const sample = reader.from_file( jplace_files[i] );
-        auto const sample = options.sample( i );
+        auto const sample = options.jplace_input.sample( i );
         auto const tog    = labelled_tree( sample, options.fully_resolve, options.leaf_prefix );
 
         // Write output to file.
-        tree::DefaultTreeNewickWriter().to_file( tog, options.out_dir() + out_tree_files[i] );
+        tree::DefaultTreeNewickWriter().to_file( tog, options.file_output.out_dir() + out_tree_files[i] );
     }
 }

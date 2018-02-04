@@ -30,12 +30,11 @@
 //      Setup Functions
 // =================================================================================================
 
-void JplaceInputOptions::add_to_app( CLI::App* sub )
+CLI::Option* JplaceInputOptions::add_jplace_input_opt_to_app( CLI::App* sub, bool required )
 {
-    // TODO put in options group. same for all other options
     // TODO add avg tree option?!
 
-    FileInputOptions::add_to_app( sub, "jplace", "jplace", "Jplace Input" );
+    return FileInputOptions::add_multi_file_input_opt_to_app( sub, "jplace", "jplace", required, "Jplace Input" );
 }
 
 // =================================================================================================

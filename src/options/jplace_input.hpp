@@ -39,6 +39,9 @@
 //      Jplace Input Options
 // =================================================================================================
 
+/**
+ * @brief Helper class to add multiple jplace file input options to a command.
+ */
 class JplaceInputOptions
     : public FileInputOptions
 {
@@ -61,7 +64,7 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_to_app( CLI::App* sub );
+    CLI::Option* add_jplace_input_opt_to_app( CLI::App* sub, bool required = true );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -70,15 +73,26 @@ public:
     /**
      * @brief Read in the jplace files at @p index in the list of input files and return it.
      *
-     * See FileInputOptions::input_file_count() for the number of input files (valid range for the index)
-     * and FileInputOptions::input_file_paths() for their list.
+     * See FileInputOptions::file_count() for the number of input files (valid range for the index)
+     * and FileInputOptions::file_paths() for their list.
      */
     genesis::placement::Sample sample( size_t index ) const;
 
     /**
-     * @brief Read in jplace files and return them as a SampleSet.
+     * @brief Read in all jplace files given by the user and return them as a SampleSet.
      */
     genesis::placement::SampleSet sample_set() const;
+
+    /**
+     * @brief Return the JplaceReader used for the convenience functions.
+     *
+     * By modifying the settings of the reader before calling sample() or sample_set(),
+     * the reading behaviour can be customized if needed for a program.
+     */
+    genesis::placement::JplaceReader& reader()
+    {
+        return reader_;
+    }
 
     genesis::placement::JplaceReader const& reader() const
     {

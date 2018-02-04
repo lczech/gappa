@@ -39,8 +39,8 @@ const std::string SequenceInputOptions::phylip_extensions_ = "phylip|phy";
 
 SequenceInputOptions::SequenceInputOptions()
 {
-    fasta_reader_.to_upper( false );
-    phylip_reader_.to_upper( false );
+    fasta_reader_.site_casing( genesis::sequence::FastaReader::SiteCasing::kUnchanged );
+    phylip_reader_.site_casing( genesis::sequence::PhylipReader::SiteCasing::kUnchanged );
     phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kAutomatic );
 }
 
@@ -48,16 +48,18 @@ SequenceInputOptions::SequenceInputOptions()
 //      Setup Functions
 // =================================================================================================
 
-void SequenceInputOptions::add_to_app( CLI::App* sub )
+CLI::Option* SequenceInputOptions::add_sequence_input_opt_to_app( CLI::App* sub, bool required )
 {
-    FileInputOptions::add_to_app(
-        sub, "sequence", "(" + fasta_extensions_ + "|" + phylip_extensions_ + ")"
+    return FileInputOptions::add_multi_file_input_opt_to_app(
+        sub, "sequence", "(" + fasta_extensions_ + "|" + phylip_extensions_ + ")", required
     );
 }
 
-void SequenceInputOptions::add_fasta_input_options_to_app( CLI::App* sub )
+CLI::Option* SequenceInputOptions::add_fasta_input_opt_to_app( CLI::App* sub, bool required )
 {
-    FileInputOptions::add_to_app( sub, "fasta", "(" + fasta_extensions_ + ")" );
+    return FileInputOptions::add_multi_file_input_opt_to_app(
+        sub, "fasta", "(" + fasta_extensions_ + ")", required
+    );
 }
 
 // =================================================================================================
@@ -68,9 +70,17 @@ genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index 
 {
     using namespace genesis::sequence;
 
+    // Prepare.
     SequenceSet result;
     auto const& file_name = file_path( index );
     auto const ext = genesis::utils::file_extension( file_name );
+
+    // Store the exception message thrown on the first attempt.
+    // Then, if all fails, throw an exeption with the message again.
+    // For example, try phylip, fail, store message, try fasta, fail too, throw message again.
+    // Thus, in the end, we throw the error message that fits with the file extension,
+    // in the hope that this is most useful to the user.
+    std::string error_message;
 
     if( ext == "phylip" || ext == "phy" ) {
 
@@ -78,7 +88,9 @@ genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index 
         try{
             phylip_reader_.from_file( file_name, result );
             return result;
-        } catch ( ... ) {}
+        } catch ( std::exception& ex ) {
+            error_message = ex.what();
+        }
 
         // Otherwise try fasta, again returning on success.
         try{
@@ -93,7 +105,9 @@ genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index 
         try{
             fasta_reader_.from_file( file_name, result );
             return result;
-        } catch ( ... ) {}
+        } catch ( std::exception& ex ) {
+            error_message = ex.what();
+        }
 
         // If this does not work, try phylip.
         try{
@@ -105,7 +119,8 @@ genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index 
 
     // If we are here, none of the above worked.
     throw std::runtime_error(
-        "Input file " + file_name + " cannot be read as either fasta or phylip."
+        "Input file " + file_name + " cannot be read as either fasta or phylip. "
+        "Error message: " + error_message
     );
 }
 

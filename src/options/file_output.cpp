@@ -32,40 +32,75 @@
 //      Setup Functions
 // =================================================================================================
 
-void FileOutputOptions::add_to_app( CLI::App* sub )
+CLI::Option* FileOutputOptions::add_output_dir_opt_to_app( CLI::App* sub )
 {
-    add_to_app( sub, "", "Directory to write files to", "." );
+    return add_output_dir_opt_to_app( sub, "" );
 }
 
-void FileOutputOptions::add_to_app(
+CLI::Option* FileOutputOptions::add_output_dir_opt_to_app(
     CLI::App* sub,
     std::string const& name,
-    std::string const& description,
-    std::string const& initial_value
+    std::string const& initial_value,
+    std::string const& group
 ) {
-    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
-
-    if( out_dirs_.count( name ) > 0 ) {
-        throw std::domain_error(
-            "Output dir '" + optname + "dir' added multipe times to options."
-        );
+    // Correct setup check.
+    if( out_dir_option_ != nullptr ) {
+        throw std::domain_error( "Cannot use the same FileOutputOptions object multiple times." );
     }
 
-    // Add default entry.
-    out_dirs_[ name ] = initial_value;
+    // Setup.
+    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
+    name_ = name;
+    out_dir_ = initial_value;
 
     // Add option
-    auto opt_out_dir = sub->add_option(
+    out_dir_option_ = sub->add_option(
         optname,
-        out_dirs_[ name ],
-        description,
+        out_dir_,
+        "Directory to write " + name + ( name.empty() ? "" : " " ) + "files to",
         true
     );
-    opt_out_dir->check( CLI::ExistingDirectory );
-    opt_out_dir->group( group_name() );
+    // out_dir_option_->check( CLI::ExistingDirectory );
+    out_dir_option_->group( group );
 
-    // TODO instead of expecting an existing dir, create it if needed.
-    // TODO add function to overwrite files, which sets the genesis option for this
+    // TODO add function to overwrite files, which sets the genesis option for this. add this to global!
+
+    return out_dir_option_;
+}
+
+CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
+    CLI::App* sub,
+    std::string const& name,
+    std::string const& initial_value,
+    std::string const& group
+) {
+    // Correct setup check.
+    if( prefix_option_ != nullptr ) {
+        throw std::domain_error( "Cannot use the same FileOutputOptions object multiple times." );
+    }
+
+    // Setup.
+    auto const optname = "--" + name + "-file-prefix";
+    prefix_ = initial_value;
+
+    // Add option
+    prefix_option_ = sub->add_option(
+        optname,
+        prefix_,
+        "File prefix for " + name + " files",
+        true
+    );
+    prefix_option_->check([]( std::string const& prefix ){
+        if( ! genesis::utils::is_valid_filname( prefix ) ) {
+            return std::string(
+                "File prefix contains invalid characters (<>:\"\\/|?*) or surrounding whitespace."
+            );
+        }
+        return std::string();
+    });
+    prefix_option_->group( group );
+
+    return prefix_option_;
 }
 
 // =================================================================================================
@@ -74,51 +109,50 @@ void FileOutputOptions::add_to_app(
 
 std::string FileOutputOptions::out_dir() const
 {
-    return out_dir( "" );
+    // Create dir if needed. This might create the dir also in cases were something failes later,
+    // so we end up with an empty dir. This is however common in many other programs as well,
+    // so let's not bother with this.
+    genesis::utils::dir_create( out_dir_, true );
+
+    return genesis::utils::dir_normalize_path( out_dir_ );
 }
 
-std::string FileOutputOptions::out_dir( std::string const& name ) const
+std::string FileOutputOptions::file_prefix() const
 {
-    if( out_dirs_.count( name ) == 0 ) {
-        auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
-        throw std::domain_error(
-            "Output dir '" + optname + "' not part of the options."
-        );
-    }
-    return genesis::utils::dir_normalize_path( out_dirs_.at( name ));
+    return prefix_;
 }
 
 void FileOutputOptions::check_nonexistent_output_files(
     std::vector<std::string> const& filenames
 ) const {
-    return check_nonexistent_output_files( filenames, "" );
-}
-
-void FileOutputOptions::check_nonexistent_output_files(
-    std::vector<std::string> const& filenames, std::string const& name
-) const {
     using namespace genesis::utils;
 
+    // Shortcut: if the dir is not created yet, there cannot be any existing files in it.
+    // We do this check here, so that we can be sure later in this function that the dir
+    // is there, so that listing it contents etc actually works.
+    if( ! genesis::utils::dir_exists( out_dir_ ) ) {
+        return;
+    }
+
     // Get basic strings
-    auto const outdir = out_dir( name );
-    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
+    auto const optname = "--" + name_ + ( name_.empty() ? "" : "-" ) + "out-dir";
 
     // Check if any of the files exists. Old version without regex.
-    // std::string const dir = dir_normalize_path( outdir );
+    // std::string const dir = dir_normalize_path( out_dir_ );
     // for( auto const& file : filenames ) {
     //     if( file_exists( dir + file ) ) {
     //         throw CLI::ValidationError(
-    //             "--out-dir (" + outdir +  ")", "Output file already exists: " + file
+    //             "--out-dir (" + out_dir_ +  ")", "Output file already exists: " + file
     //         );
     //     }
     // }
 
     // Check if any of the files exists.
     for( auto const& file : filenames ) {
-        auto const dir_cont = dir_list_contents( outdir, true, file );
+        auto const dir_cont = dir_list_contents( out_dir_, true, file );
         if( ! dir_cont.empty() ) {
             throw CLI::ValidationError(
-                optname + " (" + outdir +  ")", "Output path already exists: " + file
+                optname + " (" + out_dir_ +  ")", "Output path already exists: " + file
             );
         }
     }
@@ -135,5 +169,6 @@ void FileOutputOptions::check_nonexistent_output_files(
     }
 
     // TODO there is a change that multiple named output dirs are set to the same real dir,
-    // and that then files with the same names are written.
+    // and that then files with the same names are written. well, this would be comples to
+    // check, so not now...
 }

@@ -33,6 +33,14 @@
 //      Sequence Input Options
 // =================================================================================================
 
+/**
+ * @brief Helper class to add command line parameter to input mutliple files in a uniform way.
+ *
+ * This class is meant to be stored as a member of the actual options collection,
+ * or to be derived from for special file type input options classes.
+ * It offers a function to add mutliple file input to a command line interface,
+ * and has several convenience functions to use the files that were passes by a user.
+ */
 class FileInputOptions
 {
 public:
@@ -60,16 +68,20 @@ public:
      * Takes a file type used for help messages, and an extension for valid files.
      * The extenion can be a regex, e.g., `(fas|fasta)`.
      */
-    void add_to_app(
-        CLI::App* sub, std::string const& type, std::string const& extension, std::string const& group = "Input"
+    CLI::Option* add_multi_file_input_opt_to_app(
+        CLI::App* sub,
+        std::string const& type,
+        std::string const& extension,
+        bool               required = true,
+        std::string const& group = "Input"
     );
 
     /**
-     * @brief Return the group name that this options object was assigned to.
+     * @brief Return the CLI11 option that this object belongs to.
      */
-    std::string group_name() const
+    CLI::Option* option()
     {
-        return group_;
+        return option_;
     }
 
     // -------------------------------------------------------------------------
@@ -81,7 +93,7 @@ public:
     /**
      * @brief Get the number of files that were provided by the user.
      *
-     * Returns `input_file_paths().size()`.
+     * Returns `file_paths().size()`.
      */
     size_t file_count() const;
 
@@ -102,7 +114,7 @@ public:
     /**
      * @brief Get a specific file from the list.
      *
-     * Returns `input_file_paths().at( index )`.
+     * Returns `file_paths().at( index )`.
      */
     std::string const& file_path( size_t index ) const;
 
@@ -142,7 +154,8 @@ private:
 
     std::string file_type_;
     std::string file_ext_;
-    std::string group_;
+
+    CLI::Option* option_ = nullptr;
 
 };
 

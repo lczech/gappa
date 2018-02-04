@@ -41,29 +41,43 @@
 //      Setup Functions
 // =================================================================================================
 
-void FileInputOptions::add_to_app(
-    CLI::App* sub, std::string const& type, std::string const& extension, std::string const& group
+CLI::Option* FileInputOptions::add_multi_file_input_opt_to_app(
+    CLI::App* sub,
+    std::string const& type,
+    std::string const& extension,
+    bool               required,
+    std::string const& group
 ){
+    // Correct setup check.
+    if( option_ != nullptr ) {
+        throw std::domain_error( "Cannot use the same FileInputOptions object multiple times." );
+    }
+
     // Store file type info.
     file_type_ = type;
     file_ext_  = extension;
-    group_     = group;
 
-    // Input files as positional arguments.
-    auto opt_input_files = sub->add_option(
-        type + "_paths",
+    // Input files.
+    option_ = sub->add_option(
+        "--" + type + "-path",
         raw_paths_,
         "List of " + type + " files or directories to process. " +
         "For directories, only files with the extension ." + extension + " are processed."
     );
-    opt_input_files->required();
-    opt_input_files->check([]( std::string const& path ){
+    if( required ) {
+        option_->required();
+    }
+
+    // Check if it is a path.
+    option_->check([]( std::string const& path ){
         if( ! genesis::utils::path_exists( path ) ) {
             return std::string( "Path is neither a file nor a directory: " + path );
         }
         return std::string();
     });
-    opt_input_files->group( group_ );
+    option_->group( group );
+
+    return option_;
 }
 
 // =================================================================================================
@@ -99,10 +113,18 @@ std::vector<std::string> const& FileInputOptions::file_paths() const
         } else {
             // throw std::runtime_error( "Not a valid file or directory: " + path );
             throw CLI::ValidationError(
-                file_type_ + "_paths", "Not a valid file or directory: " + path
+                "--" + file_type_ + "-path", "Not a valid file or directory: " + path
             );
         }
     }
+
+    // If required, we actually need files!
+    if( resolved_paths_.empty() && option_->get_required() ) {
+        throw CLI::ValidationError(
+            "--" + file_type_ + "-path", "No files found."
+        );
+    }
+
     return resolved_paths_;
 }
 

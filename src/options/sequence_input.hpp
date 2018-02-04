@@ -39,7 +39,7 @@
 // =================================================================================================
 
 /**
- * @brief Input options for sequence data files.
+ * @brief Helper class for adding input options for sequence data files to a command.
  *
  * The class offers options to read fasta and/or phylip files. Depending on the file type, certain
  * reading options are (not) available. For example, sequential reading of the sequences in a file
@@ -70,12 +70,12 @@ public:
     /**
      * @brief Add options that allow reading any sequence file (fasta or phylip).
      */
-    void add_to_app( CLI::App* sub );
+    CLI::Option* add_sequence_input_opt_to_app( CLI::App* sub, bool required = true );
 
     /**
      * @brief Add options that allow to read fasta files only.
      */
-    void add_fasta_input_options_to_app( CLI::App* sub );
+    CLI::Option* add_fasta_input_opt_to_app( CLI::App* sub, bool required = true );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -87,8 +87,8 @@ public:
      * The function tries both fasta and phylip format, using the extension as a hint, and if this
      * fails, tries the respective other format.
      *
-     * See FileInputOptions::input_file_count() for the number of input files (valid range for the index)
-     * and FileInputOptions::input_file_paths() for their list.
+     * See FileInputOptions::file_count() for the number of input files (valid range for the index)
+     * and FileInputOptions::file_paths() for their list.
      */
     genesis::sequence::SequenceSet sequence_set( size_t index ) const;
 
@@ -97,9 +97,29 @@ public:
      */
     genesis::sequence::SequenceSet sequence_set_all() const;
 
+    /**
+     * @brief Get the FastaReader used when processing fasta files.
+     *
+     * Use this to change the behaviour of the reader if needed for a command.
+     */
+    genesis::sequence::FastaReader& fasta_reader()
+    {
+        return fasta_reader_;
+    }
+
     genesis::sequence::FastaReader const& fasta_reader() const
     {
         return fasta_reader_;
+    }
+
+    /**
+     * @brief Get the PhylipReader used when processing fasta files.
+     *
+     * Use this to change the behaviour of the reader if needed for a command.
+     */
+    genesis::sequence::PhylipReader& phylip_reader()
+    {
+        return phylip_reader_;
     }
 
     genesis::sequence::PhylipReader const& phylip_reader() const

@@ -88,35 +88,17 @@ void setup_chunkify( CLI::App& app )
     //     Add common options
     // -----------------------------------------------------------
 
-    opt->sequence_input.add_fasta_input_options_to_app( sub );
-    opt->file_output.add_to_app( sub,
-        "chunks", "Directory to write chunk fasta files to.", "chunks"
-    );
-    opt->file_output.add_to_app( sub,
-        "abundances", "Directory to write abundance map files to.", "abundances"
-    );
+    opt->sequence_input.add_fasta_input_opt_to_app( sub );
+
+    opt->chunk_output.add_output_dir_opt_to_app( sub, "chunks" );
+    opt->chunk_output.add_file_prefix_opt_to_app( sub, "chunk", "chunk_" );
+
+    opt->abundance_output.add_output_dir_opt_to_app( sub, "abundances" );
+    opt->abundance_output.add_file_prefix_opt_to_app( sub, "abundance", "abundances_" );
 
     // -----------------------------------------------------------
     //     Fill in custom options
     // -----------------------------------------------------------
-
-    // Abundance File Prefix
-    auto opt_afp = sub->add_option(
-        "--abundance-file-prefix",
-        opt->abundance_file_prefix,
-        "File path prefix for the abundance maps.",
-        true
-    );
-    opt_afp->group( opt->file_output.group_name() );
-
-    // Chunk File Prefix
-    auto opt_cfp = sub->add_option(
-        "--chunk-file-prefix",
-        opt->chunk_file_prefix,
-        "File path prefix for the fasta chunks.",
-        true
-    );
-    opt_cfp->group( opt->file_output.group_name() );
 
     // Chunk Size
     sub->add_option(
@@ -172,8 +154,8 @@ void write_chunk_file(
 
     // Generate output file name.
     auto const ofn
-        = options.file_output.out_dir( "chunks" )
-        + options.chunk_file_prefix
+        = options.chunk_output.out_dir()
+        + options.chunk_output.file_prefix()
         + std::to_string( chunk_count )
         + ".fasta"
     ;
@@ -194,8 +176,8 @@ void write_abundance_map_file(
 
     // Pprepare a new abundance file
     auto const fn
-        = options.file_output.out_dir( "abundances" )
-        + options.abundance_file_prefix
+        = options.abundance_output.out_dir()
+        + options.abundance_output.file_prefix()
         + base_fn
         + ".json"
     ;
@@ -277,8 +259,8 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
         AbundancesHashMap seq_abundances;
 
         // Iterate sequences
-        InputStream instr( make_unique< FileInputSource >( fasta_filename ));
-        for( auto it = FastaInputIterator( instr, options.sequence_input.fasta_reader() ); it; ++it ) {
+        auto it = FastaInputIterator( options.sequence_input.fasta_reader() );
+        for( it.from_file( fasta_filename ); it; ++it ) {
             #pragma omp atomic
             ++total_seqs_count;
 
@@ -361,13 +343,11 @@ void run_chunkify( ChunkifyOptions const& options )
     // -----------------------------------------------------------
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files(
-        { options.abundance_file_prefix + ".*\\.json" },
-        "abundances"
+    options.abundance_output.check_nonexistent_output_files(
+        { options.abundance_output.file_prefix() + ".*\\.json" }
     );
-    options.file_output.check_nonexistent_output_files(
-        { options.chunk_file_prefix + "[0-9]+\\.fasta" },
-        "chunks"
+    options.chunk_output.check_nonexistent_output_files(
+        { options.chunk_output.file_prefix() + "[0-9]+\\.fasta" }
     );
 
     // Print some user output.

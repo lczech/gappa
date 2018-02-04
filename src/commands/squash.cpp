@@ -50,8 +50,8 @@ void setup_squash( CLI::App& app )
     );
 
     // Add common options.
-    opt->jplace_input.add_to_app( sub );
-    opt->file_output.add_to_app( sub );
+    opt->jplace_input.add_jplace_input_opt_to_app( sub );
+    opt->file_output.add_output_dir_opt_to_app( sub );
 
     // Fill in custom options.
     sub->add_option(
@@ -95,17 +95,18 @@ void run_squash( SquashOptions const& options )
     sample_set.clear();
 
     // LOG_INFO << "Starting squash clustering";
-    auto sc = tree::squash_clustering( std::move( mass_trees.first ));
+    auto sc = tree::SquashClustering();
+    sc.run( std::move( mass_trees.first ) );
     // LOG_INFO << "Finished squash clustering";
 
     // LOG_INFO << "Writing cluster tree";
     std::ofstream file_clust_tree;
     utils::file_output_stream( options.file_output.out_dir() + "cluster.newick",  file_clust_tree );
-    file_clust_tree << squash_cluster_tree( sc, options.jplace_input.base_file_names() );
+    file_clust_tree << sc.tree_string( options.jplace_input.base_file_names() );
 
     // LOG_INFO << "Writing fat trees";
-    for( size_t i = 0; i < sc.clusters.size(); ++i ) {
-        // auto const& cc = sc.clusters[i];
+    for( size_t i = 0; i < sc.clusters().size(); ++i ) {
+        // auto const& cc = sc.clusters()[i];
 
         // auto const cv = tree::mass_tree_mass_per_edge( cc.tree );
         // auto const colors = counts_to_colors(cv, false);

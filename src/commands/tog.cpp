@@ -44,8 +44,8 @@ void setup_tog( CLI::App& app )
     );
 
     // Add common options.
-    opt->jplace_input.add_to_app( sub );
-    opt->file_output.add_to_app( sub );
+    opt->jplace_input.add_jplace_input_opt_to_app( sub );
+    opt->file_output.add_output_dir_opt_to_app( sub );
 
     // Fill in custom options.
     sub->add_option(

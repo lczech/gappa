@@ -57,25 +57,44 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add a single output dir, with an option named "--out-dir".
+     * @brief Add an output dir with an option named "--out-dir".
      */
-    void add_to_app( CLI::App* sub );
+    CLI::Option* add_output_dir_opt_to_app( CLI::App* sub );
 
     /**
      * @brief Add a named output dir "--name-out-dir".
-     *
-     * Can be called multiple times for commands that output different types of files.
      */
-    void add_to_app(
+    CLI::Option* add_output_dir_opt_to_app(
         CLI::App* sub,
         std::string const& name,
-        std::string const& description,
-        std::string const& initial_value
+        std::string const& initial_value = ".",
+        std::string const& group = "Output"
     );
 
-    std::string group_name() const
+    /**
+     * @brief Add a command to set the file prefix for this file name, using "--name-file-prefix".
+     */
+    CLI::Option* add_file_prefix_opt_to_app(
+        CLI::App* sub,
+        std::string const& name,
+        std::string const& initial_value,
+        std::string const& group = "Output"
+    );
+
+    /**
+     * @brief Return the CLI11 option that this object belongs to.
+     */
+    CLI::Option* option()
     {
-        return "Output";
+        return out_dir_option_;
+    }
+
+    /**
+     * @brief Return the CLI11 option that the prefix command belongs to
+     */
+    CLI::Option* prefix_option()
+    {
+        return prefix_option_;
     }
 
     // -------------------------------------------------------------------------
@@ -83,32 +102,22 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return the normalized output dir for the single dir "--out-dir".
+     * @brief Return the normalized (that is, with trailing slash) output dir as given by the user.
      */
     std::string out_dir() const;
 
     /**
-     * @brief Return the normalized output dir for the named dir "--name-out-dir".
+     * @brief Return the file prefix given by the user.
      */
-    std::string out_dir( std::string const& name ) const;
+    std::string file_prefix() const;
 
     /**
-     * @brief Check whether any of the files in @p filenames exist in the the single dir "--out-dir".
+     * @brief Check whether any of the files in @p filenames exist in the output dir.
      * If so, print an error message and throw an error.
      *
      * Regex filenames are allowed, e.g., in order to check a range of files like `out_[0-9]+.txt`.
      */
     void check_nonexistent_output_files( std::vector<std::string> const& filenames ) const;
-
-    /**
-     * @brief Check whether any of the files in @p filenames exist in a named dir "--name-out-dir".
-     * If so, print an error message and throw an error.
-     *
-     * Regex filenames are allowed, e.g., in order to check a range of files like `out_[0-9]+.txt`.
-     */
-    void check_nonexistent_output_files(
-        std::vector<std::string> const& filenames, std::string const& name
-    ) const;
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -116,8 +125,12 @@ public:
 
 private:
 
-    // Map from dir names to paths.
-    std::unordered_map<std::string, std::string> out_dirs_;
+    std::string name_;
+    std::string out_dir_;
+    std::string prefix_;
+
+    CLI::Option* out_dir_option_ = nullptr;
+    CLI::Option* prefix_option_ = nullptr;
 
 };
 

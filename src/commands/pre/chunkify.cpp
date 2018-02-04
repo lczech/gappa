@@ -24,6 +24,7 @@
 #include "commands/pre/chunkify.hpp"
 
 #include "options/global.hpp"
+#include "tools/version.hpp"
 
 #include "CLI/CLI.hpp"
 
@@ -59,15 +60,21 @@
 
 /**
  * @brief Store the data needed to write one abundace file.
+ *
+ * That is, for one sequence, we need the chunk it is in, and all abundances of the different
+ * labels that this sequence has appeared with.
  */
 struct SequenceInfo
 {
-    size_t abundance;
+    // In which chunk was this sequence stored?
     size_t chunk_num;
+
+    // Which label has which abundance?
+    std::unordered_map< std::string, size_t > abundances;
 };
 
 /**
- * @brief Data type for storing per input file abundances and the chunk num per hash.
+ * @brief Map from hash to Sequence Info for storing per input file abundances and chunk nums.
  */
 using AbundancesHashMap = std::unordered_map< std::string, SequenceInfo >;
 
@@ -123,6 +130,14 @@ void setup_chunkify( CLI::App& app )
         { "SHA1", "SHA256", "MD5" },
         "Hash function for re-naming and identifying sequences.",
         true
+    );
+
+    // Guess Abundance
+    sub->add_flag(
+        "--guess-label-abundances",
+        opt->guess_abundances,
+        "Try to find abundances in sequence labels, like 'size=123' or '_123'. "
+        "If such a number is found, it is used additionally to write the abundances per sequence."
     );
 
     // -----------------------------------------------------------
@@ -185,25 +200,51 @@ void write_abundance_map_file(
     file_output_stream( fn, ofs );
     ofs << "{\n";
 
-    // Write name of the input file for later identification.
-    ofs << "  \"" << base_fn << "\": {";
+    // Write file metadata.
+    ofs << "  \"sample\": \"" << base_fn << "\",\n";
+    ofs << "  \"gappa\": \"" << gappa_version() << "\",\n";
+    ofs << "  \"invocation\": \"" << global_options.command_line() << "\",\n";
+    ofs << "  \"hash\": \"" << options.hash_function << "\",\n";
 
-    // TODO write meta data: gappa version, invocation, which hash function, which fields are written
+    // Write name of the input file for later identification.
+    ofs << "  \"abundances\": {";
 
     // Write abundance information for this file.
-    bool is_first = true;
+    bool is_first_seq = true;
     for( auto seq_it = seq_abundances.begin(); seq_it != seq_abundances.end(); ++seq_it ) {
 
         // Print comma for all but the first entry.
-        if( ! is_first ) {
+        if( ! is_first_seq ) {
             ofs << ",";
         }
-        is_first = false;
+        is_first_seq = false;
         ofs << "\n";
 
         // Print sequence data.
-        ofs << "    \"" << seq_it->first << "\": [ ";
-        ofs << seq_it->second.chunk_num << ", " << seq_it->second.abundance << " ]";
+        ofs << "    \"" << seq_it->first << "\": [\n";
+        ofs << "      " << seq_it->second.chunk_num << ", {";
+
+        // Write per label abundances.
+        bool is_first_abun = true;
+        for( auto const& label_abun : seq_it->second.abundances ) {
+
+            // Print comma for all but the first entry.
+            if( ! is_first_abun ) {
+                ofs << ",";
+            }
+            is_first_abun = false;
+            ofs << "\n";
+
+            // Get abundance from sequence count and potentially from label itself.
+            auto abun = label_abun.second;
+            if( options.guess_abundances ) {
+                abun *= genesis::sequence::guess_sequence_abundance( label_abun.first );
+            }
+
+            ofs << "      \"" << label_abun.first << "\": " << abun;
+        }
+
+        ofs << "\n    }]";
     }
 
     // Finish the file.
@@ -276,12 +317,13 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
             auto const hash_digest = HashFunction::from_string_digest( it->sites() );
             auto const hash_hex = HashFunction::digest_to_hex( hash_digest );
 
-            // Increment seq abundance for this file.
+            // Increment seq abundance for this file and label.
             auto& seq_abun = seq_abundances[ hash_hex ];
-            seq_abun.abundance += abundance;
+            auto const label = it->label() + ( it->metadata().empty() ? "" : " " + it->metadata() );
+            seq_abun.abundances[ label ] += abundance;
 
             // The hash calculation above is the main work of this loop.
-            // The rest is "just" setting some values,
+            // The rest is "just" setting some values (and the occasional chunk flush),
             // but we need a fully blown critical section for them.
             #pragma omp critical(GAPPA_CHUNKIFY_UPDATE_MAPS)
             {

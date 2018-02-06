@@ -43,7 +43,6 @@ public:
     size_t      chunk_size = 50000;
     size_t      min_abundance = 1;
     std::string hash_function = "SHA1";
-    bool        guess_abundances = false;
 
     SequenceInputOptions sequence_input;
     FileOutputOptions chunk_output;

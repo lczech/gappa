@@ -119,7 +119,7 @@ void setup_chunkify( CLI::App& app )
     sub->add_option(
         "--min-abundance",
         opt->min_abundance,
-        "Minimum abundance of a sequence per file. Sequences below are filtered out.",
+        "Minimum abundance of a single sequence. Sequences below are filtered out.",
         true
     );
 
@@ -130,14 +130,6 @@ void setup_chunkify( CLI::App& app )
         { "SHA1", "SHA256", "MD5" },
         "Hash function for re-naming and identifying sequences.",
         true
-    );
-
-    // Guess Abundance
-    sub->add_flag(
-        "--guess-label-abundances",
-        opt->guess_abundances,
-        "Try to find abundances in sequence labels, like 'size=123' or '_123'. "
-        "If such a number is found, it is used additionally to write the abundances per sequence."
     );
 
     // -----------------------------------------------------------
@@ -235,13 +227,7 @@ void write_abundance_map_file(
             is_first_abun = false;
             ofs << "\n";
 
-            // Get abundance from sequence count and potentially from label itself.
-            auto abun = label_abun.second;
-            if( options.guess_abundances ) {
-                abun *= genesis::sequence::guess_sequence_abundance( label_abun.first );
-            }
-
-            ofs << "      \"" << label_abun.first << "\": " << abun;
+            ofs << "      \"" << label_abun.first << "\": " << label_abun.second;
         }
 
         ofs << "\n    }]";
@@ -287,10 +273,10 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
         auto const& fasta_filename = options.sequence_input.file_path( fi );
 
         // User output
-        #pragma omp critical(GAPPA_CHUNKIFY_PRINT_PROGRESS)
-        {
-            ++file_count;
-            if( global_options.verbosity() >= 2 ) {
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_CHUNKIFY_PRINT_PROGRESS)
+            {
+                ++file_count;
                 std::cout << "Processing file " << file_count << " of " << options.sequence_input.file_count();
                 std::cout << ": " << fasta_filename << "\n";
             }

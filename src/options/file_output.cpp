@@ -147,6 +147,8 @@ void FileOutputOptions::check_nonexistent_output_files(
     //     }
     // }
 
+    // TODO if file overwrite option is added, this check should become a warning!
+
     // Check if any of the files exists.
     for( auto const& file : filenames ) {
         auto const dir_cont = dir_list_contents( out_dir_, true, file );

@@ -156,7 +156,6 @@ void write_chunk_file(
 
     // Prepare fata writer.
     auto writer = FastaWriter();
-    writer.enable_metadata(false);
     writer.line_length( 0 );
 
     // Generate output file name.
@@ -305,8 +304,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
 
             // Increment seq abundance for this file and label.
             auto& seq_abun = seq_abundances[ hash_hex ];
-            auto const label = it->label() + ( it->metadata().empty() ? "" : " " + it->metadata() );
-            seq_abun.abundances[ label ] += abundance;
+            seq_abun.abundances[ it->label() ] += abundance;
 
             // The hash calculation above is the main work of this loop.
             // The rest is "just" setting some values (and the occasional chunk flush),

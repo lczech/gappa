@@ -30,7 +30,7 @@
 #include <vector>
 
 // =================================================================================================
-//      Sequence Input Options
+//      File Input Options
 // =================================================================================================
 
 /**
@@ -80,6 +80,14 @@ public:
      * @brief Return the CLI11 option that this object belongs to.
      */
     CLI::Option* option()
+    {
+        return option_;
+    }
+
+    /**
+     * @brief Return the CLI11 option that this object belongs to.
+     */
+    CLI::Option const* option() const
     {
         return option_;
     }

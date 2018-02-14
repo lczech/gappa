@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PRE_H_
-#define GAPPA_COMMANDS_PRE_H_
+#ifndef GAPPA_COMMANDS_PRE_UNCHUNKIFY_H_
+#define GAPPA_COMMANDS_PRE_UNCHUNKIFY_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,28 +26,35 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/pre/chunkify.hpp"
-#include "commands/pre/unchunkify.hpp"
+#include "options/jplace_input.hpp"
+#include "options/file_input.hpp"
+#include "options/file_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class UnchunkifyOptions
+{
+public:
+
+    std::string chunk_list_file;
+    std::string chunk_file_expression;
+    size_t jplace_cache_size = 0;
+
+    JplaceInputOptions jplace_input;
+    FileInputOptions   abundance_map_input;
+    FileOutputOptions  file_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_pre( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "pre",
-        "Commands for preprocessing placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_chunkify( *sub );
-    setup_unchunkify( *sub );
-}
+void setup_unchunkify( CLI::App& app );
+void run_unchunkify( UnchunkifyOptions const& options );
 
 #endif // include guard

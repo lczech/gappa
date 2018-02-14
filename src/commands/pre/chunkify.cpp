@@ -198,7 +198,7 @@ void write_abundance_map_file(
     ofs << "  \"hash\": \"" << options.hash_function << "\",\n";
 
     // Write name of the input file for later identification.
-    ofs << "  \"abundances\": {";
+    ofs << "  \"abundances\": [";
 
     // Write abundance information for this file.
     bool is_first_seq = true;
@@ -212,8 +212,8 @@ void write_abundance_map_file(
         ofs << "\n";
 
         // Print sequence data.
-        ofs << "    \"" << seq_it->first << "\": [\n";
-        ofs << "      " << seq_it->second.chunk_num << ", {";
+        ofs << "    [ \"" << seq_it->first << "\", ";
+        ofs << seq_it->second.chunk_num << ", {";
 
         // Write per label abundances.
         bool is_first_abun = true;
@@ -233,7 +233,7 @@ void write_abundance_map_file(
     }
 
     // Finish the file.
-    ofs << "\n  }\n";
+    ofs << "\n  ]\n";
     ofs << "}\n";
     ofs.close();
 }

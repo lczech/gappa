@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "options/color.hpp"
+#include "options/color_map.hpp"
 
 #include "options/global.hpp"
 
@@ -39,7 +39,7 @@
 //      Constructor
 // =================================================================================================
 
-ColorOptions::ColorOptions()
+ColorMapOptions::ColorMapOptions()
 {
     using namespace genesis::utils;
     mask_color_param_ = color_to_hex( color_map_.mask_color() );
@@ -51,231 +51,143 @@ ColorOptions::ColorOptions()
 //      Setup Functions
 // =================================================================================================
 
-CLI::Option* ColorOptions::add_color_list_opt_to_app(
+CLI::Option* ColorMapOptions::add_color_list_opt_to_app(
     CLI::App* sub,
-    bool add_log_option,
-    std::string const& group
+    std::string const& default_color_list
 ) {
     // Correct setup check.
-    if( color_list_option_ != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorOptions object multiple times." );
+    if( color_list_option != nullptr ) {
+        throw std::domain_error( "Cannot use the same ColorMapOptions object multiple times." );
     }
 
+    // Set Default
+    palette_param_ = default_color_list;
+
     // Color List
-    color_list_option_ = sub->add_option(
+    color_list_option = sub->add_option(
         "--color-list",
         palette_param_,
         "List of colors to use for the palette. Can either be the name of a color list, "
         "a file containing one color per line, or an actual list of colors.",
         true
     );
-    color_list_option_->group( group );
+    color_list_option->group( "Color" );
 
     // Reverse
-    sub->add_flag_function(
+    reverse_color_list_option = sub->add_flag_function(
         "--reverse-color-list",
         [this]( size_t ){
             color_map_.reverse( true );
         },
         "If set, the --color-list is reversed."
-    )->group( group );
+    )->group( "Color" );
 
-    if( add_log_option ) {
-        sub->add_flag(
-            "--log-scaling",
-            log_scaling_,
-            "If set, the sequential color list is logarithmically scalled instead of linearily."
-        )->group( group );
-    }
-
-    return color_list_option_;
+    return color_list_option;
 }
 
-CLI::Option* ColorOptions::add_min_opt_to_app(
-    CLI::App* sub,
-    std::string const& group
-) {
-    // Correct setup check.
-    if( min_option_ != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorOptions object multiple times." );
-    }
-
-    // Min
-    min_option_ = sub->add_option(
-        "--min-value",
-        min_value_,
-        "Minimum value that is represented by the color scale. "
-        "If not set, the minimum value in the data is used.",
-        true
-    )->group( group );
-
+CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub )
+{
     // Under Color
-    sub->add_option(
+    under_color_option = sub->add_option(
         "--under-color",
         under_color_param_,
         "Color used to indicate values below min.",
         true
-    )->group( group );
+    )->group( "Color" );
 
     // Clip Under
-    sub->add_flag_function(
+    clip_under_option = sub->add_flag_function(
         "--clip-under",
         [this]( size_t ){
             color_map_.clip_under( true );
         },
         "Clip (clamp) values less than min to be inside [ min, max ]. "
         "If set, --under-color is not used to indicate values out of range."
-    )->group( group );
+    )->group( "Color" );
 
-    // Special: If we also use max, we can offer a clip option shortcut.
-    if( max_option_ ) {
-        sub->add_flag_function(
+    // Special: If we also use over color, we can offer a clip option shortcut.
+    if( clip_over_option ) {
+        clip_option = sub->add_flag_function(
             "--clip",
             [this]( size_t ){
                 color_map_.clip( true );
             },
             "Clip (clamp) values to be inside [ min, max ]. "
             "This option is a shortcut to set --clip-under and --clip-over at once."
-        )->group( group );
+        )->group( "Color" );
     }
 
-    return min_option_;
+    return under_color_option;
 }
 
-CLI::Option* ColorOptions::add_max_opt_to_app(
-    CLI::App* sub,
-    std::string const& group
-) {
-    // Correct setup check.
-    if( max_option_ != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorOptions object multiple times." );
-    }
-
-    // Max
-    max_option_ = sub->add_option(
-        "--max-value",
-        max_value_,
-        "Maximum value that is represented by the color scale. "
-        "If not set, the maximum value in the data is used.",
-        true
-    )->group( group );
-
+CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub )
+{
     // Over Color
-    sub->add_option(
+    over_color_option = sub->add_option(
         "--over-color",
         over_color_param_,
         "Color used to indicate values above max.",
         true
-    )->group( group );
+    )->group( "Color" );
 
     // Clip Over
-    sub->add_flag_function(
+    clip_over_option = sub->add_flag_function(
         "--clip-over",
         [this]( size_t ){
             color_map_.clip_over( true );
         },
         "Clip (clamp) values greater than max to be inside [ min, max ]. "
         "If set, --over-color is not used to indicate values out of range."
-    )->group( group );
+    )->group( "Color" );
 
-    // Special: If we also use min, we can offer a clip option shortcut.
-    if( min_option_ ) {
-        sub->add_flag_function(
+    // Special: If we also use under color, we can offer a clip option shortcut.
+    if( clip_under_option ) {
+        clip_option = sub->add_flag_function(
             "--clip",
             [this]( size_t ){
                 color_map_.clip( true );
             },
             "Clip (clamp) values to be inside [ min, max ]. "
             "This option is a shortcut to set --clip-under and --clip-over at once."
-        )->group( group );
+        )->group( "Color" );
     }
 
-    return max_option_;
+    return over_color_option;
 }
 
-CLI::Option* ColorOptions::add_mask_opt_to_app(
-    CLI::App* sub,
-    std::string const& group
-) {
-    // Correct setup check.
-    if( mask_option_ != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorOptions object multiple times." );
-    }
-
-    // Mask
-    mask_option_ = sub->add_option(
-        "--mask-value",
-        mask_value_,
-        "Mask value that identifies invalid values. "
-        "Value in the data that compare equal to the mask value are colored using --mask-color. "
-        "This is meant as a simple means of filtering and visualizing invalid values.",
-        true
-    )->group( group );
-
+CLI::Option* ColorMapOptions::add_mask_color_opt_to_app( CLI::App* sub )
+{
     // Mask Color
-    sub->add_option(
+    mask_color_option = sub->add_option(
         "--mask-color",
         mask_color_param_,
         "Color used to indicate masked values.",
         true
-    )->group( group );
+    )->group( "Color" );
 
-    return mask_option_;
+    return mask_color_option;
 }
 
 // =================================================================================================
 //      Helper Functions
 // =================================================================================================
 
-bool contains_ci( std::vector<std::string> const& haystack, std::string needle )
+genesis::utils::Color ColorMapOptions::resolve_color_string( std::string color_str, std::string const& param_name ) const
 {
-    using namespace genesis::utils;
-
-    needle = to_lower_ascii( needle );
-    for( auto const& val : haystack ) {
-        if( to_lower_ascii( val ) == needle ) {
-            return true;
-        }
+    try {
+        return genesis::utils::resolve_color_string( color_str );
+    } catch( std::exception& ex ) {
+        throw CLI::ValidationError(
+            param_name, "Invalid color '" + color_str + "': " +
+            std::string( ex.what() )
+        );
     }
-    return false;
 }
 
-genesis::utils::Color resolve_color_string( std::string color_str, std::string const& param_name )
-{
-    using namespace genesis::utils;
-    color_str = trim( color_str );
-
-    // Check if it is a hex color string.
-    if( starts_with( color_str, "#" ) ) {
-        try {
-            return color_from_hex( color_str );
-        } catch( std::exception& ex ) {
-            throw CLI::ValidationError(
-                param_name, "Invalid color '" + color_str + "': " +
-                std::string( ex.what() )
-            );
-        }
-    }
-
-    // Try to find a color by name.
-    if( is_xkcd_color_name( color_str ) ) {
-        return color_from_name_xkcd( color_str );
-    }
-    if( is_web_color_name( color_str ) ) {
-        return color_from_name_web( color_str );
-    }
-
-    // Nothing worked.
-    throw CLI::ValidationError(
-        param_name, "Invalid color '" + color_str + "'."
-    );
-}
-
-std::vector<genesis::utils::Color> resolve_color_list(
+std::vector<genesis::utils::Color> ColorMapOptions::resolve_color_list(
     std::vector<std::string> const& list,
     std::string const& param_name
-) {
-    using namespace genesis::utils;
+) const {
     std::vector<genesis::utils::Color> result;
 
     for( auto const& color_str : list ) {
@@ -289,7 +201,7 @@ std::vector<genesis::utils::Color> resolve_color_list(
 //      Run Functions
 // =================================================================================================
 
-genesis::utils::ColorMap const& ColorOptions::color_map() const
+genesis::utils::ColorMap const& ColorMapOptions::color_map() const
 {
     using namespace genesis::utils;
 

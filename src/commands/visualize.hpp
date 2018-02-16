@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_VISUALIZE_H_
+#define GAPPA_COMMANDS_VISUALIZE_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
@@ -23,47 +26,38 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/squash.hpp"
-#include "commands/visualize.hpp"
-#include "commands/pre.hpp"
+#include "options/color_map.hpp"
+#include "options/color_norm.hpp"
+#include "options/file_output.hpp"
+#include "options/jplace_input.hpp"
+#include "options/color_tree_output.hpp"
 
-#include "options/global.hpp"
-#include "tools/version.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Options
 // =================================================================================================
 
-int main( int argc, char** argv )
+class VisualizeOptions
 {
-    // Activate logging.
-    // utils::Logging::log_to_stdout();
-    // utils::Logging::details.time = true;
-    //
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+public:
 
-    CLI::App app{ gappa_header() };
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
+    bool normalize = false;
 
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_to_app( app );
+    ColorMapOptions        color_map;
+    ColorNormOptions       color_norm;
+    JplaceInputOptions     jplace_input;
+    FileOutputOptions      file_output;
+    ColorTreeOutputOptions color_tree_output;
+};
 
-    // Set up all subcommands.
-    setup_squash( app );
-    setup_visualize( app );
-    setup_pre( app );
+// =================================================================================================
+//      Functions
+// =================================================================================================
 
-    // TODO print invocation
-    // TODO use cli groups
+void setup_visualize( CLI::App& app );
+void run_visualize( VisualizeOptions const& options );
 
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
-
-    return 0;
-}
+#endif // include guard

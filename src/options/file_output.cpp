@@ -44,7 +44,7 @@ CLI::Option* FileOutputOptions::add_output_dir_opt_to_app(
     std::string const& group
 ) {
     // Correct setup check.
-    if( out_dir_option_ != nullptr ) {
+    if( out_dir_option != nullptr ) {
         throw std::domain_error( "Cannot use the same FileOutputOptions object multiple times." );
     }
 
@@ -54,18 +54,18 @@ CLI::Option* FileOutputOptions::add_output_dir_opt_to_app(
     out_dir_ = initial_value;
 
     // Add option
-    out_dir_option_ = sub->add_option(
+    out_dir_option = sub->add_option(
         optname,
         out_dir_,
         "Directory to write " + name + ( name.empty() ? "" : " " ) + "files to",
         true
     );
-    // out_dir_option_->check( CLI::ExistingDirectory );
-    out_dir_option_->group( group );
+    // out_dir_option->check( CLI::ExistingDirectory );
+    out_dir_option->group( group );
 
     // TODO add function to overwrite files, which sets the genesis option for this. add this to global!
 
-    return out_dir_option_;
+    return out_dir_option;
 }
 
 CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
@@ -75,7 +75,7 @@ CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
     std::string const& group
 ) {
     // Correct setup check.
-    if( prefix_option_ != nullptr ) {
+    if( prefix_option != nullptr ) {
         throw std::domain_error( "Cannot use the same FileOutputOptions object multiple times." );
     }
 
@@ -84,13 +84,13 @@ CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
     prefix_ = initial_value;
 
     // Add option
-    prefix_option_ = sub->add_option(
+    prefix_option = sub->add_option(
         optname,
         prefix_,
         "File prefix for " + name + " files",
         true
     );
-    prefix_option_->check([]( std::string const& prefix ){
+    prefix_option->check([]( std::string const& prefix ){
         if( ! genesis::utils::is_valid_filname( prefix ) ) {
             return std::string(
                 "File prefix contains invalid characters (<>:\"\\/|?*) or surrounding whitespace."
@@ -98,9 +98,9 @@ CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
         }
         return std::string();
     });
-    prefix_option_->group( group );
+    prefix_option->group( group );
 
-    return prefix_option_;
+    return prefix_option;
 }
 
 // =================================================================================================

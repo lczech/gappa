@@ -66,6 +66,8 @@ public:
 
     CLI::Option* add_jplace_input_opt_to_app( CLI::App* sub, bool required = true );
 
+    CLI::Option* add_point_mass_opt_to_app( CLI::App* sub );
+
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
@@ -99,6 +101,11 @@ public:
         return reader_;
     }
 
+    bool point_mass() const
+    {
+        return point_mass_;
+    }
+
     // -------------------------------------------------------------------------
     //     Option Members
     // -------------------------------------------------------------------------
@@ -106,6 +113,8 @@ public:
 private:
 
     genesis::placement::JplaceReader reader_;
+
+    bool point_mass_ = false;
 
 };
 

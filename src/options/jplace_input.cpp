@@ -23,6 +23,8 @@
 
 #include "options/jplace_input.hpp"
 
+#include "genesis/placement/function/functions.hpp"
+
 #include <iostream>
 #include <stdexcept>
 
@@ -37,13 +39,30 @@ CLI::Option* JplaceInputOptions::add_jplace_input_opt_to_app( CLI::App* sub, boo
     return FileInputOptions::add_multi_file_input_opt_to_app( sub, "jplace", "jplace", required, "Jplace Input" );
 }
 
+CLI::Option* JplaceInputOptions::add_point_mass_opt_to_app( CLI::App* sub )
+{
+    return sub->add_flag(
+        "--point-mass",
+        point_mass_,
+        "Treat every pquery as a point mass concentrated on the highest-weight placement."
+    )->group( "Jplace Input" );
+}
+
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
 
 genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
 {
-    return reader_.from_file( file_path( index ) );
+    using namespace genesis;
+    using namespace genesis::placement;
+
+    auto sample = reader_.from_file( file_path( index ) );
+    if( point_mass_ ) {
+        filter_n_max_weight_placements( sample );
+        normalize_weight_ratios( sample );
+    }
+    return sample;
 }
 
 genesis::placement::SampleSet JplaceInputOptions::sample_set() const
@@ -53,5 +72,12 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
     // TODO offer avg tree option
     // TODO add/offer validity checks etc
 
-    return reader_.from_files( file_paths() );
+    auto set = reader_.from_files( file_paths() );
+    if( point_mass_ ) {
+        for( auto& sample : set ) {
+            filter_n_max_weight_placements( sample.sample );
+            normalize_weight_ratios( sample.sample );
+        }
+    }
+    return set;
 }

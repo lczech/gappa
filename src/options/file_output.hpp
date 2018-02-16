@@ -81,22 +81,6 @@ public:
         std::string const& group = "Output"
     );
 
-    /**
-     * @brief Return the CLI11 option that this object belongs to.
-     */
-    CLI::Option* option()
-    {
-        return out_dir_option_;
-    }
-
-    /**
-     * @brief Return the CLI11 option that the prefix command belongs to
-     */
-    CLI::Option* prefix_option()
-    {
-        return prefix_option_;
-    }
-
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
@@ -129,8 +113,10 @@ private:
     std::string out_dir_;
     std::string prefix_;
 
-    CLI::Option* out_dir_option_ = nullptr;
-    CLI::Option* prefix_option_ = nullptr;
+public:
+
+    CLI::Option* out_dir_option = nullptr;
+    CLI::Option* prefix_option = nullptr;
 
 };
 

@@ -44,6 +44,7 @@ public:
     std::string chunk_list_file;
     std::string chunk_file_expression;
     size_t jplace_cache_size = 0;
+    std::string hash_function = "SHA1";
 
     JplaceInputOptions jplace_input;
     FileInputOptions   abundance_map_input;

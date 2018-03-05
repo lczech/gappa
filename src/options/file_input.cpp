@@ -103,9 +103,8 @@ std::vector<std::string> const& FileInputOptions::file_paths() const
 
         } else if( is_dir( path ) ) {
 
-            // Get all files in dir. We sort them to get reproducible order.
+            // Get all files in dir.
             auto list = dir_list_files( path, true, ".*\\." + file_ext_ + "$" );
-            std::sort( list.begin(), list.end() );
             for( auto const& jplace : list ) {
                 resolved_paths_.push_back( jplace );
             }
@@ -124,6 +123,9 @@ std::vector<std::string> const& FileInputOptions::file_paths() const
             "--" + file_type_ + "-path", "No files found."
         );
     }
+
+    // We sort them to get reproducible order.
+    std::sort( resolved_paths_.begin(), resolved_paths_.end() );
 
     return resolved_paths_;
 }

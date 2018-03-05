@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/squash.hpp"
+#include "commands/analyze/squash.hpp"
 
 #include "options/global.hpp"
 
@@ -46,18 +46,13 @@ void setup_squash( CLI::App& app )
     auto opt = std::make_shared<SquashOptions>();
     auto sub = app.add_subcommand(
         "squash",
-        "Perform squash clustering."
+        "Perform Squash Clustering."
     );
 
     // Add common options.
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
+    opt->jplace_input.add_point_mass_opt_to_app( sub );
     opt->file_output.add_output_dir_opt_to_app( sub );
-
-    // Fill in custom options.
-    sub->add_option(
-        "--point-mass", opt->point_mass,
-        "Treat every pquery as a point mass concentrated on the highest-weight placement"
-    );
 
     // TODO add option for selcting the distance measure: kr/emd or nhd
 
@@ -84,13 +79,6 @@ void run_squash( SquashOptions const& options )
 
     // Get the samples.
     auto sample_set = options.jplace_input.sample_set();
-
-    if( options.point_mass ) {
-        for( auto& sample : sample_set ) {
-            placement::filter_n_max_weight_placements( sample.sample );
-        }
-    }
-
     auto mass_trees = convert_sample_set_to_mass_trees( sample_set );
     sample_set.clear();
 

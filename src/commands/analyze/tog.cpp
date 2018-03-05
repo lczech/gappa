@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/tog.hpp"
+#include "commands/analyze/tog.hpp"
 
 #include "CLI/CLI.hpp"
 

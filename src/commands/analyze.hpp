@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_VISUALIZE_H_
-#define GAPPA_COMMANDS_VISUALIZE_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_H_
+#define GAPPA_COMMANDS_ANALYZE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,38 +26,34 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/color_map.hpp"
-#include "options/color_norm.hpp"
-#include "options/file_output.hpp"
-#include "options/jplace_input.hpp"
-#include "options/color_tree_output.hpp"
+#include "commands/analyze/krd.hpp"
+#include "commands/analyze/nhd.hpp"
+#include "commands/analyze/squash.hpp"
+#include "commands/analyze/tog.hpp"
+#include "commands/analyze/visualize_color.hpp"
 
-#include <memory>
 #include <string>
 #include <vector>
-
-// =================================================================================================
-//      Options
-// =================================================================================================
-
-class VisualizeOptions
-{
-public:
-
-    bool normalize = false;
-
-    ColorMapOptions        color_map;
-    ColorNormOptions       color_norm;
-    JplaceInputOptions     jplace_input;
-    FileOutputOptions      file_output;
-    ColorTreeOutputOptions color_tree_output;
-};
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_visualize( CLI::App& app );
-void run_visualize( VisualizeOptions const& options );
+void setup_analyze( CLI::App& app )
+{
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "analyze",
+        "Commands for analyzing placement data."
+    );
+    sub->require_subcommand( 1 );
+
+    // Add module subcommands.
+    setup_krd( *sub );
+    setup_nhd( *sub );
+    setup_squash( *sub );
+    setup_tog( *sub );
+    setup_visualize_color( *sub );
+}
 
 #endif // include guard

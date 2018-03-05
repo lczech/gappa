@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_SQUASH_H_
-#define GAPPA_COMMANDS_SQUASH_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_SQUASH_H_
+#define GAPPA_COMMANDS_ANALYZE_SQUASH_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -41,7 +41,6 @@ class SquashOptions
 {
 public:
 
-    bool point_mass = false;
     bool normalize = false; // TODO unused
 
     JplaceInputOptions jplace_input;

@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/visualize.hpp"
+#include "commands/analyze/visualize_color.hpp"
 
 #include "options/global.hpp"
 
@@ -45,13 +45,13 @@
 //      Setup
 // =================================================================================================
 
-void setup_visualize( CLI::App& app )
+void setup_visualize_color( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto options = std::make_shared<VisualizeOptions>();
+    auto options = std::make_shared<VisualizeColorOptions>();
     auto sub = app.add_subcommand(
-        "visualize",
-        "Make a tree with edges colored by placement mass in the samples."
+        "visualize-color",
+        "Make a tree with edges colored according to the placement mass of the samples."
     );
 
     // Add common options.
@@ -83,7 +83,7 @@ void setup_visualize( CLI::App& app )
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [options]() {
-        run_visualize( *options );
+        run_visualize_color( *options );
     });
 }
 
@@ -91,7 +91,7 @@ void setup_visualize( CLI::App& app )
 //      Run
 // =================================================================================================
 
-void run_visualize( VisualizeOptions const& options )
+void run_visualize_color( VisualizeColorOptions const& options )
 {
     using namespace genesis;
     using namespace genesis::placement;

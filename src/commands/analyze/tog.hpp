@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_TOG_H_
-#define GAPPA_COMMANDS_TOG_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_TOG_H_
+#define GAPPA_COMMANDS_ANALYZE_TOG_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis

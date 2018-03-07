@@ -52,14 +52,14 @@ CLI::Option* SequenceInputOptions::add_sequence_input_opt_to_app( CLI::App* sub,
 {
     return FileInputOptions::add_multi_file_input_opt_to_app(
         sub, "sequence", "(" + fasta_extensions_ + "|" + phylip_extensions_ + ")", required
-    );
+    )->group( "Sequence Input" );
 }
 
 CLI::Option* SequenceInputOptions::add_fasta_input_opt_to_app( CLI::App* sub, bool required )
 {
     return FileInputOptions::add_multi_file_input_opt_to_app(
         sub, "fasta", "(" + fasta_extensions_ + ")", required
-    );
+    )->group( "Sequence Input" );
 }
 
 // =================================================================================================

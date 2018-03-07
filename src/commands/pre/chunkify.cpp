@@ -265,10 +265,11 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
     size_t chunk_count = 0;
     size_t total_seqs_count = 0;
     size_t min_abun_count = 0;
+    auto const set_size = options.sequence_input.file_count();
 
     // Iterate fasta files
     #pragma omp parallel for schedule(dynamic)
-    for( size_t fi = 0; fi < options.sequence_input.file_count(); ++fi ) {
+    for( size_t fi = 0; fi < set_size; ++fi ) {
         auto const& fasta_filename = options.sequence_input.file_path( fi );
 
         // User output
@@ -276,7 +277,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
             #pragma omp critical(GAPPA_CHUNKIFY_PRINT_PROGRESS)
             {
                 ++file_count;
-                std::cout << "Processing file " << file_count << " of " << options.sequence_input.file_count();
+                std::cout << "Processing file " << file_count << " of " << set_size;
                 std::cout << ": " << fasta_filename << "\n";
             }
         }

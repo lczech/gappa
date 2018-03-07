@@ -99,6 +99,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
     options.file_output.check_nonexistent_output_files({ options.file_output.file_prefix() + ".*" });
+    // TODO too strict!
 
     // User output.
     options.jplace_input.print_files();

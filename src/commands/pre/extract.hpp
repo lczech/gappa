@@ -29,6 +29,7 @@
 #include "options/file_input.hpp"
 #include "options/file_output.hpp"
 #include "options/jplace_input.hpp"
+#include "options/sequence_input.hpp"
 
 #include <string>
 #include <vector>
@@ -41,16 +42,19 @@ class ExtractOptions
 {
 public:
 
-    std::string        clade_list_file;
-    JplaceInputOptions jplace_input;
-    FileOutputOptions  file_output;
+    std::string          clade_list_file;
+    JplaceInputOptions   jplace_input;
+    SequenceInputOptions sequence_input;
+
+    std::string          color_tree_file;
+    FileOutputOptions    jplace_output;
+    FileOutputOptions    sequence_output;
 
     double threshold = 0.95;
 
     // Options that do not have a command line, but might get one
     std::string basal_clade_name = "basal_branches";
     std::string uncertain_clade_name = "uncertain";
-    std::string color_tree_basename = "clade_tree";
 };
 
 // =================================================================================================

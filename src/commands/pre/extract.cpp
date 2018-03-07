@@ -35,6 +35,12 @@
 #include "genesis/placement/function/sample_set.hpp"
 #include "genesis/placement/function/tree.hpp"
 
+#include "genesis/sequence/sequence.hpp"
+#include "genesis/sequence/sequence_set.hpp"
+#include "genesis/sequence/formats/fasta_input_iterator.hpp"
+#include "genesis/sequence/formats/fasta_writer.hpp"
+#include "genesis/sequence/functions/labels.hpp"
+
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/bipartition/bipartition.hpp"
 #include "genesis/tree/bipartition/functions.hpp"
@@ -75,6 +81,11 @@ using CladeTaxaList = std::unordered_map<std::string, std::vector<std::string>>;
  */
 using CladeEdgeList = std::vector<std::pair<std::string, std::unordered_set<size_t>>>;
 
+/**
+ * @brief Contains a list of clades, each itself contianing all pquery names in that clade.
+ */
+using PqueryNamesPerCladeList = std::unordered_map<std::string, std::unordered_set<std::string>>;
+
 // =================================================================================================
 //      Setup
 // =================================================================================================
@@ -88,11 +99,11 @@ void setup_extract( CLI::App& app )
         "Extract placements from clades of the tree and write per-clade jplace files."
     );
 
-    // Add common options.
+    // Add specific options.
     auto clade_list_file_opt = sub->add_option(
         "--clade-list-file",
         options->clade_list_file,
-        "File containing a comma-separated list of taxon to clade mapping." // TODO
+        "File containing a comma-separated list of taxon to clade mapping."
     );
     clade_list_file_opt->required();
     clade_list_file_opt->check( CLI::ExistingFile );
@@ -105,13 +116,23 @@ void setup_extract( CLI::App& app )
     );
     threshold_opt->check( CLI::Range( 0.5, 1.0 ));
 
+    auto color_tree_file_opt = sub->add_option(
+        "--color-tree-file",
+        options->color_tree_file,
+        "If a path is provided, an svg file with a tree colored by clades is written."
+    );
+    color_tree_file_opt->check( CLI::NonexistentPath );
+
     // Input files.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
     options->jplace_input.add_point_mass_opt_to_app( sub );
+    options->sequence_input.add_fasta_input_opt_to_app( sub, false );
 
     // Output files.
-    options->file_output.add_output_dir_opt_to_app( sub );
-    options->file_output.add_file_prefix_opt_to_app( sub, "sample", "sample" );
+    options->jplace_output.add_output_dir_opt_to_app( sub, "samples", "samples" );
+    // options->jplace_output.add_file_prefix_opt_to_app( sub, "sample", "" );
+    options->sequence_output.add_output_dir_opt_to_app( sub, "sequences", "sequences" );
+    // options->sequence_output.add_file_prefix_opt_to_app( sub, "sequence", "" );
 
     // TODO option for fasta inout?!
 
@@ -368,15 +389,14 @@ void write_sample_set(
     using namespace ::genesis::placement;
 
     // User output.
-    if( global_options.verbosity() >= 2 ) {
+    if( global_options.verbosity() >= 1 ) {
         for( size_t si = 0; si < sample_set.size(); ++si ) {
             auto const& named_sample = sample_set.at( si );
 
             std::cout << "Collected " << named_sample.sample.size() << " pqueries in clade ";
             std::cout << named_sample.name << "\n";
         }
-    }
-    if( global_options.verbosity() >= 1 ) {
+
         std::cout << "Writing " << sample_set.size() << " clade sample files.\n";
     }
 
@@ -386,13 +406,8 @@ void write_sample_set(
     for( size_t si = 0; si < sample_set.size(); ++si ) {
         auto const& named_sample = sample_set.at( si );
 
-        auto const fn
-            = options.file_output.out_dir()
-            + options.file_output.file_prefix()
-            + named_sample.name
-            + ".jplace"
-        ;
-        writer.to_file( named_sample.sample, fn );
+        auto const fn = options.jplace_output.file_prefix() + named_sample.name + ".jplace";
+        writer.to_file( named_sample.sample, options.jplace_output.out_dir() + fn );
     }
 }
 
@@ -409,16 +424,28 @@ void write_color_tree(
     using namespace ::genesis::tree;
     using namespace ::genesis::utils;
 
-    // Prepare storage.
-    std::vector<utils::Color> color_vector( tree.edge_count(), Color() );
+    // Only write a tree file if user specified a path.
+    if( options.color_tree_file.empty() ) {
+        return;
+    }
+
+    // Prepare. We use a grey base color for basal branches.
+    auto const base_color = Color( 0.7, 0.7, 0.7 );
+    std::vector<utils::Color> color_vector( tree.edge_count(), base_color );
     std::vector<std::string> names;
     auto color_map = ColorMap( color_list_set1() );
 
     // Colorize the edges and collect the names.
     for( size_t ci = 0; ci < clade_edges.size(); ++ci ) {
+
+        // Do not colorize basal branches.
+        if( clade_edges[ci].first == options.basal_clade_name ) {
+            continue;
+        }
+
         names.push_back( clade_edges[ci].first );
         for( auto ei : clade_edges[ci].second ) {
-            if( color_vector[ ei ] != Color() ) {
+            if( color_vector[ ei ] != base_color ) {
                 throw std::runtime_error(
                     "Internal error: Overlapping branches!"
                 );
@@ -448,16 +475,182 @@ void write_color_tree(
     // Add color list
     auto svg_color_list = make_svg_color_list( color_map, names );
     svg_color_list.transform.append( SvgTransform::Translate(
-        svg_doc.bounding_box().width() / 2.0, 0.0
+        svg_doc.bounding_box().width() / 2.0 + 200, 0.0
     ));
+    svg_color_list.transform.append( SvgTransform::Scale( 5.0, 5.0 ) );
     svg_doc << svg_color_list;
 
     // Write to file.
     svg_doc.margin = SvgMargin( 200.0 );
+    svg_doc.margin.right += 600;
     std::ofstream ofs;
-    auto const fn = options.file_output.out_dir() + options.color_tree_basename + ".svg";
+    std::string const ext = ends_with( options.color_tree_file, ".svg" ) ? "" : ".svg";
+    auto const fn = options.color_tree_file + ext;
+    dir_create( file_path( fn ), true );
     utils::file_output_stream( fn, ofs );
     svg_doc.write( ofs );
+}
+
+// =================================================================================================
+//      Clade Names List
+// =================================================================================================
+
+/**
+ * @brief Get the names of all pqueries per clade.
+ */
+PqueryNamesPerCladeList get_pqueries_per_clade(
+    genesis::placement::SampleSet const& sample_set
+) {
+    PqueryNamesPerCladeList list;
+    size_t duplicate_names = 0;
+
+    for( auto const& named_sample : sample_set ) {
+        for( auto const& pquery : named_sample.sample ) {
+            for( auto const& pquery_name : pquery.names() ) {
+
+                // Check if it is not already there.
+                for( auto const& clade : list ) {
+                    if( clade.second.count( pquery_name.name ) > 0 ) {
+                        ++duplicate_names;
+                    }
+                }
+
+                // Add it to the list.
+                list[ named_sample.name ].insert( pquery_name.name );
+            }
+        }
+    }
+
+    if( duplicate_names > 0 ) {
+        std::cout << "Found " << duplicate_names << " pqueries that have the same name. ";
+        std::cout << "This will cause the extraction of sequences with that name to be ";
+        std::cout << "randomly assigned to one of the clades that have a pquery with that name. ";
+        std::cout << "Thus, this should better be fixed first!\n";
+    }
+
+    return list;
+}
+
+// =================================================================================================
+//      Clade Names List
+// =================================================================================================
+
+void extract_sequences(
+    ExtractOptions const& options,
+    PqueryNamesPerCladeList const& list
+) {
+    using namespace ::genesis;
+    using namespace ::genesis::sequence;
+    using namespace ::genesis::utils;
+
+    // User output.
+    options.sequence_input.print_files();
+
+    // Helper: Given a clade name, get the fasta file to write to.
+    auto clade_filename = [&]( std::string const& cladename ){
+        auto path = options.sequence_output.out_dir();
+        path += options.sequence_output.file_prefix() + cladename + ".fasta";
+        return path;
+    };
+
+    // Lazy prep: We write empty files first, which makes sure (again) that they do not exist,
+    // and that we can later append to them.
+    for( auto const& clade : list ) {
+        file_write( "", clade_filename( clade.first ));
+    }
+
+    // Helpers.
+    auto const set_size = options.sequence_input.file_count();
+    size_t file_count = 0;
+    auto writer = FastaWriter();
+
+    // Count for user output.
+    size_t total_seqs_count = 0;
+    size_t missing_seqs_count = 0;
+
+    // Cache sequences per clade while extracting.
+    std::unordered_map< std::string, SequenceSet > clade_sequences;
+
+    // Process the input files.
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t fi = 0; fi < set_size; ++fi ) {
+        auto const& fasta_filename = options.sequence_input.file_path( fi );
+
+        // User output.
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_EXTRACT_PRINT_PROGRESS)
+            {
+                ++file_count;
+                std::cout << "Processing file " << file_count << " of " << set_size;
+                std::cout << ": " << options.sequence_input.file_path( fi ) << "\n";
+            }
+        }
+
+        auto it = FastaInputIterator( options.sequence_input.fasta_reader() );
+        for( it.from_file( fasta_filename ); it; ++it ) {
+            #pragma omp atomic
+            ++total_seqs_count;
+
+            // Try to find the fasta sequence name in a clade.
+            PqueryNamesPerCladeList::const_iterator clade_it = list.end();
+            for( auto lit = list.begin(); lit != list.end(); ++lit ) {
+                if( lit->second.count( it->label() ) > 0 ) {
+                    clade_it = lit;
+                    break;
+                }
+            }
+
+            // If not, skip this sequence.
+            if( clade_it == list.end() ) {
+                #pragma omp atomic
+                ++missing_seqs_count;
+                continue;
+            }
+
+            // Add the sequence to the clade set, and write if cache too big.
+            #pragma omp critical(GAPPA_CHUNKIFY_UPDATE_SEQUENCES)
+            {
+                // Get the sequence cache for the clade and add ther sequence to it.
+                auto& clade_seqs = clade_sequences[ clade_it->first ];
+                clade_seqs.add( *it );
+
+                // If the cache is full, flush it.
+                if( clade_seqs.size() >= 1000 ) {
+
+                    // Prepare file for appending.
+                    auto const fn = clade_filename( clade_it->first );
+                    std::ofstream out_stream( fn, std::ofstream::app );
+                    if( out_stream.fail() ) {
+                        throw std::runtime_error( "Cannot append sequences to file " + fn + "." );
+                    }
+
+                    // Write and clear.
+                    writer.to_stream( clade_seqs, out_stream );
+                    clade_seqs.clear();
+                }
+            }
+        }
+    }
+
+    // Flush clade caches.
+    for( auto const& clade_seqs : clade_sequences ) {
+
+        // Prepare file for appending.
+        auto const fn = clade_filename( clade_seqs.first );
+        std::ofstream out_stream( fn, std::ofstream::app );
+        if( out_stream.fail() ) {
+            throw std::runtime_error( "Cannot append sequences to file '" + fn + "'." );
+        }
+
+        // Write.
+        writer.to_stream( clade_seqs.second, out_stream );
+    }
+
+    std::cout << "Collected " << total_seqs_count << " sequences in " << list.size() << " clades.\n";
+    if( missing_seqs_count > 0 ) {
+        std::cout << "Thereof, " << missing_seqs_count << " sequences could not be assigned to any ";
+        std::cout << "clade, because their name does not appear in any jplace file.\n";
+    }
 }
 
 // =================================================================================================
@@ -471,7 +664,14 @@ void run_extract( ExtractOptions const& options )
     using namespace ::genesis::tree;
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({ options.file_output.file_prefix() + ".*" });
+    options.jplace_output.check_nonexistent_output_files({
+        options.jplace_output.file_prefix() + ".*\\.jplace"
+    });
+    if( options.sequence_input.file_count() > 0 ) {
+        options.sequence_output.check_nonexistent_output_files({
+            options.sequence_output.file_prefix() + ".*\\.fasta"
+        });
+    }
 
     // User output.
     options.jplace_input.print_files();
@@ -491,7 +691,6 @@ void run_extract( ExtractOptions const& options )
 
     #pragma omp parallel for schedule(dynamic)
     for( size_t fi = 0; fi < set_size; ++fi ) {
-        auto const fn = options.jplace_input.base_file_name( fi );
 
         // User output.
         if( global_options.verbosity() >= 2 ) {
@@ -505,6 +704,7 @@ void run_extract( ExtractOptions const& options )
 
         // Read the sample.
         auto sample = options.jplace_input.sample( fi );
+        auto const fn = options.jplace_input.base_file_name( fi );
         auto const clade_edges = get_clade_edges( options, clade_taxa_list, sample.tree(), fn );
 
         // Prepare tree and sample set. Add samples for every clade that we are going to use.
@@ -540,4 +740,12 @@ void run_extract( ExtractOptions const& options )
 
     // Write everything to jplace files.
     write_sample_set( sample_set, options );
+
+    // If there were sequences given as input as well, extract them!
+    // We can also delete the samples to save some mem. Not needed any more.
+    if( options.sequence_input.file_count() > 0 ) {
+        auto const list = get_pqueries_per_clade( sample_set );
+        sample_set.clear();
+        extract_sequences( options, list );
+    }
 }

@@ -1,5 +1,5 @@
-#ifndef GAPPA_OPTIONS_COLOR_H_
-#define GAPPA_OPTIONS_COLOR_H_
+#ifndef GAPPA_OPTIONS_COLOR_COLOR_NORM_H_
+#define GAPPA_OPTIONS_COLOR_COLOR_NORM_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -27,18 +27,24 @@
 #include "CLI/CLI.hpp"
 
 #include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
+#include "genesis/utils/tools/color/norm_logarithmic.hpp"
 
+#include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
 // =================================================================================================
-//      Color Options
+//      Color Norm Options
 // =================================================================================================
 
 /**
- * @brief Helper class to add command line parameter to specify a single color.
+ * @brief Helper class to add command line parameter to use a color normalization.
  */
-class SingleColorOptions
+class ColorNormOptions
 {
 public:
 
@@ -46,27 +52,24 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    SingleColorOptions() = default;
-    ~SingleColorOptions() = default;
+    ColorNormOptions()  = default;
+    ~ColorNormOptions() = default;
 
-    SingleColorOptions( SingleColorOptions const& other ) = default;
-    SingleColorOptions( SingleColorOptions&& )            = default;
+    ColorNormOptions( ColorNormOptions const& other ) = default;
+    ColorNormOptions( ColorNormOptions&& )            = default;
 
-    SingleColorOptions& operator= ( SingleColorOptions const& other ) = default;
-    SingleColorOptions& operator= ( SingleColorOptions&& )            = default;
+    ColorNormOptions& operator= ( ColorNormOptions const& other ) = default;
+    ColorNormOptions& operator= ( ColorNormOptions&& )            = default;
 
     // -------------------------------------------------------------------------
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Add an option `--name-color` to the app.
-     */
-    CLI::Option* add_single_color_opt_to_app(
-        CLI::App* sub,
-        std::string const& name,
-        std::string const& default_color
-    );
+    CLI::Option* add_log_scaling_opt_to_app( CLI::App* sub );
+    CLI::Option* add_min_value_opt_to_app( CLI::App* sub );
+    CLI::Option* add_mid_value_opt_to_app( CLI::App* sub );
+    CLI::Option* add_max_value_opt_to_app( CLI::App* sub );
+    CLI::Option* add_mask_value_opt_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -74,10 +77,17 @@ public:
 
 public:
 
-    /**
-     * @brief Get the color that was provided by the user.
-     */
-    genesis::utils::Color color() const;
+    bool log_scaling() const
+    {
+        return log_scaling_;
+    }
+
+    std::unique_ptr<genesis::utils::ColorNormalizationLinear> get_sequential_norm() const;
+    genesis::utils::ColorNormalizationDiverging get_diverging_norm() const;
+
+    void apply_options( genesis::utils::ColorNormalizationLinear& norm ) const;
+    void apply_options( genesis::utils::ColorNormalizationLogarithmic& norm ) const;
+    void apply_options( genesis::utils::ColorNormalizationDiverging& norm ) const;
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -85,12 +95,19 @@ public:
 
 private:
 
-    std::string name_;
-    std::string color_param_;
+    bool log_scaling_ = false;
+    double min_value_ = 0.0;
+    double mid_value_ = 0.5;
+    double max_value_ = 1.0;
+    double mask_value_ = std::numeric_limits<double>::quiet_NaN();
 
 public:
 
-    CLI::Option* color_option = nullptr;
+    CLI::Option* log_scaling_option = nullptr;
+    CLI::Option* min_value_option = nullptr;
+    CLI::Option* mid_value_option = nullptr;
+    CLI::Option* max_value_option = nullptr;
+    CLI::Option* mask_value_option = nullptr;
 
 };
 

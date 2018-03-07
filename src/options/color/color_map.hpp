@@ -1,5 +1,5 @@
-#ifndef GAPPA_OPTIONS_COLOR_MAP_H_
-#define GAPPA_OPTIONS_COLOR_MAP_H_
+#ifndef GAPPA_OPTIONS_COLOR_COLOR_MAP_H_
+#define GAPPA_OPTIONS_COLOR_COLOR_MAP_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis

@@ -21,58 +21,58 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "options/single_color.hpp"
+#include "options/tree_output.hpp"
 
-#include "options/global.hpp"
+#include "genesis/tree/drawing/functions.hpp"
 
-#include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/color/names.hpp"
-
+#include <iostream>
 #include <stdexcept>
 
 // =================================================================================================
 //      Setup Functions
 // =================================================================================================
 
-CLI::Option* SingleColorOptions::add_single_color_opt_to_app(
-    CLI::App* sub,
-    std::string const& name,
-    std::string const& default_color
-) {
-    // Correct setup check.
-    if( color_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same SingleColorOptions object multiple times." );
-    }
+void TreeOutputOptions::add_color_tree_opts_to_app( CLI::App* sub )
+{
+    svg_tree_output.add_svg_tree_opts_to_app( sub );
 
-    // Set Default
-    color_param_ = default_color;
-    name_ = name;
-
-    // Color List
-    color_option = sub->add_option(
-        "--" + name + "-color",
-        color_param_,
-        "Colors to use for " + name + ".",
-        true
-    );
-    color_option->group( "Color" );
-
-    return color_option;
+    // TODO add options to deactivate certain output formats
 }
 
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
 
-genesis::utils::Color SingleColorOptions::color() const
-{
-    try {
-        return genesis::utils::resolve_color_string( color_param_ );
-    } catch( std::exception& ex ) {
-        throw CLI::ValidationError(
-            name_, "Invalid color '" + color_param_ + "': " +
-            std::string( ex.what() )
-        );
-    }
+void TreeOutputOptions::write_tree_to_files(
+    genesis::tree::DefaultTree const&         tree,
+    std::vector<genesis::utils::Color> const& color_per_branch,
+    std::string const&                        file_path_prefix
+) const {
+    using namespace genesis::tree;
+
+    write_color_tree_to_svg_file(
+        tree,
+        svg_tree_output.layout_parameters(),
+        color_per_branch,
+        file_path_prefix + ".svg"
+    );
+}
+
+void TreeOutputOptions::write_tree_to_files(
+    genesis::tree::DefaultTree const&         tree,
+    std::vector<genesis::utils::Color> const& color_per_branch,
+    genesis::utils::ColorMap const&           color_map,
+    genesis::utils::ColorNormalization const& color_norm,
+    std::string const&                        file_path_prefix
+) const {
+    using namespace genesis::tree;
+
+    write_color_tree_to_svg_file(
+        tree,
+        svg_tree_output.layout_parameters(),
+        color_per_branch,
+        color_map,
+        color_norm,
+        file_path_prefix + ".svg"
+    );
 }

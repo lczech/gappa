@@ -69,7 +69,7 @@ void setup_visualize_color( CLI::App& app )
     options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Output files.
-    options->color_tree_output.add_color_tree_opts_to_app( sub );
+    options->tree_output.add_color_tree_opts_to_app( sub );
     options->file_output.add_output_dir_opt_to_app( sub );
     options->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
 
@@ -186,7 +186,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
 
     // Now, make a color vector and write to files.
     auto const colors = color_map( *color_norm, total_masses );
-    options.color_tree_output.write_tree_to_files(
+    options.tree_output.write_tree_to_files(
         tree,
         colors,
         color_map,

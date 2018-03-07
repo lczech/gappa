@@ -1,5 +1,5 @@
-#ifndef GAPPA_OPTIONS_SVG_TREE_OUTPUT_H_
-#define GAPPA_OPTIONS_SVG_TREE_OUTPUT_H_
+#ifndef GAPPA_OPTIONS_TREE_OUTPUT_H_
+#define GAPPA_OPTIONS_TREE_OUTPUT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,19 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
-#include "genesis/tree/drawing/functions.hpp"
+#include "options/tree_output/nexus.hpp"
+#include "options/tree_output/svg.hpp"
+
+#include "genesis/tree/default/tree.hpp"
+#include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/tools/color/normalization.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
-//      Svg Tree Output Options
+//      Tree Output Options
 // =================================================================================================
 
 /**
- * @brief
+ * @brief This options class encapsulates all options needed to produce trees with colored branches
+ * in different formats.
+ *
+ * Thus, whenenver a color tree is needed, this option can be used to add all the needed options
+ * to a command at once. It adds different output formats and offers simple functions
+ * to write to the ones specified by the user.
+ *
+ * It does not add the color options, as this is too dependent on what the command needs.
+ * It just accepts a vector of colors for the branches of the tree.
  */
-class SvgTreeOutputOptions
+class TreeOutputOptions
 {
 public:
 
@@ -46,26 +60,38 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    SvgTreeOutputOptions()  = default;
-    ~SvgTreeOutputOptions() = default;
+    TreeOutputOptions()  = default;
+    ~TreeOutputOptions() = default;
 
-    SvgTreeOutputOptions( SvgTreeOutputOptions const& other ) = default;
-    SvgTreeOutputOptions( SvgTreeOutputOptions&& )            = default;
+    TreeOutputOptions( TreeOutputOptions const& other ) = default;
+    TreeOutputOptions( TreeOutputOptions&& )            = default;
 
-    SvgTreeOutputOptions& operator= ( SvgTreeOutputOptions const& other ) = default;
-    SvgTreeOutputOptions& operator= ( SvgTreeOutputOptions&& )            = default;
+    TreeOutputOptions& operator= ( TreeOutputOptions const& other ) = default;
+    TreeOutputOptions& operator= ( TreeOutputOptions&& )            = default;
 
     // -------------------------------------------------------------------------
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_svg_tree_opts_to_app( CLI::App* sub );
+    void add_color_tree_opts_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
 
-    genesis::tree::LayoutParameters layout_parameters() const;
+    void write_tree_to_files(
+        genesis::tree::DefaultTree const&         tree,
+        std::vector<genesis::utils::Color> const& color_per_branch,
+        std::string const&                        file_path_prefix
+    ) const;
+
+    void write_tree_to_files(
+        genesis::tree::DefaultTree const&         tree,
+        std::vector<genesis::utils::Color> const& color_per_branch,
+        genesis::utils::ColorMap const&           color_map,
+        genesis::utils::ColorNormalization const& color_norm,
+        std::string const&                        file_path_prefix
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -73,9 +99,7 @@ public:
 
 private:
 
-    std::string shape_ = "circular";
-    std::string type_ = "cladogram";
-    bool ladderize_ = true;
+    SvgTreeOutputOptions svg_tree_output;
 
 };
 

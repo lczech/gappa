@@ -1,5 +1,5 @@
-#ifndef GAPPA_OPTIONS_COLOR_TREE_OUTPUT_H_
-#define GAPPA_OPTIONS_COLOR_TREE_OUTPUT_H_
+#ifndef GAPPA_OPTIONS_COLOR_SINGLE_H_
+#define GAPPA_OPTIONS_COLOR_SINGLE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,32 +26,19 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/svg_tree_output.hpp"
-
-#include "genesis/tree/default/tree.hpp"
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/map.hpp"
-#include "genesis/utils/tools/color/normalization.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
-//      Color Tree Output Options
+//      Color Options
 // =================================================================================================
 
 /**
- * @brief This options class encapsulates all options needed to produce trees with colored branches
- * in different formats.
- *
- * Thus, whenenver a color tree is needed, this option can be used to add all the needed options
- * to a command at once. It adds different output formats and offers simple functions
- * to write to the ones specified by the user.
- *
- * It does not add the color options, as this is too dependent on what the command needs.
- * It just accepts a vector of colors for the branches of the tree.
+ * @brief Helper class to add command line parameter to specify a single color.
  */
-class ColorTreeOutputOptions
+class SingleColorOptions
 {
 public:
 
@@ -59,38 +46,38 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    ColorTreeOutputOptions()  = default;
-    ~ColorTreeOutputOptions() = default;
+    SingleColorOptions() = default;
+    ~SingleColorOptions() = default;
 
-    ColorTreeOutputOptions( ColorTreeOutputOptions const& other ) = default;
-    ColorTreeOutputOptions( ColorTreeOutputOptions&& )            = default;
+    SingleColorOptions( SingleColorOptions const& other ) = default;
+    SingleColorOptions( SingleColorOptions&& )            = default;
 
-    ColorTreeOutputOptions& operator= ( ColorTreeOutputOptions const& other ) = default;
-    ColorTreeOutputOptions& operator= ( ColorTreeOutputOptions&& )            = default;
+    SingleColorOptions& operator= ( SingleColorOptions const& other ) = default;
+    SingleColorOptions& operator= ( SingleColorOptions&& )            = default;
 
     // -------------------------------------------------------------------------
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_color_tree_opts_to_app( CLI::App* sub );
+    /**
+     * @brief Add an option `--name-color` to the app.
+     */
+    CLI::Option* add_single_color_opt_to_app(
+        CLI::App* sub,
+        std::string const& name,
+        std::string const& default_color
+    );
 
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
 
-    void write_tree_to_files(
-        genesis::tree::DefaultTree const&         tree,
-        std::vector<genesis::utils::Color> const& color_per_branch,
-        std::string const&                        file_path_prefix
-    ) const;
+public:
 
-    void write_tree_to_files(
-        genesis::tree::DefaultTree const&         tree,
-        std::vector<genesis::utils::Color> const& color_per_branch,
-        genesis::utils::ColorMap const&           color_map,
-        genesis::utils::ColorNormalization const& color_norm,
-        std::string const&                        file_path_prefix
-    ) const;
+    /**
+     * @brief Get the color that was provided by the user.
+     */
+    genesis::utils::Color color() const;
 
     // -------------------------------------------------------------------------
     //     Option Members
@@ -98,7 +85,12 @@ public:
 
 private:
 
-    SvgTreeOutputOptions svg_tree_output;
+    std::string name_;
+    std::string color_param_;
+
+public:
+
+    CLI::Option* color_option = nullptr;
 
 };
 

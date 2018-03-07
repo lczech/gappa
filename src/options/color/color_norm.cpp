@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "options/color_norm.hpp"
+#include "options/color/color_norm.hpp"
 
 #include "options/global.hpp"
 

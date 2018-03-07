@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "options/svg_tree_output.hpp"
+#include "options/tree_output/svg.hpp"
 
 #include <iostream>
 #include <stdexcept>

@@ -26,9 +26,9 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/color_map.hpp"
-#include "options/color_norm.hpp"
-#include "options/color_tree_output.hpp"
+#include "options/color/color_map.hpp"
+#include "options/color/color_norm.hpp"
+#include "options/tree_output.hpp"
 #include "options/file_output.hpp"
 #include "options/jplace_input.hpp"
 
@@ -46,11 +46,11 @@ public:
 
     bool normalize = false;
 
-    ColorMapOptions        color_map;
-    ColorNormOptions       color_norm;
-    JplaceInputOptions     jplace_input;
-    FileOutputOptions      file_output;
-    ColorTreeOutputOptions color_tree_output;
+    ColorMapOptions    color_map;
+    ColorNormOptions   color_norm;
+    JplaceInputOptions jplace_input;
+    FileOutputOptions  file_output;
+    TreeOutputOptions  tree_output;
 };
 
 // =================================================================================================

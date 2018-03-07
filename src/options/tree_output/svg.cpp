@@ -30,7 +30,7 @@
 //      Setup Functions
 // =================================================================================================
 
-void SvgTreeOutputOptions::add_svg_tree_opts_to_app( CLI::App* sub )
+void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub )
 {
     sub->add_set_ignore_case(
         "--svg-tree-shape",

@@ -69,7 +69,7 @@ void setup_visualize_color( CLI::App& app )
     options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Output files.
-    options->tree_output.add_color_tree_opts_to_app( sub );
+    options->tree_output.add_tree_output_opts_to_app( sub );
     options->file_output.add_output_dir_opt_to_app( sub );
     options->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
 

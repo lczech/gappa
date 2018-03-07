@@ -24,6 +24,10 @@
 #include "options/tree_output.hpp"
 
 #include "genesis/tree/drawing/functions.hpp"
+#include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color/helpers.hpp"
+#include "genesis/utils/tools/tickmarks.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -32,11 +36,30 @@
 //      Setup Functions
 // =================================================================================================
 
-void TreeOutputOptions::add_color_tree_opts_to_app( CLI::App* sub )
+void TreeOutputOptions::add_tree_output_opts_to_app( CLI::App* sub )
 {
-    svg_tree_output.add_svg_tree_opts_to_app( sub );
+    sub->add_flag(
+        "--write-newick-tree",
+        write_newick_tree_,
+        "If set, the tree is written to a Newick file."
+    )->group( "Tree Output" );
+    sub->add_flag(
+        "--write-nexus-tree",
+        write_nexus_tree_,
+        "If set, the tree is written to a Nexus file."
+    )->group( "Tree Output" );
+    sub->add_flag(
+        "--write-phyloxml-tree",
+        write_phyloxml_tree_,
+        "If set, the tree is written to a Phyloxml file."
+    )->group( "Tree Output" );
+    sub->add_flag(
+        "--write-svg-tree",
+        write_svg_tree_,
+        "If set, the tree is written to a Svg file."
+    )->group( "Tree Output" );
 
-    // TODO add options to deactivate certain output formats
+    svg_tree_output.add_svg_tree_output_opts_to_app( sub );
 }
 
 // =================================================================================================
@@ -45,17 +68,63 @@ void TreeOutputOptions::add_color_tree_opts_to_app( CLI::App* sub )
 
 void TreeOutputOptions::write_tree_to_files(
     genesis::tree::DefaultTree const&         tree,
+    std::string const&                        file_path_prefix
+) const {
+    using namespace genesis::tree;
+
+    if( write_newick_tree_ ) {
+        write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
+    }
+
+    if( write_nexus_tree_ ) {
+        write_tree_to_nexus_file( tree, file_path_prefix + ".nexus" );
+    }
+
+    if( write_phyloxml_tree_ ) {
+        write_tree_to_phyloxml_file( tree, file_path_prefix + ".phyloxml" );
+    }
+
+    if( write_svg_tree_ ) {
+        write_tree_to_svg_file(
+            tree,
+            svg_tree_output.layout_parameters(),
+            file_path_prefix + ".svg"
+        );
+    }
+}
+
+void TreeOutputOptions::write_tree_to_files(
+    genesis::tree::DefaultTree const&         tree,
     std::vector<genesis::utils::Color> const& color_per_branch,
     std::string const&                        file_path_prefix
 ) const {
     using namespace genesis::tree;
 
-    write_color_tree_to_svg_file(
-        tree,
-        svg_tree_output.layout_parameters(),
-        color_per_branch,
-        file_path_prefix + ".svg"
-    );
+    if( write_newick_tree_ ) {
+        std::cout << "Warning: Option --write-newick-tree is set, but the output contains colors, ";
+        std::cout << "which are not available in the Newick format. ";
+        std::cout << "The Newick tree only contains the topology of the tree with names and branch lengths. ";
+        std::cout << "Use another format to get a colored tree!\n";
+
+        write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
+    }
+
+    if( write_nexus_tree_ ) {
+        write_color_tree_to_nexus_file( tree, color_per_branch, file_path_prefix + ".nexus" );
+    }
+
+    if( write_phyloxml_tree_ ) {
+        write_color_tree_to_phyloxml_file( tree, color_per_branch, file_path_prefix + ".phyloxml" );
+    }
+
+    if( write_svg_tree_ ) {
+        write_color_tree_to_svg_file(
+            tree,
+            svg_tree_output.layout_parameters(),
+            color_per_branch,
+            file_path_prefix + ".svg"
+        );
+    }
 }
 
 void TreeOutputOptions::write_tree_to_files(
@@ -66,13 +135,68 @@ void TreeOutputOptions::write_tree_to_files(
     std::string const&                        file_path_prefix
 ) const {
     using namespace genesis::tree;
+    using namespace genesis::utils;
 
-    write_color_tree_to_svg_file(
-        tree,
-        svg_tree_output.layout_parameters(),
-        color_per_branch,
-        color_map,
-        color_norm,
-        file_path_prefix + ".svg"
-    );
+    // In case we output a non svg tree, we need to report colors and tickmarks,
+    // as they are not available in the other formats.
+    bool print_legend = false;
+
+    if( write_newick_tree_ ) {
+        std::cout << "Warning: Option --write-newick-tree is set, but the output contains colors, ";
+        std::cout << "which are not available in the Newick format. ";
+        std::cout << "The Newick tree only contains the topology of the tree with names and branch lengths. ";
+        std::cout << "Use another format to get a colored tree!\n";
+
+        write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
+    }
+
+    if( write_nexus_tree_ ) {
+        write_color_tree_to_nexus_file( tree, color_per_branch, file_path_prefix + ".nexus" );
+        print_legend = true;
+    }
+
+    if( write_phyloxml_tree_ ) {
+        write_color_tree_to_phyloxml_file( tree, color_per_branch, file_path_prefix + ".phyloxml" );
+        print_legend = true;
+    }
+
+    if( write_svg_tree_ ) {
+        write_color_tree_to_svg_file(
+            tree,
+            svg_tree_output.layout_parameters(),
+            color_per_branch,
+            color_map,
+            color_norm,
+            file_path_prefix + ".svg"
+        );
+    }
+
+    if( print_legend ) {
+        // TODO maybe make the num ticks changable. if so, also use it for the svg output!
+        auto const tickmarks = color_tickmarks( color_norm, 5 );
+
+        std::cout << "Output options --write-nexus-tree and --write-phyloxml-tree produce trees ";
+        std::cout << "with colored branches, these formats are not able to store the legend. ";
+        std::cout << "Thus, use to following stops to create a legend. ";
+        std::cout << "The lines range from 0.0 (lowest) to 1.0 (heighest), ";
+        std::cout << "and print labels along with the colors at those relative positions.\n";
+
+        for( auto const& tick : tickmarks ) {
+            auto const rel_pos = tick.first;
+            auto label = tick.second;
+
+            if( rel_pos == 0.0 && color_map.clip_under() ) {
+                label = "≤ " + label;
+            }
+            if( rel_pos == 1.0 && color_map.clip_over() ) {
+                label = "≥ " + label;
+            }
+
+            auto const col_str = color_to_hex( color_map( rel_pos ));
+            std::cout << "    At " << to_string_precise( rel_pos, 3 ) << ": Label '" << label << "', Color " << col_str << "\n";
+        }
+
+        std::cout << "Alternatively, use the option --write-svg-tree to create an Svg file ";
+        std::cout << "from which the color legend can be copied.\n";
+    }
 }

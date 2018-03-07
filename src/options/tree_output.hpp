@@ -26,7 +26,6 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/tree_output/nexus.hpp"
 #include "options/tree_output/svg.hpp"
 
 #include "genesis/tree/default/tree.hpp"
@@ -73,11 +72,16 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_color_tree_opts_to_app( CLI::App* sub );
+    void add_tree_output_opts_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
+
+    void write_tree_to_files(
+        genesis::tree::DefaultTree const&         tree,
+        std::string const&                        file_path_prefix
+    ) const;
 
     void write_tree_to_files(
         genesis::tree::DefaultTree const&         tree,
@@ -98,6 +102,11 @@ public:
     // -------------------------------------------------------------------------
 
 private:
+
+    bool write_newick_tree_   = false;
+    bool write_nexus_tree_    = false;
+    bool write_phyloxml_tree_ = false;
+    bool write_svg_tree_      = false;
 
     SvgTreeOutputOptions svg_tree_output;
 

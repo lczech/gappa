@@ -59,7 +59,7 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_svg_tree_opts_to_app( CLI::App* sub );
+    void add_svg_tree_output_opts_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions

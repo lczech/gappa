@@ -29,6 +29,7 @@
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
 #include "genesis/utils/tools/color/norm_logarithmic.hpp"
 
 #include <limits>
@@ -81,10 +82,10 @@ public:
         return log_scaling_;
     }
 
-    std::unique_ptr<genesis::utils::ColorNormalization> get_sequential_norm() const;
+    std::unique_ptr<genesis::utils::ColorNormalizationLinear> get_sequential_norm() const;
     genesis::utils::ColorNormalizationDiverging get_diverging_norm() const;
 
-    void apply_options( genesis::utils::ColorNormalization& norm ) const;
+    void apply_options( genesis::utils::ColorNormalizationLinear& norm ) const;
     void apply_options( genesis::utils::ColorNormalizationLogarithmic& norm ) const;
     void apply_options( genesis::utils::ColorNormalizationDiverging& norm ) const;
 

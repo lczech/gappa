@@ -127,17 +127,17 @@ CLI::Option* ColorNormOptions::add_mask_value_opt_to_app( CLI::App* sub )
 //      Run Functions
 // =================================================================================================
 
-std::unique_ptr<genesis::utils::ColorNormalization> ColorNormOptions::get_sequential_norm() const
+std::unique_ptr<genesis::utils::ColorNormalizationLinear> ColorNormOptions::get_sequential_norm() const
 {
     using namespace genesis::utils;
-    std::unique_ptr<ColorNormalization> res;
+    std::unique_ptr<ColorNormalizationLinear> res;
 
     if( log_scaling_ ) {
         res = make_unique<ColorNormalizationLogarithmic>();
         apply_options( static_cast<ColorNormalizationLogarithmic&>( *res ) );
     } else {
-        res = make_unique<ColorNormalization>();
-        apply_options( *res );
+        res = make_unique<ColorNormalizationLinear>();
+        apply_options( static_cast<ColorNormalizationLinear&>( *res ));
     }
 
     return res;
@@ -151,7 +151,7 @@ genesis::utils::ColorNormalizationDiverging ColorNormOptions::get_diverging_norm
     return res;
 }
 
-void ColorNormOptions::apply_options( genesis::utils::ColorNormalization& norm ) const
+void ColorNormOptions::apply_options( genesis::utils::ColorNormalizationLinear& norm ) const
 {
     // CLI objects evaluate to true if the option was passed by the user.
     // So here, we first test wheter the option object was actually created,
@@ -171,13 +171,13 @@ void ColorNormOptions::apply_options( genesis::utils::ColorNormalization& norm )
 
 void ColorNormOptions::apply_options( genesis::utils::ColorNormalizationLogarithmic& norm ) const
 {
-    apply_options( static_cast<genesis::utils::ColorNormalization&>( norm ));
+    apply_options( static_cast<genesis::utils::ColorNormalizationLinear&>( norm ));
 }
 
 void ColorNormOptions::apply_options( genesis::utils::ColorNormalizationDiverging& norm ) const
 {
     // First apply base class.
-    apply_options( static_cast<genesis::utils::ColorNormalization&>( norm ));
+    apply_options( static_cast<genesis::utils::ColorNormalizationLinear&>( norm ));
 
     // Then special divergent options.
     if( mid_value_option && *mid_value_option ) {

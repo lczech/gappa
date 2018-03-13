@@ -50,6 +50,8 @@ void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub )
         true
     )->group( "Svg Tree Output" );
 
+    // TODO edge style, width etc!
+
     sub->add_flag(
         "--ladderize",
         ladderize_,

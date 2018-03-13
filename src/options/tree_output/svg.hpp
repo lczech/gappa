@@ -73,9 +73,10 @@ public:
 
 private:
 
-    std::string shape_ = "circular";
-    std::string type_ = "cladogram";
-    bool ladderize_ = true;
+    std::string shape_   = "circular";
+    std::string type_    = "cladogram";
+    double stroke_width_ = 5.0;
+    bool ladderize_      = true;
 
 };
 

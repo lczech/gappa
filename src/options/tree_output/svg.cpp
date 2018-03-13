@@ -50,10 +50,15 @@ void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub )
         true
     )->group( "Svg Tree Output" );
 
-    // TODO edge style, width etc!
+    sub->add_option(
+        "--svg-tree-stroke-width",
+        stroke_width_,
+        "Svg stroke width for the branches of the tree.",
+        true
+    );
 
     sub->add_flag(
-        "--ladderize",
+        "--svg-tree-ladderize",
         ladderize_,
         "If set, the tree is ladderized."
     )->group( "Svg Tree Output" );
@@ -90,6 +95,14 @@ genesis::tree::LayoutParameters SvgTreeOutputOptions::layout_parameters() const
         );
     }
 
+    if( stroke_width_ <= 0.0 ) {
+        throw CLI::ValidationError(
+            "--svg-tree-stroke-width",
+            "Svg stroke width has to be positive."
+        );
+    }
+
+    res.stroke.width = stroke_width_;
     res.ladderize = ladderize_;
     return res;
 }

@@ -103,7 +103,7 @@ void setup_extract( CLI::App& app )
     auto clade_list_file_opt = sub->add_option(
         "--clade-list-file",
         options->clade_list_file,
-        "File containing a comma-separated list of taxon to clade mapping."
+        "File containing a tab-separated list of taxon to clade mapping."
     );
     clade_list_file_opt->required();
     clade_list_file_opt->check( CLI::ExistingFile );
@@ -151,7 +151,7 @@ void setup_extract( CLI::App& app )
  * @brief Return a list of clades, each containing a list of taxa.
  *
  * The function takes the clade file path from the options as input. Each line of that file
- * contains a comma-separated entry that maps from a taxon of the tree to the clade name that this
+ * contains a tab-separated entry that maps from a taxon of the tree to the clade name that this
  * taxon belongs to:
  *
  *     Taxon_1, Clade_a
@@ -165,7 +165,7 @@ CladeTaxaList get_clade_taxa_lists( ExtractOptions const& options )
 
     auto const & clade_filename = options.clade_list_file;
     auto csv_reader = CsvReader();
-    // csv_reader.separator_chars( "\t" );
+    csv_reader.separator_chars( "\t" );
 
     // Create a list of all clades and fill each clade with its taxa.
     CladeTaxaList clades;
@@ -174,6 +174,7 @@ CladeTaxaList get_clade_taxa_lists( ExtractOptions const& options )
         auto const& line = table[i];
         if( line.size() != 2 ) {
             throw std::runtime_error(
+                "Expecting two tab-separated fields in clade file. "
                 "Invalid line " + std::to_string(i) + " in clade file: " + clade_filename
             );
         }
@@ -243,7 +244,8 @@ CladeEdgeList get_clade_edges(
 
     // Make a set of all edges that do not belong to any clade (the basal branches of the tree).
     // We first fill it with all edge indices, then remove the clade-edges later,
-    // so that only the wanted ones remain.
+    // so that only the wanted ones remain. This also serves as a check that we do not use any
+    // edges in more than one clade.
     std::unordered_set<size_t> basal_branches;
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
         basal_branches.insert( (*it)->index() );
@@ -278,6 +280,30 @@ CladeEdgeList get_clade_edges(
 
         // Remove the edge indices of this clade from the basal branches (non-clade) edges list.
         for( auto const edge : subedges ) {
+
+            // Test whether the edge was already removed. If so, clades overlap.
+            // Actually, I'm pretty sure that this cannot happen, because of the way that
+            // find_monophyletic_subtree_edges() works: If an edge was in two clades, they would
+            // not be monophyletic. Thus, this edge is never used by the function...
+            // Anyway, we check it to be sure. Not expensive.
+            if( basal_branches.count( edge ) == 0 ) {
+
+                // Find the clade that already has that edge, and use it for the error message.
+                std::string colliding_clade;
+                for( auto const& coll_clade : clade_edges ) {
+                    if( coll_clade.second.count( edge ) > 0 ) {
+                        colliding_clade = coll_clade.first;
+                        break;
+                    }
+                }
+                throw std::runtime_error(
+                    "Clades " + clade.first + " and " + colliding_clade + " collidate! "
+                    "That is, there are edges that are in both clades. "
+                    "The clade file needs to be cleaned up to fix this."
+                );
+            }
+
+            // Now, remove the edge from basal branches, because it is in a clade now.
             basal_branches.erase( edge );
         }
     }
@@ -433,7 +459,12 @@ void write_color_tree(
     auto const base_color = Color( 0.7, 0.7, 0.7 );
     std::vector<utils::Color> color_vector( tree.edge_count(), base_color );
     std::vector<std::string> names;
-    auto color_map = ColorMap( color_list_set1() );
+
+    // Make a long list of colors.
+    auto colors = color_list_set1();
+    colors.insert( colors.end(), color_list_dark2().begin(), color_list_dark2().end() );
+    colors.insert( colors.end(), color_list_paired().begin(), color_list_paired().end() );
+    auto color_map = ColorMap( colors );
 
     // Colorize the edges and collect the names.
     for( size_t ci = 0; ci < clade_edges.size(); ++ci ) {

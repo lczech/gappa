@@ -26,6 +26,7 @@
 
 #include "CLI/CLI.hpp"
 
+#include "commands/pre/art.hpp"
 #include "commands/pre/chunkify.hpp"
 #include "commands/pre/extract.hpp"
 #include "commands/pre/unchunkify.hpp"
@@ -49,6 +50,7 @@ void setup_pre( CLI::App& app )
     // TODO rename "pre" to "pipeline"?!
 
     // Add module subcommands.
+    setup_art( *sub );
     setup_chunkify( *sub );
     setup_unchunkify( *sub );
     setup_extract( *sub );

@@ -142,13 +142,21 @@ void setup_art( CLI::App& app )
         "Minimal taxonomic level. Taxa below this level are always expanded."
     );
 
-    // Min tax level
+    // Allow approximation
     // auto allow_approx_opt =
     sub->add_flag(
         "--allow-approximation",
         opt->allow_approximation,
         "Allow to expand taxa that help getting closer to the --target-size, even if they are not "
-        "the ones with the highest entropy.."
+        "the ones with the highest entropy."
+    );
+
+    // Write info files
+    sub->add_flag(
+        "--write-info-files",
+        opt->write_info_files,
+        "If set, two additional info files are written, containing the new pruned taxonomy, "
+        "as well as the entropy of all clades of the original taxonomy."
     );
 
     // -----------------------------------------------------------
@@ -454,6 +462,81 @@ void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy:
 }
 
 // =================================================================================================
+//      Write Taxonomy Info
+// =================================================================================================
+
+void write_info_files( ArtOptions const& options, genesis::taxonomy::Taxonomy const& tax )
+{
+    using namespace genesis::taxonomy;
+
+    if( ! options.write_info_files ) {
+        return;
+    }
+
+    // TODO check with file overwrite settings
+
+    // Prepare entropy output.
+    std::ofstream entropy_os;
+    auto const entropy_fn = options.output.out_dir() + options.entropy_info_file;
+    genesis::utils::file_output_stream( entropy_fn, entropy_os );
+    entropy_os << "Taxon\tStatus\tChild_Taxa\tTotal_Taxa\tLowest_Level_Taxa\tSequences\tEntropy\n";
+
+    // Prepare taxonomy output.
+    std::ofstream taxonomy_os;
+    auto const taxonomy_fn = options.output.out_dir() + options.taxonomy_info_file;
+    genesis::utils::file_output_stream( taxonomy_fn, taxonomy_os );
+    taxonomy_os << "Taxon\tChild_Taxa\tTotal_Taxa\tLowest_Level_Taxa\n";
+
+    // Write to files.
+    auto const gen = TaxopathGenerator();
+    auto print_taxon_info = [&]( Taxon const& t )
+    {
+        // Calculate values.
+        auto const name = gen( t );
+        auto const total_chldrn = total_taxa_count( t );
+        auto const lowest_chldrn = taxa_count_lowest_levels( t );
+        auto const added_seqs = t.data<EntropyTaxonData>().counts.added_sequences_count();
+        auto const entr = t.data<EntropyTaxonData>().entropy;
+
+        // Status: was the taxon selected or not.
+        std::string status = "-";
+        if( t.data<EntropyTaxonData>().status == EntropyTaxonData::PruneStatus::kOutside ) {
+            status = "Outside";
+        }
+        if( t.data<EntropyTaxonData>().status == EntropyTaxonData::PruneStatus::kBorder ) {
+            status = "Selected";
+        }
+        if( t.data<EntropyTaxonData>().status == EntropyTaxonData::PruneStatus::kInside ) {
+            status = "Inside";
+        }
+
+        // For all taxa, write out entropy info.
+        entropy_os << name;
+        entropy_os << "\t" << status;
+        entropy_os << "\t" << t.size();
+        entropy_os << "\t" << total_chldrn;
+        entropy_os << "\t" << lowest_chldrn;
+        entropy_os << "\t" << added_seqs;
+        entropy_os << "\t" << entr;
+        entropy_os << "\n";
+
+        // Write all inner and border taxa to the taxnomy file.
+        if( t.data<EntropyTaxonData>().status != EntropyTaxonData::PruneStatus::kOutside ) {
+            taxonomy_os << name;
+            taxonomy_os << "\t" << t.size();
+            taxonomy_os << "\t" << total_chldrn;
+            taxonomy_os << "\t" << lowest_chldrn;
+            taxonomy_os << "\n";
+        }
+    };
+    preorder_for_each( tax, print_taxon_info );
+
+    // Wrap up.
+    entropy_os.close();
+    taxonomy_os.close();
+}
+
+// =================================================================================================
 //      Run
 // =================================================================================================
 
@@ -472,5 +555,6 @@ void run_art( ArtOptions const& options )
     calculate_entropy( options, taxonomy );
     select_taxa( options, taxonomy );
     generate_consensus_sequences( options, taxonomy );
+    write_info_files( options, taxonomy );
 
 }

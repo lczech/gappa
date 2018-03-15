@@ -58,8 +58,9 @@ public:
     // Output options.
     FileOutputOptions output;
     std::string consensus_sequence_file = "consensus_sequences.fasta";
+    bool write_info_files = false;
+    std::string entropy_info_file = "entropy.txt";
     std::string taxonomy_info_file = "taxonomy.txt";
-    bool write_taxonomy_info = false;
 
     // SequenceInputOptions sequence_input;
     // FileOutputOptions abundance_output;

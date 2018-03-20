@@ -135,11 +135,12 @@ void setup_art( CLI::App& app )
     );
 
     // Max subclade size
-    // auto max_subclade_size_opt = sub->add_option(
-    //     "--max-subclade-size",
-    //     opt->max_subclade_size,
-    //     "Minimal size of sub-clades. Everything below is expanded."
-    // );
+    // auto max_subclade_size_opt =
+    sub->add_option(
+        "--max-subclade-size",
+        opt->max_subclade_size,
+        "Maximal size of a non-expanded sub-clades. Everything bigger is first expanded."
+    );
 
     // Min tax level
     // auto min_tax_level_opt =
@@ -660,6 +661,9 @@ void run_art( ArtOptions const& options )
 
         if( options.min_subclade_size > 0 ) {
             std::cout << "Min subclade size: " << options.min_subclade_size << "\n";
+        }
+        if( options.max_subclade_size > 0 ) {
+            std::cout << "Max subclade size: " << options.max_subclade_size << "\n";
         }
         if( options.min_tax_level > 0 ) {
             std::cout << "Min taxonomic level: " << options.min_tax_level << "\n";

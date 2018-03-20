@@ -107,6 +107,13 @@ void setup_art( CLI::App& app )
     seq_file_opt->required();
     seq_file_opt->check( CLI::ExistingFile );
 
+    // Sub Taxopath
+    sub->add_option(
+        "--sub-taxonomy",
+        opt->sub_taxopath,
+        "If a taxopath from the taxonomy is provided, only the respective sub-taxonomy is used."
+    );
+
     // -----------------------------------------------------------
     //     Entropy pruning option
     // -----------------------------------------------------------
@@ -217,20 +224,49 @@ genesis::taxonomy::Taxonomy read_taxonomy( ArtOptions const& options )
     TaxonomyReader().from_file( options.taxonomy_file, tax );
     sort_by_name( tax );
 
-    // TODO only allocate for the sub tax
+    // Init a pointer to the whole taxonomy.
+    Taxonomy* subtax = &tax;
 
-    // Create a Sequence Count objeect for each taxon.
+    // If the user only wants a sub taxon, overwrite the pointer.
+    if( ! options.sub_taxopath.empty() ) {
+
+        // Find the sub taxon and assign it to the taxonomy as our new main taxon.
+        auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
+        auto subtaxon = find_taxon_by_taxopath( tax, taxopath );
+        subtax = subtaxon;
+
+        if( subtax == nullptr ) {
+            throw std::runtime_error(
+                "Taxon " + options.sub_taxopath + " not found in the taxonomy."
+            );
+        }
+
+        // We need to set data for the selected main sub clade taxon,
+        // as this is not done in the preorder iterator that comes next.
+        subtaxon->reset_data( EntropyTaxonData::create() );
+        subtaxon->data<EntropyTaxonData>().counts = SiteCounts( "ACGT", seq_len );
+    }
+
+    // Create a Sequence Count objeect for each taxon below the pointer.
     // This might allocate quite a lot of memory!
     auto add_sequence_counts_to_taxonomy = [&]( Taxon& taxon ){
         taxon.reset_data( EntropyTaxonData::create() );
         taxon.data<EntropyTaxonData>().counts = SiteCounts( "ACGT", seq_len );
     };
-    preorder_for_each( tax, add_sequence_counts_to_taxonomy );
+    assert( subtax );
+    preorder_for_each( *subtax, add_sequence_counts_to_taxonomy );
 
     // User output.
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Taxonomy contains a total of " << total_taxa_count( tax ) << " taxa, ";
         std::cout << "with " << taxa_count_lowest_levels( tax ) << " taxa at the lowest level.\n";
+
+        if( ! options.sub_taxopath.empty() ) {
+            std::cout << "The selected Subtaxonomy contains a total of " ;
+            std::cout << total_taxa_count( *subtax ) << " taxa, ";
+            std::cout << "with " << taxa_count_lowest_levels( *subtax );
+            std::cout << " taxa at the lowest level.\n";
+        }
     }
 
     return tax;
@@ -250,10 +286,13 @@ void fill_site_counts( ArtOptions const& options, genesis::taxonomy::Taxonomy& t
         std::cout << "Reading sequences.\n";
     }
 
-    // User output prep.
+    // User output prep. We count how often each char occurs in the sequences,
+    // how many sequences weree processed in total, how many of those were not found at all in the
+    // taxonomy, and how many were not part of the specified subtaxonomy (if specified at all).
     std::map<char, size_t> char_counts;
     size_t total_seqs_count = 0;
     size_t no_tax_seqs_count = 0;
+    size_t not_subtax_seqs_count = 0;
 
     // Prepare helpers.
     auto taxopath_parser = TaxopathParser();
@@ -288,8 +327,6 @@ void fill_site_counts( ArtOptions const& options, genesis::taxonomy::Taxonomy& t
             taxopath_str = it->label().substr( delim + 1 );
         }
 
-        // TODO distinguish between not found at all and not in the specified sub taxonomy
-
         // Parse the taxo path and find it in the taxonomy.
         // If the first attempt fails, remove the last element (assumed to be species level),
         // and try again. If we fail again, we cannot use this sequence.
@@ -307,12 +344,27 @@ void fill_site_counts( ArtOptions const& options, genesis::taxonomy::Taxonomy& t
             continue;
         }
 
+        // Now that we have found the taxon of that sequence, check whether it is part of the
+        // specified subtaxonomy. If no subtaxonomy was specified, all are valid.
+        // We do this by testing whether the taxon has data, because read_taxonomy() only sets
+        // data entries for the subtaxonomy.
+        if( ! taxp->has_data() ) {
+            ++not_subtax_seqs_count;
+            if( global_options.verbosity() >= 3 ) {
+                std::cout << "Sequence " << it->label() << " not part of the subtaxonomy.\n";
+            }
+            continue;
+        }
+
         // Accummulate counts for all taxonomic ranks.
+        // We go up in the taxonomy and add counts to all super-clades as well,
+        // until we reach the super taxon that is not part of the selected sub-clade
+        // (if a sub clade was specified. otherweise, it just goes all the way up).
         auto cur_tax = taxp;
         do {
             cur_tax->data<EntropyTaxonData>().counts.add_sequence( *it );
             cur_tax = cur_tax->parent();
-        } while( cur_tax != nullptr );
+        } while( cur_tax != nullptr && cur_tax->has_data() );
     }
 
     // User output.
@@ -321,11 +373,32 @@ void fill_site_counts( ArtOptions const& options, genesis::taxonomy::Taxonomy& t
         if( no_tax_seqs_count > 0 ) {
             std::cout << "Thereof, " << no_tax_seqs_count << " sequences were not found in the taxonomy.\n";
         }
+        if( not_subtax_seqs_count > 0 ) {
+            if( no_tax_seqs_count == 0 ) {
+                std::cout << "Thereof, ";
+            } else {
+                std::cout << "Furthermore, ";
+            }
+
+            std::cout << not_subtax_seqs_count << " sequences were skipped because they are ";
+            std::cout << "not part of the specified subtaxonomy.\n";
+        }
     }
     if( global_options.verbosity() >= 2 ) {
         std::cout << "Character counts in the sequences:\n";
+        size_t sum = 0;
         for( auto const& count : char_counts ) {
             std::cout << "    " << count.first << ": " << count.second << "\n";
+            sum += count.second;
+        }
+
+        auto amb = sum - char_counts['-'];
+        amb -= char_counts['A'] + char_counts['C'];
+        amb -= char_counts['G'] + char_counts['T'] + char_counts['U'];
+        auto const amb_per = 100.0 * static_cast<double>( amb ) / static_cast<double>( sum );
+        if( amb > 0 ) {
+            std::cout << "There were " << amb << " (" << amb_per << "%) ambiguous sites, ";
+            std::cout << "which were counted as gaps.\n";
         }
     }
     if( char_counts['U'] > char_counts['T'] ) {
@@ -358,8 +431,12 @@ void calculate_entropy( ArtOptions const& options, genesis::taxonomy::Taxonomy& 
     // auto opt = SiteEntropyOptions::kWeighted;
     auto opt = SiteEntropyOptions::kIncludeGaps;
 
-    // Calculate!
+    // Calculate! Skip those that do not have data, that is, which are not part of the subtaxonomy.
     auto calc_entropies = [&]( Taxon& t ) {
+        if( ! t.has_data() ) {
+            return;
+        }
+
         auto const& counts = t.data<EntropyTaxonData>().counts;
         t.data<EntropyTaxonData>().entropy = averaged_entropy( counts, false, opt );
     };
@@ -380,6 +457,21 @@ void select_taxa( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
         std::cout << "Selecting taxa based on entropy.\n";
     }
 
+    // Init a pointer to the whole taxonomy.
+    Taxonomy* subtax = &tax;
+
+    // If the user only wants a sub taxon, overwrite the pointer.
+    if( ! options.sub_taxopath.empty() ) {
+        auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
+        subtax = find_taxon_by_taxopath( tax, taxopath );
+
+        if( subtax == nullptr ) {
+            throw std::runtime_error(
+                "Taxon " + options.sub_taxopath + " not found in the taxonomy."
+            );
+        }
+    }
+
     // Get algo settings.
     PruneByEntropySettings prune_settings;
     prune_settings.min_subtaxonomy_size = options.min_subclade_size;
@@ -388,15 +480,15 @@ void select_taxa( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
     prune_settings.allow_approximation  = options.allow_approximation;
 
     // Run Forrest, run!
-    prune_by_entropy( tax, options.target_taxonomy_size, prune_settings );
-    if( ! validate_pruned_taxonomy( tax ) ) {
+    prune_by_entropy( *subtax, options.target_taxonomy_size, prune_settings );
+    if( ! validate_pruned_taxonomy( *subtax ) ) {
         throw std::runtime_error( "Something went wrong, the selected taxa are inconsistent.\n" );
     }
 
     // User output.
     if( global_options.verbosity() >= 1 ) {
         auto const border_cnt = count_taxa_with_prune_status(
-            tax, EntropyTaxonData::PruneStatus::kBorder
+            *subtax, EntropyTaxonData::PruneStatus::kBorder
         );
         std::cout << "Selected " << border_cnt << " taxa for which to build consensus sequences.\n";
     }
@@ -433,6 +525,11 @@ void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy:
 
     // Calculate consensus sequences and write them.
     auto make_consensus_sequences = [&]( Taxon const& t ) {
+
+        // Skip taxa that are not in the subtaxonomy.
+        if( ! t.has_data() ) {
+            return;
+        }
 
         // Only interested in the border taxa.
         if( t.data<EntropyTaxonData>().status != EntropyTaxonData::PruneStatus::kBorder ) {
@@ -479,18 +576,23 @@ void write_info_files( ArtOptions const& options, genesis::taxonomy::Taxonomy co
     std::ofstream entropy_os;
     auto const entropy_fn = options.output.out_dir() + options.entropy_info_file;
     genesis::utils::file_output_stream( entropy_fn, entropy_os );
-    entropy_os << "Taxon\tStatus\tChild_Taxa\tTotal_Taxa\tLowest_Level_Taxa\tSequences\tEntropy\n";
+    entropy_os << "Taxon\tStatus\tChild_Taxa\tLowest_Level_Taxa\tTotal_Taxa\tSequences\tEntropy\n";
 
     // Prepare taxonomy output.
     std::ofstream taxonomy_os;
     auto const taxonomy_fn = options.output.out_dir() + options.taxonomy_info_file;
     genesis::utils::file_output_stream( taxonomy_fn, taxonomy_os );
-    taxonomy_os << "Taxon\tChild_Taxa\tTotal_Taxa\tLowest_Level_Taxa\n";
+    taxonomy_os << "Taxon\tChild_Taxa\tLowest_Level_Taxa\tTotal_Taxa\n";
 
     // Write to files.
     auto const gen = TaxopathGenerator();
     auto print_taxon_info = [&]( Taxon const& t )
     {
+        // Skip taxa that are not in the subtaxonomy.
+        if( ! t.has_data() ) {
+            return;
+        }
+
         // Calculate values.
         auto const name = gen( t );
         auto const total_chldrn = total_taxa_count( t );
@@ -514,8 +616,8 @@ void write_info_files( ArtOptions const& options, genesis::taxonomy::Taxonomy co
         entropy_os << name;
         entropy_os << "\t" << status;
         entropy_os << "\t" << t.size();
-        entropy_os << "\t" << total_chldrn;
         entropy_os << "\t" << lowest_chldrn;
+        entropy_os << "\t" << total_chldrn;
         entropy_os << "\t" << added_seqs;
         entropy_os << "\t" << entr;
         entropy_os << "\n";
@@ -524,8 +626,8 @@ void write_info_files( ArtOptions const& options, genesis::taxonomy::Taxonomy co
         if( t.data<EntropyTaxonData>().status != EntropyTaxonData::PruneStatus::kOutside ) {
             taxonomy_os << name;
             taxonomy_os << "\t" << t.size();
-            taxonomy_os << "\t" << total_chldrn;
             taxonomy_os << "\t" << lowest_chldrn;
+            taxonomy_os << "\t" << total_chldrn;
             taxonomy_os << "\n";
         }
     };
@@ -544,10 +646,42 @@ void run_art( ArtOptions const& options )
 {
     using namespace genesis::utils;
 
-    // TODO check output files
-    options.output.check_nonexistent_output_files({ options.consensus_sequence_file });
+    // User output.
+    if( global_options.verbosity() >= 2 ) {
+        std::cout << "Taxonomy file: " << options.taxonomy_file << "\n";
+        std::cout << "Sequence file: " << options.sequence_file << "\n";
 
-    // TODO option for selecting sub taxonomy only!
+        std::cout << "Target taxonomy size: " << options.target_taxonomy_size << "\n";
+        std::cout << "Consensus method: " << options.consensus_method;
+        if( options.consensus_method == "threshold" ) {
+            std::cout << " (" << options.consensus_threshold << ")";
+        }
+        std::cout << "\n";
+
+        if( options.min_subclade_size > 0 ) {
+            std::cout << "Min subclade size: " << options.min_subclade_size << "\n";
+        }
+        if( options.min_tax_level > 0 ) {
+            std::cout << "Min taxonomic level: " << options.min_tax_level << "\n";
+        }
+        if( options.allow_approximation ) {
+            std::cout << "Allowing approximation.\n";
+        }
+        if( ! options.sub_taxopath.empty() ) {
+            std::cout << "Subtaxonomy: " << options.sub_taxopath << "\n";
+        }
+
+        std::cout << "\n";
+    }
+
+    // Check output files
+    options.output.check_nonexistent_output_files({ options.consensus_sequence_file });
+    if( options.write_info_files ) {
+        options.output.check_nonexistent_output_files({
+            options.entropy_info_file,
+            options.taxonomy_info_file
+        });
+    }
 
     // Run the whole thing!
     auto taxonomy = read_taxonomy( options );
@@ -557,4 +691,8 @@ void run_art( ArtOptions const& options )
     generate_consensus_sequences( options, taxonomy );
     write_info_files( options, taxonomy );
 
+    // User output.
+    if( global_options.verbosity() >= 1 ) {
+        std::cout << "Finished.\n";
+    }
 }

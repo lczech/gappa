@@ -43,6 +43,7 @@ public:
     // Input data.
     std::string taxonomy_file;
     std::string sequence_file;
+    std::string sub_taxopath;
 
     // Entropy pruning options.
     size_t target_taxonomy_size = 0;
@@ -59,8 +60,8 @@ public:
     FileOutputOptions output;
     std::string consensus_sequence_file = "consensus_sequences.fasta";
     bool write_info_files = false;
-    std::string entropy_info_file = "entropy.txt";
-    std::string taxonomy_info_file = "taxonomy.txt";
+    std::string entropy_info_file = "entropy.tsv";
+    std::string taxonomy_info_file = "taxonomy.tsv";
 
     // SequenceInputOptions sequence_input;
     // FileOutputOptions abundance_output;

@@ -107,6 +107,7 @@ void GlobalOptions::print( CLI::App const& app ) const
         return;
     }
 
+    // TODO sub sub commands are not printed here:
     // More verbose output.
     std::cout << "Invocation:        " << command_line() << "\n";
     for( auto const& sub : app.get_subcommands() ) {

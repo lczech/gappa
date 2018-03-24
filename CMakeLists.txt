@@ -49,11 +49,12 @@ message (STATUS "Gappa build type: ${CMAKE_BUILD_TYPE}")
 # Store everything in `bin`.
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
-# By default, we build a fully static version. This works with GCC, but might cause trouble with
-# Clang, so we offer this option, which disables statical linking of system libraries.
+# Option to enable building a fully static version, that is, statical linking of system libraries.
+# This works with GCC, but might cause trouble with OpenMP and/or Clang, so it is disabled by
+# default. Most users who compile on their own probaby won't need the fully portable version.
 # Genesis on the other hand is always linked statically, in order to be able to move around the
 # final binary at least on the same system.
-option ( GAPPA_BUILD_STATIC  "Build the static version of the executable." ON )
+option ( GAPPA_BUILD_STATIC  "Build the static version of the executable." OFF )
 
 if( GAPPA_BUILD_STATIC AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     string(ASCII 27 Esc)

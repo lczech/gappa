@@ -159,6 +159,16 @@ void setup_art( CLI::App& app )
         "the ones with the highest entropy."
     );
 
+    // Allow approximation
+    // auto allow_approx_opt =
+    sub->add_flag(
+        "--no-taxa-selection",
+        opt->no_taxa_selection,
+        "If set, no taxa selection using entropy is performed. Instead, all taxa on all levels/ranks are "
+        "used and consensus sequences for all of them are calcualted. This is useful for testing and "
+        "to try out new ideas."
+    );
+
     // Write info files
     sub->add_flag(
         "--write-info-files",
@@ -419,9 +429,10 @@ void calculate_entropy( ArtOptions const& options, genesis::taxonomy::Taxonomy& 
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
 
-    // Currently, we do not need any options for this step.
-    // Could change later if we want to offer entropy settings, see below.
-    (void) options;
+    if( options.no_taxa_selection ) {
+        std::cout << "Skipping entropy calculation due to --no-taxa-selection being set.\n";
+        return;
+    }
 
     // User output.
     if( global_options.verbosity() >= 1 ) {
@@ -433,6 +444,7 @@ void calculate_entropy( ArtOptions const& options, genesis::taxonomy::Taxonomy& 
     auto opt = SiteEntropyOptions::kIncludeGaps;
 
     // Calculate! Skip those that do not have data, that is, which are not part of the subtaxonomy.
+    // This is a simple way of testing for the subtaxonomy, instead of finding it again here.
     auto calc_entropies = [&]( Taxon& t ) {
         if( ! t.has_data() ) {
             return;
@@ -473,17 +485,32 @@ void select_taxa( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
         }
     }
 
-    // Get algo settings.
-    PruneByEntropySettings prune_settings;
-    prune_settings.min_subtaxonomy_size = options.min_subclade_size;
-    prune_settings.max_subtaxonomy_size = options.max_subclade_size;
-    prune_settings.min_border_level     = options.min_tax_level;
-    prune_settings.allow_approximation  = options.allow_approximation;
+    if( options.no_taxa_selection ) {
 
-    // Run Forrest, run!
-    prune_by_entropy( *subtax, options.target_taxonomy_size, prune_settings );
-    if( ! validate_pruned_taxonomy( *subtax ) ) {
-        throw std::runtime_error( "Something went wrong, the selected taxa are inconsistent.\n" );
+        // If we do not run taxa selection by entropy, make all taxa border, that is, select all.
+        auto set_status_to_border = [&]( Taxon& t ) {
+            if( ! t.has_data() ) {
+                return;
+            }
+
+            t.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kBorder;
+        };
+        preorder_for_each( *subtax, set_status_to_border );
+
+    } else {
+
+        // Get algo settings.
+        PruneByEntropySettings prune_settings;
+        prune_settings.min_subtaxonomy_size = options.min_subclade_size;
+        prune_settings.max_subtaxonomy_size = options.max_subclade_size;
+        prune_settings.min_border_level     = options.min_tax_level;
+        prune_settings.allow_approximation  = options.allow_approximation;
+
+        // Run Forrest, run!
+        prune_by_entropy( *subtax, options.target_taxonomy_size, prune_settings );
+        if( ! validate_pruned_taxonomy( *subtax ) ) {
+            throw std::runtime_error( "Something went wrong, the selected taxa are inconsistent.\n" );
+        }
     }
 
     // User output.

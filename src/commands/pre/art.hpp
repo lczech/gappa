@@ -51,6 +51,7 @@ public:
     size_t max_subclade_size    = 0;
     size_t min_tax_level        = 0;
     bool   allow_approximation  = false;
+    bool   no_taxa_selection    = false;
 
     // Consensus options.
     std::string consensus_method = "majorities";

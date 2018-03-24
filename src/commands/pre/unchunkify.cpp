@@ -329,7 +329,7 @@ std::vector<std::string> get_chunk_list_file(
 }
 
 /**
- * @brief Function to load a sample from file, given its index in the jplace input file list.
+ * @brief Function to load a sample from file, given its file path.
  */
 template< class HashFunction >
 std::shared_ptr<MappedSample<HashFunction>> load_sample(

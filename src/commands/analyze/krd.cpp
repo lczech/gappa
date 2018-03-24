@@ -58,7 +58,7 @@ void setup_krd( CLI::App& app )
     auto opt = std::make_shared<KrdOptions>();
     auto sub = app.add_subcommand(
         "krd",
-        "Calcualte the pairwise Kantorovich-Rubinstein (KR) Distance between Samples."
+        "Calcualte the pairwise Kantorovich-Rubinstein (KR) Distance between samples."
     );
 
     // Add common options.

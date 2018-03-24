@@ -30,6 +30,10 @@
 #include "genesis/tree/default/newick_writer.hpp"
 #include "genesis/utils/core/fs.hpp"
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 // =================================================================================================
 //      Setup
 // =================================================================================================
@@ -40,7 +44,7 @@ void setup_tog( CLI::App& app )
     auto opt = std::make_shared<TogOptions>();
     auto sub = app.add_subcommand(
         "tog",
-        "Make a tree with each of the reads represented as a pendant edge."
+        "Make a tree with each of the query sequences represented as a pendant edge."
     );
 
     // Add common options.
@@ -96,8 +100,7 @@ void run_tog( TogOptions const& options )
 
     // TODO mention in wiki that multiple files are possible and how they are named.
 
-    // TODO OpenMP this!
-
+    #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < options.jplace_input.file_count(); ++i ) {
         // Read the sample and make the tree.
         // auto const sample = reader.from_file( jplace_files[i] );

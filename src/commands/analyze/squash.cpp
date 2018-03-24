@@ -46,7 +46,7 @@ void setup_squash( CLI::App& app )
     auto opt = std::make_shared<SquashOptions>();
     auto sub = app.add_subcommand(
         "squash",
-        "Perform Squash Clustering."
+        "Perform Squash Clustering for a set of samples."
     );
 
     // Add common options.

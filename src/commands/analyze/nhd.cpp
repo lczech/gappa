@@ -53,7 +53,7 @@ void setup_nhd( CLI::App& app )
     auto opt = std::make_shared<NhdOptions>();
     auto sub = app.add_subcommand(
         "nhd",
-        "Calcualte the pairwise Node Histogram Distance between Samples."
+        "Calcualte the pairwise Node Histogram Distance between samples."
     );
 
     // Add common options.

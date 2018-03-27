@@ -163,9 +163,9 @@ void run_visualize_color( VisualizeColorOptions const& options )
     auto color_map = options.color_map.color_map();
     auto color_norm = options.color_norm.get_sequential_norm();
 
-    // First, autoscale to get the max. This however also sets the min, so overwrite it again.
+    // First, autoscale to get the max.
     // Finally, apply the user settings that might have been provided.
-    color_norm->autoscale( total_masses );
+    color_norm->autoscale_max( total_masses );
     if( options.color_norm.log_scaling() ) {
 
         // Some user friendly safety.

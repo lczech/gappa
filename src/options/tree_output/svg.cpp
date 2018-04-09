@@ -55,7 +55,7 @@ void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub )
         stroke_width_,
         "Svg stroke width for the branches of the tree.",
         true
-    );
+    )->group( "Svg Tree Output" );
 
     sub->add_flag(
         "--svg-tree-ladderize",

@@ -176,10 +176,11 @@ void TreeOutputOptions::write_tree_to_files(
         auto const tickmarks = color_tickmarks( color_norm, 5 );
 
         std::cout << "Output options --write-nexus-tree and --write-phyloxml-tree produce trees ";
-        std::cout << "with colored branches, these formats are not able to store the legend. ";
-        std::cout << "Thus, use to following stops to create a legend. ";
-        std::cout << "The lines range from 0.0 (lowest) to 1.0 (heighest), ";
-        std::cout << "and print labels along with the colors at those relative positions.\n";
+        std::cout << "with colored branches; these formats are however not able to store the legend, ";
+        std::cout << "that is, which color represents which value. ";
+        std::cout << "Thus, use to following positions to create a legend. ";
+        std::cout << "These positions range from 0.0 (lowest) to 1.0 (heighest), and are labelled ";
+        std::cout << "with the values and colors represented by those positions.\n";
 
         for( auto const& tick : tickmarks ) {
             auto const rel_pos = tick.first;

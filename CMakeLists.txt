@@ -25,6 +25,17 @@
 
 cmake_minimum_required (VERSION 2.8.7 FATAL_ERROR)
 
+# Fun with colors!
+if (NOT WIN32)
+    string(ASCII 27 Esc)
+
+    set(ColorBlue   "${Esc}[34m") # Build information.
+    set(ColorGreen  "${Esc}[32m") # Optional additions.
+    set(ColorYellow "${Esc}[33m") # Tipps for the user.
+    set(ColorRed    "${Esc}[31m") # Warnings and Errors.
+    set(ColorEnd    "${Esc}[0m")
+endif()
+
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
@@ -87,7 +98,31 @@ ENDIF()
 message( STATUS "Static linking of system libraries: ${GAPPA_BUILD_STATIC}")
 
 # --------------------------------------------------------------------------------------------------
-#   Dependencies
+#   Download Dependencies
+# --------------------------------------------------------------------------------------------------
+
+# Downloads dependencies if they are not there. We use a special script for this.
+include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
+
+# Store the commit hashes of our dependencies.
+# These are replaced by libs/cmake/update_dependencies.sh to the hashes that are currently checked out.
+# Thus, do not replace the hashes manually!
+SET( CLI11_COMMIT_HASH "afde0b08606a18c110e99a4d75c5cf5845897e4e" ) #CLI11_COMMIT_HASH#
+SET( genesis_COMMIT_HASH "9248e460922fad253ef0fcf3e970a60b72d62017" ) #genesis_COMMIT_HASH#
+SET( sparsepp_COMMIT_HASH "6bfe3b4bdb364993e612d6bb729d680cf4c77649" ) #sparsepp_COMMIT_HASH#
+
+# Call the github download function, which takes four arguments:
+#  - LIBPATH    : Path to the libracy dir where dependencies are stored.
+#  - LIBNAME    : Name of the dependency, that is, the name of its main directory within the ${LIBPATH}.
+#  - TESTFILE   : A testfile to check if the dependency is already there.
+#  - REPOSITORY : Github repository (user/reponame)
+#  - COMMITHASH : Hash of the commit to check out
+DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "CLI11"    "CMakeLists.txt" "CLIUtils/CLI11"    ${CLI11_COMMIT_HASH} )
+DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "genesis"  "CMakeLists.txt" "lczech/genesis"    ${genesis_COMMIT_HASH} )
+DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "sparsepp" "sparsepp/spp.h" "greg7mdp/sparsepp" ${sparsepp_COMMIT_HASH} )
+
+# --------------------------------------------------------------------------------------------------
+#   Dependencies Settings
 # --------------------------------------------------------------------------------------------------
 
 # Make sure we use the same build type for genesis.
@@ -111,7 +146,8 @@ if( NOT OPENMP_FOUND )
     message( STATUS "${Esc}[31m"
         "Could not find OpenMP. This results in a considerably slower runtime for the program. Try "
         "to use a different compiler. Alternatively, if you are sure your compiler supports OpenMP, "
-        "you can add the needed compiler flags to the CMake script. See BUILD.md for details."
+        "you can add the needed compiler flags to the CMake script."
+        # " See BUILD.md for details."
     "${Esc}[0m" )
 endif()
 
@@ -127,14 +163,14 @@ include_directories( "libs/sparsepp" )
 
 # Find all source files. The CMake documentation does not recommend this,
 # but for our purposes, this is good enough for now.
-file (GLOB_RECURSE gappa_sources   ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file (GLOB_RECURSE gappa_sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 # Add our own code. The main is only one cpp file, the rest are headers included from there.
 include_directories( "src" )
 add_executable( gappa ${gappa_sources} )
 
-message( STATUS "CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}" )
-message( STATUS "GENESIS_LINK_LIBRARIES ${GENESIS_LINK_LIBRARIES}" )
-
 # Link it against Genesis, and against all dependencies of Genesis.
 target_link_libraries ( gappa ${GENESIS_LINK_LIBRARIES} )
+
+message( STATUS "CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}" )
+message( STATUS "GENESIS_LINK_LIBRARIES ${GENESIS_LINK_LIBRARIES}" )

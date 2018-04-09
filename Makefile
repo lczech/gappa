@@ -1,5 +1,5 @@
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017 Lucas Czech
+# Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ all: build/CMakeCache.txt build
 build/CMakeCache.txt: CMakeLists.txt
 	@echo "Running CMake..."
 	@mkdir -p build
-	@cd build && cmake -DBUILD_STATIC=OFF ..
+	@cd build && cmake ..
 
 # Run make. State CMake as dependency, to ensure correct order.
 build: build/CMakeCache.txt

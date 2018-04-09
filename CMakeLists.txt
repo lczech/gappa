@@ -49,13 +49,14 @@ project ( gappa CXX )
 #   Build Options
 # --------------------------------------------------------------------------------------------------
 
-# Define build type option with list of valid values. Default is RELEASE.
-set( GAPPA_BUILD_TYPE RELEASE CACHE STRING "Build type. Either RELEASE or DEBUG." )
-set_property( CACHE GAPPA_BUILD_TYPE PROPERTY STRINGS RELEASE DEBUG )
+# The build type is determined by the standard cmake variable CMAKE_BUILD_TYPE.
+# Thus, if you want to change the build type, call `cmake .. -DCMAKE_BUILD_TYPE=DEBUG`
+IF(CMAKE_BUILD_TYPE STREQUAL "")
+    set (CMAKE_BUILD_TYPE RELEASE)
+ENDIF()
 
-# Use our build type option as default for the CMake build type.
-set (CMAKE_BUILD_TYPE ${GAPPA_BUILD_TYPE} )
-message (STATUS "Gappa build type: ${CMAKE_BUILD_TYPE}")
+# Print build type. Useful for debugging user issues.
+message (STATUS "${ColorBlue}Gappa build type: ${CMAKE_BUILD_TYPE}${ColorEnd}")
 
 # Store everything in `bin`.
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
@@ -108,7 +109,7 @@ include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
 # These are replaced by libs/cmake/update_dependencies.sh to the hashes that are currently checked out.
 # Thus, do not replace the hashes manually!
 SET( CLI11_COMMIT_HASH "afde0b08606a18c110e99a4d75c5cf5845897e4e" ) #CLI11_COMMIT_HASH#
-SET( genesis_COMMIT_HASH "9248e460922fad253ef0fcf3e970a60b72d62017" ) #genesis_COMMIT_HASH#
+SET( genesis_COMMIT_HASH "5b77dbab3f537d2d161d670a26bbf4f6e826fd1d" ) #genesis_COMMIT_HASH#
 SET( sparsepp_COMMIT_HASH "6bfe3b4bdb364993e612d6bb729d680cf4c77649" ) #sparsepp_COMMIT_HASH#
 
 # Call the github download function, which takes four arguments:
@@ -124,11 +125,6 @@ DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "sparsepp" "sparsepp/sp
 # --------------------------------------------------------------------------------------------------
 #   Dependencies Settings
 # --------------------------------------------------------------------------------------------------
-
-# Make sure we use the same build type for genesis.
-# Otherwise, we get linker errors because of different std lib implementations.
-# Been there, done that...
-SET( GENESIS_BUILD_TYPE ${CMAKE_BUILD_TYPE} )
 
 # Add Genesis as dependency.
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs/genesis)

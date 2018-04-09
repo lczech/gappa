@@ -35,24 +35,24 @@ cd "$(dirname "$0")/../.."
 function get_commit_hash() {
     local libname=${1}
 
-    # Use two methods, to be sure.
+    # Disect the git submodule output to get the commit that is currently checked out.
+    # This output is of the form ".<hash> libs/genesis (v0.19.0-14-g5b77dba)",
+    # where the first dot is a space, plus sign or some other git status symbol.
+    # This also sets the "return" to the outside scope... bash...
+    commit_hash=`git submodule status | grep ${libname} | sed "s/.\([0-9a-f]*\) .*/\1/g" | tr -d "\n"`
+
+    # Use two methods for checking.
+    # This fails if the submodule is checked out, but not commited.
+    # In that case, we only print a warning.
     local hash_a=`git ls-files -s libs/${libname} | cut -d" " -f 2`
     local hash_b=`git ls-tree master libs/${libname} | awk -F "[ \t]" '{print $3}'`
 
     if [[ ${hash_a} != ${hash_b} ]]; then
         echo -e "\e[31mProblem with commit hash for ${libname}: ${hash_a} != ${hash_b}\e[0m"
-        exit
     fi
-
-    # Also, check against submodule
-    local submod=`git submodule status | grep ${hash_a} | wc -l`
-    if [[ ${submod} != 1 ]]; then
-        echo -e "\e[31mProblem with commit hash for ${libname}: count ${submod}\e[0m"
-        exit
+    if [[ ${hash_a} != ${commit_hash} ]]; then
+        echo -e "\e[31mNot yet commited submodule ${libname}: ${commit_hash} > ${hash_a}\e[0m"
     fi
-
-    # "return" a string... bash...
-    commit_hash=${hash_a}
 }
 
 function update_commit_hash() {

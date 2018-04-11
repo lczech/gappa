@@ -99,8 +99,6 @@ void setup_extract( CLI::App& app )
         "Extract placements from clades of the tree and write per-clade jplace files."
     );
 
-    sub->set_footer( "This is a specific footer for extract.\n with \n\n\n lines and stuff." );
-
     // Jplace input.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
 
@@ -136,7 +134,7 @@ void setup_extract( CLI::App& app )
         "If a path is provided, an svg file with a tree colored by clades is written."
     );
     color_tree_file_opt->check( CLI::NonexistentPath );
-    color_tree_file_opt->group( "Settings" );
+    color_tree_file_opt->group( "Output" );
 
     // Output files.
     options->jplace_output.add_output_dir_opt_to_app( sub, "samples", "samples" );

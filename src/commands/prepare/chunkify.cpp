@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/pre/chunkify.hpp"
+#include "commands/prepare/chunkify.hpp"
 
 #include "options/global.hpp"
 #include "tools/version.hpp"
@@ -92,16 +92,10 @@ void setup_chunkify( CLI::App& app )
     );
 
     // -----------------------------------------------------------
-    //     Add common options
+    //     Input options
     // -----------------------------------------------------------
 
     opt->sequence_input.add_fasta_input_opt_to_app( sub );
-
-    opt->chunk_output.add_output_dir_opt_to_app( sub, "chunks" );
-    opt->chunk_output.add_file_prefix_opt_to_app( sub, "chunk", "chunk_" );
-
-    opt->abundance_output.add_output_dir_opt_to_app( sub, "abundances" );
-    opt->abundance_output.add_file_prefix_opt_to_app( sub, "abundance", "abundances_" );
 
     // -----------------------------------------------------------
     //     Fill in custom options
@@ -113,7 +107,7 @@ void setup_chunkify( CLI::App& app )
         opt->chunk_size,
         "Number of sequences per chunk file.",
         true
-    );
+    )->group( "Settings" );
 
     // Minimum Abundance
     sub->add_option(
@@ -121,7 +115,7 @@ void setup_chunkify( CLI::App& app )
         opt->min_abundance,
         "Minimum abundance of a single sequence. Sequences below are filtered out.",
         true
-    );
+    )->group( "Settings" );
 
     // Hash Function
     sub->add_set_ignore_case(
@@ -130,7 +124,17 @@ void setup_chunkify( CLI::App& app )
         { "SHA1", "SHA256", "MD5" },
         "Hash function for re-naming and identifying sequences.",
         true
-    );
+    )->group( "Settings" );
+
+    // -----------------------------------------------------------
+    //     Output options
+    // -----------------------------------------------------------
+
+    opt->chunk_output.add_output_dir_opt_to_app( sub, "chunks" );
+    opt->chunk_output.add_file_prefix_opt_to_app( sub, "chunk", "chunk_" );
+
+    opt->abundance_output.add_output_dir_opt_to_app( sub, "abundances" );
+    opt->abundance_output.add_file_prefix_opt_to_app( sub, "abundance", "abundances_" );
 
     // -----------------------------------------------------------
     //     Callback

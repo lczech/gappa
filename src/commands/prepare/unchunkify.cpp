@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/pre/unchunkify.hpp"
+#include "commands/prepare/unchunkify.hpp"
 
 #include "options/global.hpp"
 
@@ -115,12 +115,11 @@ void setup_unchunkify( CLI::App& app )
     );
 
     // -----------------------------------------------------------
-    //     Add common options
+    //     Input options
     // -----------------------------------------------------------
 
-    opt->jplace_input.add_jplace_input_opt_to_app( sub, false )->group( "Input" );
     opt->abundance_map_input.add_multi_file_input_opt_to_app( sub, "abundances", "json" );
-    opt->file_output.add_output_dir_opt_to_app( sub );
+    opt->jplace_input.add_jplace_input_opt_to_app( sub, false )->group( "Input" );
 
     // -----------------------------------------------------------
     //     Fill in custom options
@@ -138,7 +137,8 @@ void setup_unchunkify( CLI::App& app )
     auto chunk_file_expression_opt = sub->add_option(
         "--chunk-file-expression",
         opt->chunk_file_expression,
-        "If provided, ..."
+        "If provided, the expression is used to load jplace files by replacing any '@' character "
+        "with the chunk number."
     )->group( "Input" );
 
     // Cache size
@@ -147,11 +147,11 @@ void setup_unchunkify( CLI::App& app )
         opt->jplace_cache_size,
         "Cache size to determine how many jplace files are kept in memory. Default (0) means all. "
         "Use this if the command runs out of memory. It however comes at the cost of longer runtime. "
-        "In order to check how large the cache size can be, you can run the command with -vv, "
-        "which will report the used cache size until it crashes. Then, set the cache size to "
+        "In order to check how large the cache size can be, you can run the command with more verbosity "
+        "(-vv), which will report the used cache size until it crashes. Then, set the cache size to "
         "something below that.",
         true
-    );
+    )->group( "Settings" );
 
     // Hash Function
     sub->add_set_ignore_case(
@@ -160,7 +160,7 @@ void setup_unchunkify( CLI::App& app )
         { "SHA1", "SHA256", "MD5" },
         "Hash function that was used for re-naming and identifying sequences in the chunkify command.",
         true
-    );
+    )->group( "Settings" );
 
     // Make the three input modes mutually exclusive.
     chunk_list_file_opt->excludes( opt->jplace_input.option() );
@@ -169,6 +169,12 @@ void setup_unchunkify( CLI::App& app )
     chunk_file_expression_opt->excludes( chunk_list_file_opt );
     opt->jplace_input.option()->excludes( chunk_list_file_opt );
     opt->jplace_input.option()->excludes( chunk_file_expression_opt );
+
+    // -----------------------------------------------------------
+    //     Output options
+    // -----------------------------------------------------------
+
+    opt->file_output.add_output_dir_opt_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback

@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/pre/art.hpp"
+#include "commands/prepare/art.hpp"
 
 #include "options/global.hpp"
 
@@ -78,14 +78,6 @@ void setup_art( CLI::App& app )
     );
 
     // -----------------------------------------------------------
-    //     Add common options
-    // -----------------------------------------------------------
-
-    // opt->sequence_input.add_fasta_input_opt_to_app( sub );
-
-    opt->output.add_output_dir_opt_to_app( sub );
-
-    // -----------------------------------------------------------
     //     Input Data
     // -----------------------------------------------------------
 
@@ -93,26 +85,23 @@ void setup_art( CLI::App& app )
     auto tax_file_opt = sub->add_option(
         "--taxonomy-file",
         opt->taxonomy_file,
-        "File that lists the taxa of the database."
+        "Required. File that lists the taxa of the database."
     );
     tax_file_opt->required();
     tax_file_opt->check( CLI::ExistingFile );
+    tax_file_opt->group( "Input" );
 
     // Sequence file
     auto seq_file_opt = sub->add_option(
         "--sequence-file",
         opt->sequence_file,
-        "Fasta file containing the sequences of the database."
+        "Required. Fasta file containing the sequences of the database."
     );
     seq_file_opt->required();
     seq_file_opt->check( CLI::ExistingFile );
+    seq_file_opt->group( "Input" );
 
-    // Sub Taxopath
-    sub->add_option(
-        "--sub-taxonomy",
-        opt->sub_taxopath,
-        "If a taxopath from the taxonomy is provided, only the respective sub-taxonomy is used."
-    );
+    // opt->sequence_input.add_fasta_input_opt_to_app( sub );
 
     // -----------------------------------------------------------
     //     Entropy pruning option
@@ -122,9 +111,17 @@ void setup_art( CLI::App& app )
     auto target_size_opt = sub->add_option(
         "--target-size",
         opt->target_taxonomy_size,
-        "Target size of how many taxa to selecte for building consensus sequences."
+        "Required. Target size of how many taxa to select for building consensus sequences."
     );
     target_size_opt->required();
+    target_size_opt->group( "Taxonomy Expansion" );
+
+    // Sub Taxopath
+    sub->add_option(
+        "--sub-taxonomy",
+        opt->sub_taxopath,
+        "If a taxopath from the taxonomy is provided, only the respective sub-taxonomy is used."
+    )->group( "Taxonomy Expansion" );
 
     // Min subclade size
     // auto min_subclade_size_opt =
@@ -132,7 +129,7 @@ void setup_art( CLI::App& app )
         "--min-subclade-size",
         opt->min_subclade_size,
         "Minimal size of sub-clades. Everything below is expanded."
-    );
+    )->group( "Taxonomy Expansion" );
 
     // Max subclade size
     // auto max_subclade_size_opt =
@@ -140,7 +137,7 @@ void setup_art( CLI::App& app )
         "--max-subclade-size",
         opt->max_subclade_size,
         "Maximal size of a non-expanded sub-clades. Everything bigger is first expanded."
-    );
+    )->group( "Taxonomy Expansion" );
 
     // Min tax level
     // auto min_tax_level_opt =
@@ -148,7 +145,7 @@ void setup_art( CLI::App& app )
         "--min-tax-level",
         opt->min_tax_level,
         "Minimal taxonomic level. Taxa below this level are always expanded."
-    );
+    )->group( "Taxonomy Expansion" );
 
     // Allow approximation
     // auto allow_approx_opt =
@@ -157,7 +154,7 @@ void setup_art( CLI::App& app )
         opt->allow_approximation,
         "Allow to expand taxa that help getting closer to the --target-size, even if they are not "
         "the ones with the highest entropy."
-    );
+    )->group( "Taxonomy Expansion" );
 
     // Allow approximation
     // auto allow_approx_opt =
@@ -165,17 +162,9 @@ void setup_art( CLI::App& app )
         "--no-taxa-selection",
         opt->no_taxa_selection,
         "If set, no taxa selection using entropy is performed. Instead, all taxa on all levels/ranks are "
-        "used and consensus sequences for all of them are calcualted. This is useful for testing and "
+        "used and consensus sequences for all of them are calculated. This is useful for testing and "
         "to try out new ideas."
-    );
-
-    // Write info files
-    sub->add_flag(
-        "--write-info-files",
-        opt->write_info_files,
-        "If set, two additional info files are written, containing the new pruned taxonomy, "
-        "as well as the entropy of all clades of the original taxonomy."
-    );
+    )->group( "Taxonomy Expansion" );
 
     // -----------------------------------------------------------
     //     Consensus options
@@ -188,7 +177,7 @@ void setup_art( CLI::App& app )
         { "majorities", "cavener", "threshold" },
         "Consensus method to use for combining sequences.",
         true
-    );
+    )->group( "Consensus Method" );
 
     // Consensus Treshold
     auto cons_thresh_opt = sub->add_option(
@@ -199,6 +188,21 @@ void setup_art( CLI::App& app )
     );
     cons_thresh_opt->requires( cons_meth_opt );
     cons_thresh_opt->check( CLI::Range( 0.0, 1.0 ));
+    cons_thresh_opt->group( "Consensus Method" );
+
+    // -----------------------------------------------------------
+    //     Output Options
+    // -----------------------------------------------------------
+
+    opt->output.add_output_dir_opt_to_app( sub );
+
+    // Write info files
+    sub->add_flag(
+        "--write-info-files",
+        opt->write_info_files,
+        "If set, two additional info files are written, containing the new pruned taxonomy, "
+        "as well as the entropy of all clades of the original taxonomy."
+    )->group( "Output" );
 
     // -----------------------------------------------------------
     //     Callback

@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PRE_ART_H_
-#define GAPPA_COMMANDS_PRE_ART_H_
+#ifndef GAPPA_COMMANDS_PREPARE_ART_H_
+#define GAPPA_COMMANDS_PREPARE_ART_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis

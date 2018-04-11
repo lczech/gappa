@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_TOG_H_
-#define GAPPA_COMMANDS_ANALYZE_TOG_H_
+#ifndef GAPPA_COMMANDS_PREPARE_H_
+#define GAPPA_COMMANDS_PREPARE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,33 +26,32 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/jplace_input.hpp"
-#include "options/file_output.hpp"
+#include "commands/prepare/art.hpp"
+#include "commands/prepare/chunkify.hpp"
+#include "commands/prepare/extract.hpp"
+#include "commands/prepare/unchunkify.hpp"
 
-#include <memory>
 #include <string>
 #include <vector>
-
-// =================================================================================================
-//      Options
-// =================================================================================================
-
-class TogOptions
-{
-public:
-
-    std::string leaf_prefix = "";
-    bool fully_resolve = false;
-
-    JplaceInputOptions jplace_input;
-    FileOutputOptions  file_output;
-};
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_tog( CLI::App& app );
-void run_tog( TogOptions const& options );
+void setup_prepare( CLI::App& app )
+{
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "prepare",
+        "Commands for preparing and preprocessing of placement data."
+    );
+    sub->require_subcommand( 1 );
+
+    // Add module subcommands.
+    setup_art( *sub );
+    setup_chunkify( *sub );
+    setup_unchunkify( *sub );
+    setup_extract( *sub );
+}
 
 #endif // include guard

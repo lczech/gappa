@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PRE_UNCHUNKIFY_H_
-#define GAPPA_COMMANDS_PRE_UNCHUNKIFY_H_
+#ifndef GAPPA_COMMANDS_PREPARE_UNCHUNKIFY_H_
+#define GAPPA_COMMANDS_PREPARE_UNCHUNKIFY_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis

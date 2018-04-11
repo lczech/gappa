@@ -24,9 +24,11 @@
 #include "CLI/CLI.hpp"
 
 #include "commands/analyze.hpp"
-#include "commands/pre.hpp"
+// #include "commands/edit.hpp"
+#include "commands/prepare.hpp"
 
 #include "options/global.hpp"
+// #include "tools/help.hpp"
 #include "tools/version.hpp"
 
 // =================================================================================================
@@ -45,17 +47,22 @@ int main( int argc, char** argv )
     CLI::App app{ gappa_header() };
     app.require_subcommand( 1 );
     app.fallthrough( true );
+    // app.set_name( "gappa" );
 
     // Add app-wide global options.
     global_options.set_command_line_args( argc, argv );
     global_options.add_to_app( app );
 
     // Set up all subcommands.
-    setup_pre( app );
+    setup_prepare( app );
+    // setup_edit( app );
     setup_analyze( app );
 
     // TODO print invocation
     // TODO use cli groups
+
+    // TODO temporary
+    // print_full_help( app );
 
     try {
         app.parse( argc, argv );

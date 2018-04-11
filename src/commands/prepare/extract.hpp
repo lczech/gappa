@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PRE_CHUNKIFY_H_
-#define GAPPA_COMMANDS_PRE_CHUNKIFY_H_
+#ifndef GAPPA_COMMANDS_PREPARE_EXTRACT_H_
+#define GAPPA_COMMANDS_PREPARE_EXTRACT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,8 +26,10 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/sequence_input.hpp"
+#include "options/file_input.hpp"
 #include "options/file_output.hpp"
+#include "options/jplace_input.hpp"
+#include "options/sequence_input.hpp"
 
 #include <string>
 #include <vector>
@@ -36,25 +38,30 @@
 //      Options
 // =================================================================================================
 
-class ChunkifyOptions
+class ExtractOptions
 {
 public:
 
-    size_t      chunk_size = 50000;
-    size_t      min_abundance = 1;
-    std::string hash_function = "SHA1";
-
+    std::string          clade_list_file;
+    JplaceInputOptions   jplace_input;
     SequenceInputOptions sequence_input;
-    FileOutputOptions chunk_output;
-    FileOutputOptions abundance_output;
 
+    std::string          color_tree_file;
+    FileOutputOptions    jplace_output;
+    FileOutputOptions    sequence_output;
+
+    double threshold = 0.95;
+
+    // Options that do not have a command line, but might get one
+    std::string basal_clade_name = "basal_branches";
+    std::string uncertain_clade_name = "uncertain";
 };
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_chunkify( CLI::App& app );
-void run_chunkify( ChunkifyOptions const& options );
+void setup_extract( CLI::App& app );
+void run_extract( ExtractOptions const& options );
 
 #endif // include guard

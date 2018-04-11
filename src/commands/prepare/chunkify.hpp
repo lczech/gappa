@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PRE_H_
-#define GAPPA_COMMANDS_PRE_H_
+#ifndef GAPPA_COMMANDS_PREPARE_CHUNKIFY_H_
+#define GAPPA_COMMANDS_PREPARE_CHUNKIFY_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,34 +26,35 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/pre/art.hpp"
-#include "commands/pre/chunkify.hpp"
-#include "commands/pre/extract.hpp"
-#include "commands/pre/unchunkify.hpp"
+#include "options/sequence_input.hpp"
+#include "options/file_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class ChunkifyOptions
+{
+public:
+
+    size_t      chunk_size = 50000;
+    size_t      min_abundance = 1;
+    std::string hash_function = "SHA1";
+
+    SequenceInputOptions sequence_input;
+    FileOutputOptions chunk_output;
+    FileOutputOptions abundance_output;
+
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_pre( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "pre",
-        "Commands for preprocessing placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // TODO rename "pre" to "pipeline"?!
-
-    // Add module subcommands.
-    setup_art( *sub );
-    setup_chunkify( *sub );
-    setup_unchunkify( *sub );
-    setup_extract( *sub );
-}
+void setup_chunkify( CLI::App& app );
+void run_chunkify( ChunkifyOptions const& options );
 
 #endif // include guard

@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/analyze/tog.hpp"
+#include "commands/analyze/labelled_tree.hpp"
 
 #include "CLI/CLI.hpp"
 
@@ -38,38 +38,39 @@
 //      Setup
 // =================================================================================================
 
-void setup_tog( CLI::App& app )
+void setup_labelled_tree( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto opt = std::make_shared<TogOptions>();
+    auto opt = std::make_shared<LabelledTreeOptions>();
     auto sub = app.add_subcommand(
-        "tog",
+        "labelled-tree",
         "Make a tree with each of the query sequences represented as a pendant edge."
     );
 
-    // Add common options.
+    // Add input options.
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
-    opt->file_output.add_output_dir_opt_to_app( sub );
 
     // Fill in custom options.
     sub->add_option(
-        "--name-prefix", opt->leaf_prefix,
-        "Specify a prefix to be added to all new leaf nodes.",
+        "--name-prefix", opt->name_prefix,
+        "Specify a prefix to be added to all new leaf nodes, i.e., to the query sequence names.",
         true
     );
-    sub->add_option(
+    sub->add_flag(
         "--fully-resolve", opt->fully_resolve,
-        "Control in which way multiple placements at one edge are turned into new edges.",
-        true
+        "If set, branches that contain multiple pqueries are resolved by creating a new branch "
+        "for each of the pqueries individually, placed according to their distal/proximal lengths. "
+        "If not set (default), all pqueries at one branch are collected in a subtree "
+        "that branches off from the branch."
     );
 
-    // TODO add check whether out files do not exist
-    // TODO add verbosity levels
+    // Add output options.
+    opt->file_output.add_output_dir_opt_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [opt]() {
-        run_tog( *opt );
+        run_labelled_tree( *opt );
     });
 }
 
@@ -77,7 +78,7 @@ void setup_tog( CLI::App& app )
 //      Run
 // =================================================================================================
 
-void run_tog( TogOptions const& options )
+void run_labelled_tree( LabelledTreeOptions const& options )
 {
     using namespace genesis;
     using namespace genesis::placement;
@@ -89,8 +90,8 @@ void run_tog( TogOptions const& options )
     }
     options.file_output.check_nonexistent_output_files( out_tree_files );
 
-    // auto reader = JplaceReader();
-    // TODO dont report errors in jplace. offer subcommand for that
+    // Print some user output.
+    options.jplace_input.print_files();
 
     // TODO add support for external trees, e.g., bootstrap trees.
     // for this, make sure that the attribute tree is used so that all values can be captured.
@@ -98,14 +99,12 @@ void run_tog( TogOptions const& options )
     // (edges or nodes). or, if only newick is used, not, because we do not reroot,
     // so the assignment does not change.
 
-    // TODO mention in wiki that multiple files are possible and how they are named.
-
     #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < options.jplace_input.file_count(); ++i ) {
+
         // Read the sample and make the tree.
-        // auto const sample = reader.from_file( jplace_files[i] );
         auto const sample = options.jplace_input.sample( i );
-        auto const tog    = labelled_tree( sample, options.fully_resolve, options.leaf_prefix );
+        auto const tog    = labelled_tree( sample, options.fully_resolve, options.name_prefix );
 
         // Write output to file.
         tree::DefaultTreeNewickWriter().to_file( tog, options.file_output.out_dir() + out_tree_files[i] );

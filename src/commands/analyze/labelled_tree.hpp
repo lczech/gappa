@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_H_
-#define GAPPA_COMMANDS_ANALYZE_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_LABELLED_TREE_H_
+#define GAPPA_COMMANDS_ANALYZE_LABELLED_TREE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,36 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze/dispersion.hpp"
-#include "commands/analyze/krd.hpp"
-#include "commands/analyze/labelled_tree.hpp"
-#include "commands/analyze/nhd.hpp"
-#include "commands/analyze/squash.hpp"
-#include "commands/analyze/visualize_color.hpp"
+#include "options/jplace_input.hpp"
+#include "options/file_output.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
+
+// =================================================================================================
+//      Options
+// =================================================================================================
+
+class LabelledTreeOptions
+{
+public:
+
+    std::string name_prefix = "";
+    bool fully_resolve = false;
+
+    JplaceInputOptions jplace_input;
+    FileOutputOptions  file_output;
+};
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_analyze( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "analyze",
-        "Commands for analyzing and visualizing placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    // setup_dispersion( *sub );
-    setup_krd( *sub );
-    setup_labelled_tree( *sub );
-    setup_nhd( *sub );
-    // setup_squash( *sub );
-    setup_visualize_color( *sub );
-}
+void setup_labelled_tree( CLI::App& app );
+void run_labelled_tree( LabelledTreeOptions const& options );
 
 #endif // include guard

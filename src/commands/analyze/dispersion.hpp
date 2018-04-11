@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PRE_EXTRACT_H_
-#define GAPPA_COMMANDS_PRE_EXTRACT_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_DISPERSION_H_
+#define GAPPA_COMMANDS_ANALYZE_DISPERSION_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,10 +26,11 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/file_input.hpp"
+#include "options/color/color_map.hpp"
+#include "options/color/color_norm.hpp"
 #include "options/file_output.hpp"
 #include "options/jplace_input.hpp"
-#include "options/sequence_input.hpp"
+#include "options/tree_output.hpp"
 
 #include <string>
 #include <vector>
@@ -38,30 +39,25 @@
 //      Options
 // =================================================================================================
 
-class ExtractOptions
+class DispersionOptions
 {
 public:
 
-    std::string          clade_list_file;
-    JplaceInputOptions   jplace_input;
-    SequenceInputOptions sequence_input;
+    std::string edge_values = "both";
+    std::string method      = "all";
+    bool normalize = false;
 
-    std::string          color_tree_file;
-    FileOutputOptions    jplace_output;
-    FileOutputOptions    sequence_output;
-
-    double threshold = 0.95;
-
-    // Options that do not have a command line, but might get one
-    std::string basal_clade_name = "basal_branches";
-    std::string uncertain_clade_name = "uncertain";
+    JplaceInputOptions jplace_input;
+    ColorMapOptions    color_map;
+    FileOutputOptions  file_output;
+    TreeOutputOptions  tree_output;
 };
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_extract( CLI::App& app );
-void run_extract( ExtractOptions const& options );
+void setup_dispersion( CLI::App& app );
+void run_dispersion( DispersionOptions const& options );
 
 #endif // include guard

@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/pre/extract.hpp"
+#include "commands/prepare/extract.hpp"
 
 #include "options/global.hpp"
 
@@ -99,7 +99,12 @@ void setup_extract( CLI::App& app )
         "Extract placements from clades of the tree and write per-clade jplace files."
     );
 
-    // Add specific options.
+    sub->set_footer( "This is a specific footer for extract.\n with \n\n\n lines and stuff." );
+
+    // Jplace input.
+    options->jplace_input.add_jplace_input_opt_to_app( sub );
+
+    // Clade list file
     auto clade_list_file_opt = sub->add_option(
         "--clade-list-file",
         options->clade_list_file,
@@ -107,7 +112,12 @@ void setup_extract( CLI::App& app )
     );
     clade_list_file_opt->required();
     clade_list_file_opt->check( CLI::ExistingFile );
+    clade_list_file_opt->group( "Input" );
 
+    // Other Input files.
+    options->sequence_input.add_fasta_input_opt_to_app( sub, false );
+
+    // Other options
     auto threshold_opt = sub->add_option(
         "--threshold",
         options->threshold,
@@ -115,6 +125,10 @@ void setup_extract( CLI::App& app )
         true
     );
     threshold_opt->check( CLI::Range( 0.5, 1.0 ));
+    threshold_opt->group( "Settings" );
+
+    // Make this a settings option.
+    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     auto color_tree_file_opt = sub->add_option(
         "--color-tree-file",
@@ -122,19 +136,13 @@ void setup_extract( CLI::App& app )
         "If a path is provided, an svg file with a tree colored by clades is written."
     );
     color_tree_file_opt->check( CLI::NonexistentPath );
-
-    // Input files.
-    options->jplace_input.add_jplace_input_opt_to_app( sub );
-    options->jplace_input.add_point_mass_opt_to_app( sub );
-    options->sequence_input.add_fasta_input_opt_to_app( sub, false );
+    color_tree_file_opt->group( "Settings" );
 
     // Output files.
     options->jplace_output.add_output_dir_opt_to_app( sub, "samples", "samples" );
     // options->jplace_output.add_file_prefix_opt_to_app( sub, "sample", "" );
     options->sequence_output.add_output_dir_opt_to_app( sub, "sequences", "sequences" );
     // options->sequence_output.add_file_prefix_opt_to_app( sub, "sequence", "" );
-
-    // TODO option for fasta inout?!
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.

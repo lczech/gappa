@@ -15,7 +15,7 @@ Its main focus are evolutionary placements of short environmental sequences on a
 Such data is typically produced by tools like [EPA-ng](https://github.com/Pbdas/epa-ng),
 [RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html) or
 [pplacer](http://matsen.fhcrc.org/pplacer/) and usually stored in
-[`jplace`](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009) files.
+[jplace](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009) files.
 <!-- It however also offers some commands for working with data such as sequences or trees. -->
 
 Many commands in gappa are implementations of our novel methods.<!-- described here ... and here ... -->

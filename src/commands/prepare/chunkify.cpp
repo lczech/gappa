@@ -158,6 +158,11 @@ void write_chunk_file(
 ) {
     using namespace genesis::sequence;
 
+    // Do not write a file if there is no content.
+    if( chunk.empty() ) {
+        return;
+    }
+
     // Prepare fata writer.
     auto writer = FastaWriter();
     writer.line_length( 0 );

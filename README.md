@@ -51,10 +51,10 @@ Command Line Interface
 gappa is used via its command line interface, with subcommands for each task.
 The subcommands have the general structure:
 
-    gappa <module> <subcommand> [options]
+    gappa <module> <subcommand> <options>
 
-The modules are simply a way of organizing the subcommands,
-with no [deeper meaning](https://en.wikipedia.org/wiki/42_%28answer%29).
+<!-- The modules are simply a way of organizing the subcommands,
+and have no [deeper meaning](https://en.wikipedia.org/wiki/42_%28answer%29). -->
 
 For a list of all subcommands and their documentation,
 see [the Wiki pages](https://github.com/lczech/gappa/wiki).

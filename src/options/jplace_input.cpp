@@ -36,7 +36,7 @@ CLI::Option* JplaceInputOptions::add_jplace_input_opt_to_app( CLI::App* sub, boo
 {
     // TODO add avg tree option?!
 
-    return FileInputOptions::add_multi_file_input_opt_to_app( sub, "jplace", "jplace", required, "Jplace Input" );
+    return FileInputOptions::add_multi_file_input_opt_to_app( sub, "jplace", "jplace", required, "Input" );
 }
 
 CLI::Option* JplaceInputOptions::add_point_mass_opt_to_app( CLI::App* sub )
@@ -45,7 +45,7 @@ CLI::Option* JplaceInputOptions::add_point_mass_opt_to_app( CLI::App* sub )
         "--point-mass",
         point_mass_,
         "Treat every pquery as a point mass concentrated on the highest-weight placement."
-    )->group( "Jplace Input" );
+    )->group( "Settings" );
 }
 
 // =================================================================================================

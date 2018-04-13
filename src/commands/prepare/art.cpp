@@ -85,7 +85,7 @@ void setup_art( CLI::App& app )
     auto tax_file_opt = sub->add_option(
         "--taxonomy-file",
         opt->taxonomy_file,
-        "Required. File that lists the taxa of the database."
+        "File that lists the taxa of the database."
     );
     tax_file_opt->required();
     tax_file_opt->check( CLI::ExistingFile );
@@ -95,7 +95,7 @@ void setup_art( CLI::App& app )
     auto seq_file_opt = sub->add_option(
         "--sequence-file",
         opt->sequence_file,
-        "Required. Fasta file containing the sequences of the database."
+        "Fasta file containing the sequences of the database."
     );
     seq_file_opt->required();
     seq_file_opt->check( CLI::ExistingFile );
@@ -111,7 +111,7 @@ void setup_art( CLI::App& app )
     auto target_size_opt = sub->add_option(
         "--target-size",
         opt->target_taxonomy_size,
-        "Required. Target size of how many taxa to select for building consensus sequences."
+        "Target size of how many taxa to select for building consensus sequences."
     );
     target_size_opt->required();
     target_size_opt->group( "Taxonomy Expansion" );
@@ -186,7 +186,7 @@ void setup_art( CLI::App& app )
         "Threshold value to use with --consensus-method threshold. Has to be in [ 0.0, 1.0 ].",
         true
     );
-    cons_thresh_opt->requires( cons_meth_opt );
+    cons_thresh_opt->needs( cons_meth_opt );
     cons_thresh_opt->check( CLI::Range( 0.0, 1.0 ));
     cons_thresh_opt->group( "Consensus Method" );
 

@@ -28,7 +28,6 @@
 #include "commands/prepare.hpp"
 
 #include "options/global.hpp"
-// #include "tools/help.hpp"
 #include "tools/version.hpp"
 
 // =================================================================================================
@@ -57,12 +56,6 @@ int main( int argc, char** argv )
     setup_prepare( app );
     // setup_edit( app );
     setup_analyze( app );
-
-    // TODO print invocation
-    // TODO use cli groups
-
-    // TODO temporary
-    // print_full_help( app );
 
     try {
         app.parse( argc, argv );

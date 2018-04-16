@@ -32,6 +32,7 @@
 #include "commands/analyze/nhd.hpp"
 #include "commands/analyze/squash.hpp"
 #include "commands/analyze/visualize_color.hpp"
+#include "commands/analyze/assign.hpp"
 
 #include <string>
 #include <vector>
@@ -56,6 +57,7 @@ void setup_analyze( CLI::App& app )
     setup_nhd( *sub );
     // setup_squash( *sub );
     setup_visualize_color( *sub );
+    setup_assign( *sub );
 }
 
 #endif // include guard

@@ -37,6 +37,10 @@
 #include <cstdlib>
 #include <linux/limits.h>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 // =================================================================================================
 //      Setup Functions
 // =================================================================================================
@@ -91,41 +95,42 @@ size_t FileInputOptions::file_count() const
 
 std::vector<std::string> const& FileInputOptions::file_paths() const
 {
-    if( ! resolved_paths_.empty() ) {
-        return resolved_paths_;
-    }
+    #pragma omp critical(GAPPA_FILE_INPUT_PATHS)
+    {
+        if( resolved_paths_.empty() ) {
+            using namespace genesis::utils;
+            for( auto const& path : raw_paths_ ) {
+                if( is_file( path ) ) {
 
-    using namespace genesis::utils;
-    for( auto const& path : raw_paths_ ) {
-        if( is_file( path ) ) {
+                    resolved_paths_.push_back( path );
 
-            resolved_paths_.push_back( path );
+                } else if( is_dir( path ) ) {
 
-        } else if( is_dir( path ) ) {
+                    // Get all files in dir.
+                    auto list = dir_list_files( path, true, ".*\\." + file_ext_ + "$" );
+                    for( auto const& jplace : list ) {
+                        resolved_paths_.push_back( jplace );
+                    }
 
-            // Get all files in dir.
-            auto list = dir_list_files( path, true, ".*\\." + file_ext_ + "$" );
-            for( auto const& jplace : list ) {
-                resolved_paths_.push_back( jplace );
+                } else {
+                    // throw std::runtime_error( "Not a valid file or directory: " + path );
+                    throw CLI::ValidationError(
+                        "--" + file_type_ + "-path", "Not a valid file or directory: " + path
+                    );
+                }
             }
 
-        } else {
-            // throw std::runtime_error( "Not a valid file or directory: " + path );
-            throw CLI::ValidationError(
-                "--" + file_type_ + "-path", "Not a valid file or directory: " + path
-            );
+            // If required, we actually need files!
+            if( resolved_paths_.empty() && option_->get_required() ) {
+                throw CLI::ValidationError(
+                    "--" + file_type_ + "-path", "No files found."
+                );
+            }
+
+            // We sort them to get reproducible order.
+            std::sort( resolved_paths_.begin(), resolved_paths_.end() );
         }
     }
-
-    // If required, we actually need files!
-    if( resolved_paths_.empty() && option_->get_required() ) {
-        throw CLI::ValidationError(
-            "--" + file_type_ + "-path", "No files found."
-        );
-    }
-
-    // We sort them to get reproducible order.
-    std::sort( resolved_paths_.begin(), resolved_paths_.end() );
 
     return resolved_paths_;
 }

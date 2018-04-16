@@ -86,6 +86,13 @@ public:
     genesis::placement::SampleSet sample_set() const;
 
     /**
+     * @brief Read in all jplace files given by the user and merge all their pqueries them into a sample.
+     *
+     * This expects that all use the same reference tree. Otherwise, the function throws.
+     */
+    genesis::placement::Sample merged_samples() const;
+
+    /**
      * @brief Return the JplaceReader used for the convenience functions.
      *
      * By modifying the settings of the reader before calling sample() or sample_set(),

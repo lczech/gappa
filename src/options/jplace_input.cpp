@@ -23,10 +23,16 @@
 
 #include "options/jplace_input.hpp"
 
+#include "options/global.hpp"
+
 #include "genesis/placement/function/functions.hpp"
 
 #include <iostream>
 #include <stdexcept>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 // =================================================================================================
 //      Setup Functions
@@ -80,4 +86,50 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
         }
     }
     return set;
+}
+
+genesis::placement::Sample JplaceInputOptions::merged_samples() const
+{
+    using namespace genesis;
+    using namespace genesis::placement;
+
+    Sample result;
+    size_t fc = 0;
+
+    // Read all jplace files and accumulate their pqueries.
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t fi = 0; fi < file_count(); ++fi ) {
+
+        // User output.
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
+            {
+                ++fc;
+                std::cout << "Reading file " << fc << " of " << file_count();
+                std::cout << ": " << file_path( fi ) << "\n";
+            }
+        }
+
+        // Read in file. This is the part that can trivially be done in parallel.
+        auto smpl = sample( fi );
+
+        // The main merging is single threaded.
+        #pragma omp critical(GAPPA_JPLACE_INPUT_ACCUMULATE)
+        {
+            // Merge
+            if( result.empty() ) {
+                result = std::move( smpl );
+            } else {
+                try{
+                    // The function only throws if somethign is wrong with the trees.
+                    copy_pqueries( smpl, result );
+                } catch( ... ) {
+                    throw std::runtime_error( "Input jplace files have differing reference trees." );
+                }
+            }
+
+        }
+    }
+
+    return result;
 }

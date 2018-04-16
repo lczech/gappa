@@ -297,7 +297,7 @@ static void assign( Sample const& sample,
     bool const intermediate_results = (not per_pquery_result_file.empty());
 
     if ( intermediate_results ) {
-        per_pquery_out_stream = std::ofstream( per_pquery_result_file );
+        genesis::utils::file_output_stream( per_pquery_result_file, per_pquery_out_stream );
     }
 
     for ( auto const& pq : sample.pqueries() ) {
@@ -352,13 +352,15 @@ static void assign( Sample const& sample,
     auto out_dir = options.output_dir.out_dir();
     
     // return diversity profile
-    std::ofstream profile( out_dir + "profile" );
+    std::ofstream profile;
+    genesis::utils::file_output_stream( out_dir + "profile", profile );
     print_taxonomy_table( diversity, profile );
 
     // constrain to subtaxonomy if specified
     const auto subtaxonomy = get_subtaxonomy( diversity, options );
     // and print to file
-    std::ofstream profile_filtered( out_dir + "profile_filtered" );
+    std::ofstream profile_filtered;
+    genesis::utils::file_output_stream( out_dir + "profile_filtered", profile_filtered );
     print_taxonomy_table( subtaxonomy, profile_filtered );
 }
 

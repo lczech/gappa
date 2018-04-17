@@ -93,8 +93,7 @@ void setup_assign( CLI::App& app )
         opt->dist_ratio,
         "Ratio by which LWR is split between annotations if an edge has two possible annotations. "
         "Specifies the amount going to the proximal annotation. If not set program will determine "
-        "the ratio automatically from the 'distal length' specified per placement.",
-        true
+        "the ratio automatically from the 'distal length' specified per placement."
     )->check(CLI::Range(0.0,1.0))->group("Settings");
 
     // Output
@@ -187,14 +186,14 @@ static std::vector<Taxopath> assign_leaf_taxopaths( PlacementTree const& tree,
             throw std::runtime_error{"Could not find node with name: " + name};
         }
 
-        node_labels[ node_ptr->index() ] = tpp.from_string( tax_string );   
+        node_labels[ node_ptr->index() ] = tpp.from_string( tax_string );
     }
 
     // check if any leafs weren't assigned a Taxopath
     for ( auto const& node_it : tree.nodes() ) {
         if ( node_it->is_leaf() and node_labels[ node_it->index() ].empty() ) {
             auto name = node_it->data< DefaultNodeData >().name;
-            throw std::runtime_error{"The leaf in the tree labelled '" + name 
+            throw std::runtime_error{"The leaf in the tree labelled '" + name
                 + "' wasn't assigned a taxonomic path. Did you forget to include it in the taxon file?"};
         }
     }
@@ -281,7 +280,7 @@ Taxonomy& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
     return *subtax;
 }
 
-static void assign( Sample const& sample, 
+static void assign( Sample const& sample,
                     std::vector<Taxopath> const& node_labels,
                     AssignOptions const& options,
                     std::string per_pquery_result_file = "" )
@@ -350,7 +349,7 @@ static void assign( Sample const& sample,
         }
     }
     auto out_dir = options.output_dir.out_dir();
-    
+
     // return diversity profile
     std::ofstream profile;
     genesis::utils::file_output_stream( out_dir + "profile", profile );

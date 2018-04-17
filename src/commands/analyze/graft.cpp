@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/analyze/labelled_tree.hpp"
+#include "commands/analyze/graft.hpp"
 
 #include "CLI/CLI.hpp"
 
@@ -38,12 +38,12 @@
 //      Setup
 // =================================================================================================
 
-void setup_labelled_tree( CLI::App& app )
+void setup_graft( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto opt = std::make_shared<LabelledTreeOptions>();
+    auto opt = std::make_shared<GraftOptions>();
     auto sub = app.add_subcommand(
-        "labelled-tree",
+        "graft",
         "Make a tree with each of the query sequences represented as a pendant edge."
     );
 
@@ -70,7 +70,7 @@ void setup_labelled_tree( CLI::App& app )
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [opt]() {
-        run_labelled_tree( *opt );
+        run_graft( *opt );
     });
 }
 
@@ -78,7 +78,7 @@ void setup_labelled_tree( CLI::App& app )
 //      Run
 // =================================================================================================
 
-void run_labelled_tree( LabelledTreeOptions const& options )
+void run_graft( GraftOptions const& options )
 {
     using namespace genesis;
     using namespace genesis::placement;

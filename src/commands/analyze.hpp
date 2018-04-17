@@ -28,7 +28,7 @@
 
 #include "commands/analyze/dispersion.hpp"
 #include "commands/analyze/krd.hpp"
-#include "commands/analyze/labelled_tree.hpp"
+#include "commands/analyze/graft.hpp"
 #include "commands/analyze/nhd.hpp"
 #include "commands/analyze/squash.hpp"
 #include "commands/analyze/visualize_color.hpp"
@@ -53,7 +53,7 @@ void setup_analyze( CLI::App& app )
     // Add module subcommands.
     // setup_dispersion( *sub );
     setup_krd( *sub );
-    setup_labelled_tree( *sub );
+    setup_graft( *sub );
     setup_nhd( *sub );
     // setup_squash( *sub );
     setup_visualize_color( *sub );

@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_LABELLED_TREE_H_
-#define GAPPA_COMMANDS_ANALYZE_LABELLED_TREE_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_GRAFT_H_
+#define GAPPA_COMMANDS_ANALYZE_GRAFT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -37,7 +37,7 @@
 //      Options
 // =================================================================================================
 
-class LabelledTreeOptions
+class GraftOptions
 {
 public:
 
@@ -52,7 +52,7 @@ public:
 //      Functions
 // =================================================================================================
 
-void setup_labelled_tree( CLI::App& app );
-void run_labelled_tree( LabelledTreeOptions const& options );
+void setup_graft( CLI::App& app );
+void run_graft( GraftOptions const& options );
 
 #endif // include guard

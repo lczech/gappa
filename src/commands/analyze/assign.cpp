@@ -68,7 +68,7 @@ void setup_assign( CLI::App& app )
     auto opt = std::make_shared<AssignOptions>();
     auto sub = app.add_subcommand(
         "assign",
-        "Summarize taxonomic assignment of query sequences (.jplace)."
+        "Taxonomically assign placed query sequences and output tabulated summarization."
     );
 
     // Input
@@ -216,36 +216,34 @@ static void add_lwr_to_taxonomy(const double lwr,
 
         if ( first ) {
             // add normal elw to this taxon
-            cur_tax->data<AssignTaxonData>().ELW = lwr;
+            cur_tax->data<AssignTaxonData>().LWR = lwr;
             first = false;
         }
 
         // add accumulated elw up the taxpath
-        cur_tax->data<AssignTaxonData>().aELW += lwr;
+        cur_tax->data<AssignTaxonData>().aLWR += lwr;
         cur_tax = cur_tax->parent();
     } while( cur_tax != nullptr );
 }
 
 void print_taxonomy_with_lwr( Taxonomy const& t, std::ostream& stream )
 {
-    // get total LWR as sum of all top level aELW
+    // get total LWR as sum of all top level aLWR
     double sum = 0.0;
     for( auto const& ct : t ) {
-        sum += ct.data<AssignTaxonData>().aELW;
+        sum += ct.data<AssignTaxonData>().aLWR;
     }
-
-
 
     preorder_for_each( t, [&]( Taxon const& tax ){
 
         stream  << std::setprecision(4)
-                << tax.data<AssignTaxonData>().ELW
+                << tax.data<AssignTaxonData>().LWR
                 << "\t"
-                << tax.data<AssignTaxonData>().ELW / sum
+                << tax.data<AssignTaxonData>().LWR / sum
                 << "\t"
-                << tax.data<AssignTaxonData>().aELW
+                << tax.data<AssignTaxonData>().aLWR
                 << "\t"
-                << tax.data<AssignTaxonData>().aELW / sum
+                << tax.data<AssignTaxonData>().aLWR / sum
                 << "\t"
                 << TaxopathGenerator().to_string( tax )
                 << "\n";
@@ -254,7 +252,7 @@ void print_taxonomy_with_lwr( Taxonomy const& t, std::ostream& stream )
 
 void print_taxonomy_table( Taxonomy const& t, std::ostream& stream )
 {
-    stream << "ELW\tfract\taELW\tafract\tTaxonomic path\n";
+    stream << "LWR\tfract\taLWR\tafract\ttaxopath\n";
     print_taxonomy_with_lwr( t, stream );
 }
 
@@ -388,7 +386,7 @@ void run_assign( AssignOptions const& options )
     // print taxonomically labelled tree as intermediate result
     print_labelled( tree, node_labels, out_dir + "tax_tree" );
 
-    // per rank ELW score eval
+    // per rank LWR score eval
     assign( sample, node_labels, options, out_dir + "per_pquery_results" );
 
     if( global_options.verbosity() >= 1 ) {

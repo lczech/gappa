@@ -46,7 +46,7 @@ public:
     std::string         sub_taxopath;
     JplaceInputOptions  jplace_input;
 
-    double  dist_ratio = -0.49;
+    double  dist_ratio = -1.0;
 
     FileOutputOptions   output_dir;
 };
@@ -100,8 +100,8 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    double aELW = 0.0;
-    double ELW  = 0.0;
+    double aLWR = 0.0;
+    double LWR  = 0.0;
 };
 
 #endif // include guard

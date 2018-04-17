@@ -350,14 +350,14 @@ static void assign( Sample const& sample,
 
     // return diversity profile
     std::ofstream profile;
-    genesis::utils::file_output_stream( out_dir + "profile", profile );
+    genesis::utils::file_output_stream( out_dir + "profile.csv", profile );
     print_taxonomy_table( diversity, profile );
 
     // constrain to subtaxonomy if specified
     const auto subtaxonomy = get_subtaxonomy( diversity, options );
     // and print to file
     std::ofstream profile_filtered;
-    genesis::utils::file_output_stream( out_dir + "profile_filtered", profile_filtered );
+    genesis::utils::file_output_stream( out_dir + "profile_filtered.csv", profile_filtered );
     print_taxonomy_table( subtaxonomy, profile_filtered );
 }
 
@@ -384,10 +384,10 @@ void run_assign( AssignOptions const& options )
     postorder_label( tree, node_labels );
 
     // print taxonomically labelled tree as intermediate result
-    print_labelled( tree, node_labels, out_dir + "tax_tree" );
+    print_labelled( tree, node_labels, out_dir + "labelled_tree" );
 
     // per rank LWR score eval
-    assign( sample, node_labels, options, out_dir + "per_pquery_results" );
+    assign( sample, node_labels, options, out_dir + "per_pquery_assign" );
 
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Finished.\n";

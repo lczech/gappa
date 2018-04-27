@@ -86,7 +86,7 @@ void setup_dispersion( CLI::App& app )
     auto options = std::make_shared<DispersionOptions>();
     auto sub = app.add_subcommand(
         "dispersion",
-        "Calcualte the Edge Dispersion between samples."
+        "Calculate the Edge Dispersion between samples."
     );
 
     // Input.

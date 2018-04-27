@@ -16,8 +16,8 @@
    inkscape:version="0.92.3 (unknown)"
    sodipodi:docname="workflow_chunkify.svg"
    inkscape:export-filename="/home/lucas/github/gappa/doc/img/png/workflow_chunkify.png"
-   inkscape:export-xdpi="123.60515"
-   inkscape:export-ydpi="123.60515">
+   inkscape:export-xdpi="115.36481"
+   inkscape:export-ydpi="115.36481">
   <defs
      id="defs4">
     <marker
@@ -186,16 +186,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.1273319"
-     inkscape:cx="290.56595"
+     inkscape:cx="213.94415"
      inkscape:cy="107.94567"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1869"
-     inkscape:window-height="1056"
+     inkscape:window-width="1694"
+     inkscape:window-height="1388"
      inkscape:window-x="51"
      inkscape:window-y="24"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="false"
@@ -221,7 +221,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

@@ -16,8 +16,8 @@
    inkscape:version="0.92.3 (unknown)"
    sodipodi:docname="workflow_art.svg"
    inkscape:export-filename="/home/lucas/github/gappa/doc/img/png/workflow_art.png"
-   inkscape:export-xdpi="118.67"
-   inkscape:export-ydpi="118.67">
+   inkscape:export-xdpi="110.75402"
+   inkscape:export-ydpi="110.75402">
   <defs
      id="defs4">
     <marker
@@ -318,16 +318,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.1273319"
-     inkscape:cx="306.13934"
+     inkscape:cx="229.51754"
      inkscape:cy="40.308922"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1869"
-     inkscape:window-height="1056"
+     inkscape:window-width="1694"
+     inkscape:window-height="1388"
      inkscape:window-x="51"
      inkscape:window-y="24"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="false"
@@ -353,7 +353,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

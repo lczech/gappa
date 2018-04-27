@@ -51,13 +51,13 @@ void setup_analyze( CLI::App& app )
     sub->require_subcommand( 1 );
 
     // Add module subcommands.
-    // setup_dispersion( *sub );
-    setup_krd( *sub );
+    setup_assign( *sub );
+    setup_dispersion( *sub );
     setup_graft( *sub );
+    setup_krd( *sub );
     setup_nhd( *sub );
     // setup_squash( *sub );
     setup_visualize_color( *sub );
-    setup_assign( *sub );
 }
 
 #endif // include guard

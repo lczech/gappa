@@ -39,6 +39,44 @@
 #endif
 
 // =================================================================================================
+//      Internal Helper Classes
+// =================================================================================================
+
+/**
+ * @brief Helper struct that stores one of the variants of the dispersion methods and its properties.
+ *
+ * In the run function, we create a list of these, according to which options the user specified.
+ * This list is then iteratored to produces the resulting coloured trees for each variant.
+ */
+struct DispersionMethod
+{
+    enum InputMatrix
+    {
+        kMasses,
+        kImbalances
+    };
+
+    enum DispersionValue
+    {
+        kVar,
+        kCv,
+        kVmr
+    };
+
+    DispersionMethod( std::string const& n, InputMatrix m, DispersionValue d, bool l )
+        : name(n)
+        , inp_mat(m)
+        , disp_val(d)
+        , log_scaling(l)
+    {}
+
+    std::string      name;
+    InputMatrix      inp_mat;
+    DispersionValue  disp_val;
+    bool             log_scaling = false;
+};
+
+// =================================================================================================
 //      Setup
 // =================================================================================================
 
@@ -51,18 +89,9 @@ void setup_dispersion( CLI::App& app )
         "Calcualte the Edge Dispersion between samples."
     );
 
-    // Add common options.
+    // Input.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
     options->jplace_input.add_point_mass_opt_to_app( sub );
-
-    // Color. We allow max, but not min, as this is always 0.
-    options->color_map.add_color_list_opt_to_app( sub, "viridis" );
-    options->color_map.add_mask_color_opt_to_app( sub );
-
-    // Output files.
-    options->tree_output.add_tree_output_opts_to_app( sub );
-    options->file_output.add_output_dir_opt_to_app( sub );
-    options->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
 
     // Edge value representation
     sub->add_set_ignore_case(
@@ -71,32 +100,55 @@ void setup_dispersion( CLI::App& app )
         { "masses", "imbalances", "both" },
         "Values per edge used to calculate the dispersion.",
         true
-    );
+    )->group( "Settings" );
 
     // Dispersion method
     sub->add_set_ignore_case(
         "--method",
         options->method,
-        { "var", "var-log", "cv", "vmr", "vmr-log", "all" },
+        { "var", "var-log", "cv", "cv-log" "vmr", "vmr-log", "all" },
         "Method of dispersion. Variance (var), variance log-scaled (var-log), "
         "coefficient of variation (cv, standard deviation divided by mean), "
+        "coefficient of variation log-scaled (cv-log), "
         "variance to mean ratio (vmr, Index of Dispersion), "
-        "variance to mean ratio log-scaled (vmr-log) or all of them.",
+        "variance to mean ratio log-scaled (vmr-log) "
+        "or all of them (as far as they are applicable).",
         true
-    );
+    )->group( "Settings" );
 
+    // Extra settings.
     sub->add_flag(
         "--normalize",
         options->normalize,
-        "If set, and if multiple input samples are provided, their masses are normalized first, "
+        "If set, the masses of the input files are normalized first, "
         "so that each sample contributes a total mass of 1 to the result."
-    );
+    )->group( "Settings" );
+
+    // Color. We allow max, but not min, as this is always 0.
+    options->color_map.add_color_list_opt_to_app( sub, "viridis" );
+    options->color_map.add_mask_color_opt_to_app( sub );
+
+    // Output files.
+    options->tree_output.add_tree_output_opts_to_app( sub );
+    options->file_output.add_output_dir_opt_to_app( sub );
+    options->file_output.add_file_prefix_opt_to_app( sub, "tree", "dispersion_" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [ options ]() {
         run_dispersion( *options );
     });
+}
+
+// =================================================================================================
+//      Output File Name
+// =================================================================================================
+
+std::string output_file_name(
+    DispersionOptions const&   options,
+    std::string const&         prefix
+) {
+    return options.file_output.file_prefix() + prefix;
 }
 
 // =================================================================================================
@@ -108,7 +160,7 @@ void make_color_tree(
     std::vector<double> const& values,
     bool                       log_scaling,
     genesis::tree::Tree const& tree,
-    std::string const&         prefix
+    std::string const&         full_prefix
 ) {
     using namespace genesis::utils;
 
@@ -127,8 +179,14 @@ void make_color_tree(
 
     // Some combinations do not work. Skip them.
     if( log_scaling && color_norm->max_value() < 1.0 ) {
-        std::cout << "Skipping dispersion" << prefix << ", because this combination does not work.\n";
+        std::cout << "Skipping " << full_prefix << ", ";
+        std::cout << "because this combination does not work with values < 1.0\n";
         return;
+    }
+
+    // Just in case...
+    if( values.size() != tree.edge_count() ) {
+        throw std::runtime_error( "Internal error: Trees and matrices do not fit to each other." );
     }
 
     // Now, make a color vector and write to files.
@@ -138,7 +196,7 @@ void make_color_tree(
         colors,
         color_map,
         *color_norm,
-        options.file_output.out_dir() + options.file_output.file_prefix() + "dispersion" + prefix
+        options.file_output.out_dir() + output_file_name( options, full_prefix )
     );
 }
 
@@ -151,9 +209,10 @@ void make_color_tree(
  */
 void run_with_matrix(
     DispersionOptions const&              options,
+    std::vector<DispersionMethod> const&  methods,
     genesis::utils::Matrix<double> const& values,
-    genesis::tree::Tree const&            tree,
-    std::string const&                    prefix
+    DispersionMethod::InputMatrix         inp_mat,
+    genesis::tree::Tree const&            tree
 ) {
     if( values.cols() != tree.edge_count() ) {
         throw std::runtime_error( "Internal Error: Edge values does not have corrent length." );
@@ -171,20 +230,33 @@ void run_with_matrix(
         vmr_vec[ i ] = mean_stddev[ i ].stddev * mean_stddev[ i ].stddev / mean_stddev[ i ].mean;
     }
 
-    if(( options.method == "all" ) || ( options.method == "var" )) {
-        make_color_tree( options, var_vec, false, tree, prefix + "_var" );
-    }
-    if(( options.method == "all" ) || ( options.method == "var-log" )) {
-        make_color_tree( options, var_vec, true, tree, prefix + "_var-log" );
-    }
-    if(( options.method == "all" ) || ( options.method == "cv" )) {
-        make_color_tree( options, cv_vec, false, tree, prefix + "_cv" );
-    }
-    if(( options.method == "all" ) || ( options.method == "vmr" )) {
-        make_color_tree( options, vmr_vec, false, tree, prefix + "_vmr" );
-    }
-    if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
-        make_color_tree( options, vmr_vec, true, tree, prefix + "_vmr-log" );
+    // Loop over all methods that have been set.
+    for( auto const& method : methods ) {
+
+        // Only process the methods that have the current input metrix.
+        // This is ugly, I know. But the distinction has to be made somewhere...
+        if( method.inp_mat != inp_mat ) {
+            continue;
+        }
+
+        // Get the data vector that we want to use for this method.
+        std::vector<double> const* vec;
+        switch( method.disp_val ) {
+            case DispersionMethod::kVar:
+                vec = &var_vec;
+                break;
+            case DispersionMethod::kCv:
+                vec = &cv_vec;
+                break;
+            case DispersionMethod::kVmr:
+                vec = &vmr_vec;
+                break;
+            default:
+                throw std::runtime_error( "Internal Error: Invalid dispersion method." );
+        }
+
+        // Make a tree using the data vector and name of the method.
+        make_color_tree( options, *vec, method.log_scaling, tree, method.name );
     }
 }
 
@@ -199,20 +271,82 @@ void run_dispersion( DispersionOptions const& options )
     using namespace genesis::tree;
     using namespace genesis::utils;
 
-    // TODO progress and file info and file existence cheecks
+    // User output.
+    options.jplace_input.print_files();
 
-    // Get samples. This is memory-expensive, but for now, that's okay.
+    // Activate methods according to options being set.
+    // For imbalances, only variance makes sense.
+    std::vector<DispersionMethod> methods;
+    if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
+        if(( options.method == "all" ) || ( options.method == "var" )) {
+            methods.push_back({ "masses_var", DispersionMethod::kMasses, DispersionMethod::kVar, false });
+        }
+        if(( options.method == "all" ) || ( options.method == "var-log" )) {
+            methods.push_back({ "masses_var_log", DispersionMethod::kMasses, DispersionMethod::kVar, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "cv" )) {
+            methods.push_back({ "masses_cv", DispersionMethod::kMasses, DispersionMethod::kCv, false });
+        }
+        if(( options.method == "all" ) || ( options.method == "cv-log" )) {
+            methods.push_back({ "masses_cv_log", DispersionMethod::kMasses, DispersionMethod::kCv, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "vmr" )) {
+            methods.push_back({ "masses_vmr", DispersionMethod::kMasses, DispersionMethod::kVmr, false });
+        }
+        if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
+            methods.push_back({ "masses_vmr_log", DispersionMethod::kMasses, DispersionMethod::kVmr, true });
+        }
+    }
+    if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
+        if(( options.method == "all" ) || ( options.method == "var" )) {
+            methods.push_back({ "imbalances_var", DispersionMethod::kImbalances, DispersionMethod::kVar, false });
+        }
+        // if(( options.method == "all" ) || ( options.method == "var-log" )) {
+        //     methods.push_back({ "imbalances_var_log", DispersionMethod::kImbalances, DispersionMethod::kVar, true });
+        // }
+    }
+
+    // Check for existing output files.
+    // We currently check for the file names, but not the correct extensions.
+    // This would require to check here already which tree types will be written. Not worth the effort for now.
+    std::vector<std::string> files_to_check;
+    for( auto const& m : methods ) {
+        files_to_check.push_back( output_file_name( options, m.name ) + "\\.*" );
+    }
+    options.file_output.check_nonexistent_output_files( files_to_check );
+
+    // Read all samples. This is memory-expensive, but for now, that's okay.
     // Can optimize later, and process one file at a time instead.
     auto const sample_set = options.jplace_input.sample_set();
-    auto const tree       = average_branch_length_tree( sample_set );
+    Tree tree;
+    try{
+        tree = average_branch_length_tree( sample_set );
+    } catch( ... ) {
+        throw std::runtime_error( "Input jplace files have differing reference trees." );
+    }
 
     // Calculate things as needed.
-    if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
-        auto const edge_masses = placement_weight_per_edge( sample_set );
-        run_with_matrix( options, edge_masses, tree, "_masses" );
-    }
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
+        auto edge_masses = placement_weight_per_edge( sample_set );
+
+        // Normalize per row if needed.
+        if( options.normalize ) {
+            auto const rsums = matrix_row_sums( edge_masses );
+
+            #pragma omp parallel for
+            for( size_t r = 0; r < edge_masses.rows(); ++r ) {
+                for( size_t c = 0; c < edge_masses.cols(); ++c ) {
+                    edge_masses( r, c ) /= rsums[ r ];
+                }
+            }
+        }
+
+        run_with_matrix( options, methods, edge_masses, DispersionMethod::kMasses, tree );
+    }
+    if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
+
+        // Imbalances are already normalized.
         auto const edge_imbals = epca_imbalance_matrix( sample_set, true );
-        run_with_matrix( options, edge_imbals, tree, "_imbalances" );
+        run_with_matrix( options, methods, edge_imbals, DispersionMethod::kImbalances, tree );
     }
 }

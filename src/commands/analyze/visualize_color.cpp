@@ -54,7 +54,16 @@ void setup_visualize_color( CLI::App& app )
         "Make a tree with edges colored according to the placement mass of the samples."
     );
 
-    // Add common options.
+    // Input files.
+    options->jplace_input.add_jplace_input_opt_to_app( sub );
+    options->jplace_input.add_point_mass_opt_to_app( sub );
+
+    sub->add_flag(
+        "--normalize",
+        options->normalize,
+        "If set, and if multiple input samples are provided, their masses are normalized first, "
+        "so that each sample contributes a total mass of 1 to the result."
+    )->group( "Settings" );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
@@ -64,21 +73,10 @@ void setup_visualize_color( CLI::App& app )
     options->color_norm.add_max_value_opt_to_app( sub );
     options->color_norm.add_mask_value_opt_to_app( sub );
 
-    // Input files.
-    options->jplace_input.add_jplace_input_opt_to_app( sub );
-    options->jplace_input.add_point_mass_opt_to_app( sub );
-
     // Output files.
     options->tree_output.add_tree_output_opts_to_app( sub );
     options->file_output.add_output_dir_opt_to_app( sub );
     options->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
-
-    sub->add_flag(
-        "--normalize",
-        options->normalize,
-        "If set, and if multiple input samples are provided, their masses are normalized first, "
-        "so that each sample contributes a total mass of 1 to the result."
-    );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -98,7 +96,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
     using namespace genesis::tree;
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({ options.file_output.file_prefix() + ".*" });
+    options.file_output.check_nonexistent_output_files({ options.file_output.file_prefix() + "\\..*" });
     // TODO too strict!
 
     // User output.

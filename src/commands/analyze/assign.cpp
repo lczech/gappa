@@ -216,7 +216,7 @@ static void add_lwr_to_taxonomy(const double lwr,
 
         if ( first ) {
             // add normal elw to this taxon
-            cur_tax->data<AssignTaxonData>().LWR = lwr;
+            cur_tax->data<AssignTaxonData>().LWR += lwr;
             first = false;
         }
 

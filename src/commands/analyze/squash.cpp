@@ -72,7 +72,7 @@ void run_squash( SquashOptions const& options )
     using namespace genesis;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({ "cluster.newick" });
+    options.file_output.check_nonexistent_output_files({ "cluster\\.newick" });
 
     // Print some user output.
     options.jplace_input.print_files();

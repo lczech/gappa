@@ -26,6 +26,7 @@
 #include "options/global.hpp"
 
 #include "genesis/placement/function/functions.hpp"
+#include "genesis/utils/core/fs.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -73,18 +74,49 @@ genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
 
 genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 {
+    using namespace genesis;
+    using namespace genesis::placement;
+
     // TODO dont report errors in jplace. offer subcommand for that
     // TODO nope. also report them here. just not while reading, but use a validator function.
     // TODO offer avg tree option
     // TODO add/offer validity checks etc
 
-    auto set = reader_.from_files( file_paths() );
-    if( point_mass_ ) {
-        for( auto& sample : set ) {
-            filter_n_max_weight_placements( sample.sample );
-            normalize_weight_ratios( sample.sample );
+    // The following is copied from the JplaceReader class of genesis,
+    // but adds progress report to it. A bit ugly, but we can live with it for now.
+
+    // Result.
+    SampleSet set;
+    auto const paths = file_paths();
+    size_t fc = 0;
+
+    // Make a vector of default-constructed Samples of the needed size.
+    // We do this so that the order of input jplace files is kept.
+    auto tmp = std::vector<Sample>( paths.size() );
+
+    // Parallel parsing.
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t fi = 0; fi < paths.size(); ++fi ) {
+
+        // User output.
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
+            {
+                ++fc;
+                std::cout << "Reading file " << fc << " of " << paths.size();
+                std::cout << ": " << paths[ fi ] << "\n";
+            }
         }
+
+        tmp[ fi ] = sample( fi );
     }
+
+    // Move to target SampleSet.
+    for( size_t fi = 0; fi < paths.size(); ++fi ) {
+        auto const name = base_file_name( fi );
+        set.add( std::move( tmp[fi] ), name );
+    }
+
     return set;
 }
 

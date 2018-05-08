@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_H_
-#define GAPPA_COMMANDS_ANALYZE_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_CORRELATION_H_
+#define GAPPA_COMMANDS_ANALYZE_CORRELATION_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,40 +26,40 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze/assign.hpp"
-#include "commands/analyze/correlation.hpp"
-#include "commands/analyze/dispersion.hpp"
-#include "commands/analyze/graft.hpp"
-#include "commands/analyze/krd.hpp"
-#include "commands/analyze/nhd.hpp"
-#include "commands/analyze/squash.hpp"
-#include "commands/analyze/visualize_color.hpp"
+#include "options/color/color_map.hpp"
+#include "options/color/color_norm.hpp"
+#include "options/file_output.hpp"
+#include "options/jplace_input.hpp"
+#include "options/metadata_input.hpp"
+#include "options/tree_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class CorrelationOptions
+{
+public:
+
+    std::string edge_values = "both";
+    std::string method      = "all";
+    bool no_normalize = false;
+
+    JplaceInputOptions   jplace_input;
+    MetadataInputOptions metadata_input;
+    ColorMapOptions      color_map;
+    FileOutputOptions    file_output;
+    TreeOutputOptions    tree_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_analyze( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "analyze",
-        "Commands for analyzing and visualizing placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_assign( *sub );
-    setup_correlation( *sub );
-    setup_dispersion( *sub );
-    setup_graft( *sub );
-    setup_krd( *sub );
-    setup_nhd( *sub );
-    // setup_squash( *sub );
-    setup_visualize_color( *sub );
-}
+void setup_correlation( CLI::App& app );
+void run_correlation( CorrelationOptions const& options );
 
 #endif // include guard

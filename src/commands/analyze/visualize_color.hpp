@@ -44,8 +44,6 @@ class VisualizeColorOptions
 {
 public:
 
-    bool normalize = false;
-
     ColorMapOptions    color_map;
     ColorNormOptions   color_norm;
     JplaceInputOptions jplace_input;

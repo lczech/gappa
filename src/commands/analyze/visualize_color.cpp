@@ -29,6 +29,7 @@
 
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/function/tree.hpp"
 #include "genesis/tree/default/newick_writer.hpp"
@@ -57,13 +58,8 @@ void setup_visualize_color( CLI::App& app )
     // Input files.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
     options->jplace_input.add_point_mass_opt_to_app( sub );
-
-    sub->add_flag(
-        "--normalize",
-        options->normalize,
-        "If set, and if multiple input samples are provided, their masses are normalized first, "
-        "so that each sample contributes a total mass of 1 to the result."
-    )->group( "Settings" );
+    options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
+    options->jplace_input.add_absolute_mass_opt_to_app( sub );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
@@ -96,8 +92,11 @@ void run_visualize_color( VisualizeColorOptions const& options )
     using namespace genesis::tree;
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({ options.file_output.file_prefix() + "\\..*" });
-    // TODO too strict!
+    std::vector<std::string> files_to_check;
+    for( auto const& e : options.tree_output.get_extensions() ) {
+        files_to_check.push_back( options.file_output.file_prefix() + "\\." + e );
+    }
+    options.file_output.check_nonexistent_output_files( files_to_check );
 
     // User output.
     options.jplace_input.print_files();
@@ -121,17 +120,11 @@ void run_visualize_color( VisualizeColorOptions const& options )
             }
         }
 
-        // Read in file.
+        // Read in file. This also already applies all normalizations.
         auto const sample = options.jplace_input.sample( fi );
 
         // Get masses per edge.
-        auto const masses = placement_weight_per_edge( sample );
-
-        // Set the normalization
-        double norm = 1.0;
-        if( options.normalize ) {
-            norm = std::accumulate( masses.begin(), masses.end(), 0.0 );
-        }
+        auto const masses = placement_mass_per_edges_with_multiplicities( sample );
 
         // The main accumulation is single threaded.
         // We could optimize more, but seriously, it is fast enough already.
@@ -151,9 +144,17 @@ void run_visualize_color( VisualizeColorOptions const& options )
                 throw std::runtime_error( "Input jplace files have differing reference trees." );
             } else {
                 for( size_t i = 0; i < masses.size(); ++i ) {
-                    total_masses[i] += masses[i] / norm;
+                    total_masses[i] += masses[i];
                 }
             }
+        }
+    }
+
+    // If we use relative masses, we normalize the whole mass set once more, so that the sum is 1.
+    if( ! options.jplace_input.absolute_mass() ) {
+        auto const sum = std::accumulate( total_masses.begin(), total_masses.end(), 0.0 );
+        for( size_t i = 0; i < total_masses.size(); ++i ) {
+            total_masses[i] /= sum;
         }
     }
 

@@ -45,7 +45,7 @@ public:
 
     std::string edge_values = "both";
     std::string method      = "all";
-    bool normalize = false;
+    bool no_normalize = false;
 
     JplaceInputOptions jplace_input;
     ColorMapOptions    color_map;

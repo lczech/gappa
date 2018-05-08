@@ -120,10 +120,10 @@ void setup_dispersion( CLI::App& app )
 
     // Extra settings.
     sub->add_flag(
-        "--normalize",
-        options->normalize,
-        "If set, the masses of the input files are normalized first, "
-        "so that each sample contributes a total mass of 1 to the result."
+        "--no-normalize",
+        options->no_normalize,
+        "If set, the masses of the input files are not normalized. "
+        "Then, each sample contributes as much as to the result as it has pqueries."
     )->group( "Settings" );
 
     // Color. We allow max, but not min, as this is always 0.
@@ -143,8 +143,49 @@ void setup_dispersion( CLI::App& app )
 }
 
 // =================================================================================================
-//      Output File Name
+//      Helper Functions
 // =================================================================================================
+
+/**
+ * @brief Activate variants according to options being set.
+ */
+std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
+{
+    std::vector<DispersionVariant> variants;
+
+    if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
+        if(( options.method == "all" ) || ( options.method == "var" )) {
+            variants.push_back({ "masses_var", DispersionVariant::kMasses, DispersionVariant::kVar, false });
+        }
+        if(( options.method == "all" ) || ( options.method == "var-log" )) {
+            variants.push_back({ "masses_var_log", DispersionVariant::kMasses, DispersionVariant::kVar, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "cv" )) {
+            variants.push_back({ "masses_cv", DispersionVariant::kMasses, DispersionVariant::kCv, false });
+        }
+        if(( options.method == "all" ) || ( options.method == "cv-log" )) {
+            variants.push_back({ "masses_cv_log", DispersionVariant::kMasses, DispersionVariant::kCv, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "vmr" )) {
+            variants.push_back({ "masses_vmr", DispersionVariant::kMasses, DispersionVariant::kVmr, false });
+        }
+        if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
+            variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kVmr, true });
+        }
+    }
+
+    // For imbalances, only variance makes sense.
+    if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
+        if(( options.method == "all" ) || ( options.method == "var" )) {
+            variants.push_back({ "imbalances_var", DispersionVariant::kImbalances, DispersionVariant::kVar, false });
+        }
+        // if(( options.method == "all" ) || ( options.method == "var-log" )) {
+        //     variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVar, true });
+        // }
+    }
+
+    return variants;
+}
 
 std::string output_file_name(
     DispersionOptions const&   options,
@@ -245,17 +286,21 @@ void run_with_matrix(
         // Get the data vector that we want to use for this variant.
         std::vector<double> const* vec;
         switch( variant.dispersion_value ) {
-            case DispersionVariant::kVar:
+            case DispersionVariant::kVar: {
                 vec = &var_vec;
                 break;
-            case DispersionVariant::kCv:
+            }
+            case DispersionVariant::kCv: {
                 vec = &cv_vec;
                 break;
-            case DispersionVariant::kVmr:
+            }
+            case DispersionVariant::kVmr: {
                 vec = &vmr_vec;
                 break;
-            default:
+            }
+            default: {
                 throw std::runtime_error( "Internal Error: Invalid dispersion variant." );
+            }
         }
         assert( vec );
 
@@ -275,52 +320,32 @@ void run_dispersion( DispersionOptions const& options )
     using namespace genesis::tree;
     using namespace genesis::utils;
 
+    // -------------------------------------------------------------------------
+    //     Checks and Preparation
+    // -------------------------------------------------------------------------
+
     // User output.
+    options.tree_output.check_tree_formats();
     options.jplace_input.print_files();
 
-    // Activate variants according to options being set.
-    // For imbalances, only variance makes sense.
-    std::vector<DispersionVariant> variants;
-    if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
-        if(( options.method == "all" ) || ( options.method == "var" )) {
-            variants.push_back({ "masses_var", DispersionVariant::kMasses, DispersionVariant::kVar, false });
-        }
-        if(( options.method == "all" ) || ( options.method == "var-log" )) {
-            variants.push_back({ "masses_var_log", DispersionVariant::kMasses, DispersionVariant::kVar, true });
-        }
-        if(( options.method == "all" ) || ( options.method == "cv" )) {
-            variants.push_back({ "masses_cv", DispersionVariant::kMasses, DispersionVariant::kCv, false });
-        }
-        if(( options.method == "all" ) || ( options.method == "cv-log" )) {
-            variants.push_back({ "masses_cv_log", DispersionVariant::kMasses, DispersionVariant::kCv, true });
-        }
-        if(( options.method == "all" ) || ( options.method == "vmr" )) {
-            variants.push_back({ "masses_vmr", DispersionVariant::kMasses, DispersionVariant::kVmr, false });
-        }
-        if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
-            variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kVmr, true });
-        }
-    }
-    if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
-        if(( options.method == "all" ) || ( options.method == "var" )) {
-            variants.push_back({ "imbalances_var", DispersionVariant::kImbalances, DispersionVariant::kVar, false });
-        }
-        // if(( options.method == "all" ) || ( options.method == "var-log" )) {
-        //     variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVar, true });
-        // }
-    }
+    // Get which variants of the method to run.
+    auto const variants = get_variants( options );
 
     // Check for existing output files.
-    // We currently check for the file names, but not the correct extensions.
-    // This would require to check here already which tree types will be written. Not worth the effort for now.
     std::vector<std::string> files_to_check;
     for( auto const& m : variants ) {
-        files_to_check.push_back( output_file_name( options, m.name ) + "\\.*" );
+        for( auto const& e : options.tree_output.get_extensions() ) {
+            files_to_check.push_back( output_file_name( options, m.name ) + "\\." + e );
+        }
     }
     options.file_output.check_nonexistent_output_files( files_to_check );
 
+    // -------------------------------------------------------------------------
+    //     Sample Input
+    // -------------------------------------------------------------------------
+
     // Read all samples. This is memory-expensive, but for now, that's okay.
-    // Can optimize later, and process one file at a time instead.
+    // Can optimize later, and process one file at a time instead to fill the matrices.
     auto const sample_set = options.jplace_input.sample_set();
     Tree tree;
     try{
@@ -329,12 +354,20 @@ void run_dispersion( DispersionOptions const& options )
         throw std::runtime_error( "Input jplace files have differing reference trees." );
     }
 
+    // -------------------------------------------------------------------------
+    //     Calculations and Output
+    // -------------------------------------------------------------------------
+
+    if( global_options.verbosity() >= 2 ) {
+        std::cout << "Calculating dispersions and writing files.\n";
+    }
+
     // Calculate things as needed.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
         auto edge_masses = placement_weight_per_edge( sample_set );
 
         // Normalize per row if needed.
-        if( options.normalize ) {
+        if( ! options.no_normalize ) {
             auto const rsums = matrix_row_sums( edge_masses );
 
             #pragma omp parallel for
@@ -350,7 +383,7 @@ void run_dispersion( DispersionOptions const& options )
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
 
         // Imbalances are already normalized.
-        auto const edge_imbals = epca_imbalance_matrix( sample_set, true );
+        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, ! options.no_normalize );
         run_with_matrix( options, variants, edge_imbals, DispersionVariant::kImbalances, tree );
     }
 }

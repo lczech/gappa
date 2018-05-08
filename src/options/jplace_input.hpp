@@ -67,6 +67,8 @@ public:
     CLI::Option* add_jplace_input_opt_to_app( CLI::App* sub, bool required = true );
 
     CLI::Option* add_point_mass_opt_to_app( CLI::App* sub );
+    CLI::Option* add_ignore_multiplicities_opt_to_app( CLI::App* sub );
+    CLI::Option* add_absolute_mass_opt_to_app( CLI::App* sub );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -113,6 +115,16 @@ public:
         return point_mass_;
     }
 
+    bool ignore_multiplicities() const
+    {
+        return ignore_multiplicities_;
+    }
+
+    bool absolute_mass() const
+    {
+        return absolute_mass_;
+    }
+
     // -------------------------------------------------------------------------
     //     Option Members
     // -------------------------------------------------------------------------
@@ -121,7 +133,16 @@ private:
 
     genesis::placement::JplaceReader reader_;
 
-    bool point_mass_ = false;
+    bool point_mass_            = false;
+    bool ignore_multiplicities_ = false;
+    bool absolute_mass_         = false;
+
+public:
+
+    CLI::Option* jplace_input_option          = nullptr;
+    CLI::Option* point_mass_option            = nullptr;
+    CLI::Option* ignore_multiplicities_option = nullptr;
+    CLI::Option* absolute_mass_option         = nullptr;
 
 };
 

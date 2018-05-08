@@ -26,6 +26,7 @@
 #include "options/global.hpp"
 
 #include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/utils/core/fs.hpp"
 
 #include <iostream>
@@ -43,16 +44,66 @@ CLI::Option* JplaceInputOptions::add_jplace_input_opt_to_app( CLI::App* sub, boo
 {
     // TODO add avg tree option?!
 
-    return FileInputOptions::add_multi_file_input_opt_to_app( sub, "jplace", "jplace", required, "Input" );
+    // Correct setup check.
+    if( jplace_input_option != nullptr ) {
+        throw std::domain_error( "Cannot set up the same JplaceInputOptions object multiple times." );
+    }
+
+    jplace_input_option = FileInputOptions::add_multi_file_input_opt_to_app(
+        sub, "jplace", "jplace", required, "Input"
+    );
+    return jplace_input_option;
 }
 
 CLI::Option* JplaceInputOptions::add_point_mass_opt_to_app( CLI::App* sub )
 {
-    return sub->add_flag(
+    // Correct setup check.
+    if( point_mass_option != nullptr ) {
+        throw std::domain_error( "Cannot set up --point-mass option multiple times." );
+    }
+
+    point_mass_option = sub->add_flag(
         "--point-mass",
         point_mass_,
         "Treat every pquery as a point mass concentrated on the highest-weight placement."
     )->group( "Settings" );
+
+    return point_mass_option;
+}
+
+CLI::Option* JplaceInputOptions::add_ignore_multiplicities_opt_to_app( CLI::App* sub )
+{
+    // Correct setup check.
+    if( ignore_multiplicities_option != nullptr ) {
+        throw std::domain_error( "Cannot set up --ignore-multiplicities option multiple times." );
+    }
+
+    // Currently, this is a hidden option, because it goes too deep for the average user.
+    ignore_multiplicities_option = sub->add_flag(
+        "--ignore-multiplicities",
+        ignore_multiplicities_,
+        "Set the multiplicity of each pquery to 1."
+    )->group( "" );
+    // )->group( "Settings" );
+
+    return ignore_multiplicities_option;
+}
+
+CLI::Option* JplaceInputOptions::add_absolute_mass_opt_to_app( CLI::App* sub )
+{
+    // Correct setup check.
+    if( absolute_mass_option != nullptr ) {
+        throw std::domain_error( "Cannot set up --absolute-mass option multiple times." );
+    }
+
+    absolute_mass_option = sub->add_flag(
+        "--absolute-mass",
+        absolute_mass_,
+        "Do not normalize the placement masses per sample, "
+        "but use the absolute mass of all pqueries in the sample."
+    )->group( "Settings" );
+
+    return absolute_mass_option;
 }
 
 // =================================================================================================
@@ -64,11 +115,42 @@ genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
     using namespace genesis;
     using namespace genesis::placement;
 
+    // Do the reading.
     auto sample = reader_.from_file( file_path( index ) );
-    if( point_mass_ ) {
+
+    // Point mass: remove all but the most likely placement, and set its weight to one.
+    if( point_mass_ ) {\
         filter_n_max_weight_placements( sample );
         normalize_weight_ratios( sample );
     }
+
+    // Ignore multiplicities: normalize each pquery so that it has a multiplicity of one.
+    if( ignore_multiplicities_ ) {
+        for( auto& pquery : sample ) {
+            auto const tm = total_multiplicity( pquery );
+            for( auto& name : pquery.names() ) {
+                name.multiplicity /= tm;
+            }
+        }
+    }
+
+    // No absolute mass: use relative mass, that is, normalize the masses by the total of the sample.
+    // We use the multiplicity for the normalization, as this does not affect mehtods that rely
+    // on LWRs close to 1.
+    if( ! absolute_mass_ ) {
+        auto const tm = total_placement_mass_with_multiplicities( sample );
+        for( auto& pquery : sample ) {
+            for( auto& name : pquery.names() ) {
+                name.multiplicity /= tm;
+            }
+
+            // Alternative: normalize by changing the LWRs directly.
+            // for( auto& placement : pquery.placements() ) {
+            //     placement.like_weight_ratio /= tm;
+            // }
+        }
+    }
+
     return sample;
 }
 
@@ -153,7 +235,7 @@ genesis::placement::Sample JplaceInputOptions::merged_samples() const
                 result = std::move( smpl );
             } else {
                 try{
-                    // The function only throws if somethign is wrong with the trees.
+                    // The function only throws if something is wrong with the trees.
                     copy_pqueries( smpl, result );
                 } catch( ... ) {
                     throw std::runtime_error( "Input jplace files have differing reference trees." );

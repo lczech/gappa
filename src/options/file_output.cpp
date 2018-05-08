@@ -149,6 +149,11 @@ void FileOutputOptions::check_nonexistent_output_files(
 
     // TODO if file overwrite option is added, this check should become a warning!
 
+    // TODO using regexes gives weird user output if any of the files already exists.
+    // for example, dispersion_imbalances_sd\.svg
+    // better use normal wildcarts, and use some string replacement here before calling
+    // dir list contents.
+
     // Check if any of the files exists.
     for( auto const& file : filenames ) {
         auto const dir_cont = dir_list_contents( out_dir_, true, file );

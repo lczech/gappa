@@ -30,6 +30,7 @@
 #include "genesis/placement/function/epca.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/sample_set.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/math/matrix.hpp"
@@ -60,9 +61,10 @@ struct DispersionVariant
 
     enum DispersionMethod
     {
-        kVar,
-        kCv,
-        kVmr
+        kStandardDeviation,
+        kVariance,
+        kCoeffcientOfVariation,
+        kIndexOfDispersion
     };
 
     DispersionVariant( std::string const& n, EdgeValues m, DispersionMethod d, bool l )
@@ -93,6 +95,9 @@ void setup_dispersion( CLI::App& app )
 
     // Input.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
+    options->jplace_input.add_point_mass_opt_to_app( sub );
+    options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
+    options->jplace_input.add_absolute_mass_opt_to_app( sub );
 
     // Edge value representation
     sub->add_set_ignore_case(
@@ -107,24 +112,16 @@ void setup_dispersion( CLI::App& app )
     sub->add_set_ignore_case(
         "--method",
         options->method,
-        { "all", "cv", "cv-log", "var", "var-log", "vmr", "vmr-log" },
+        { "all", "cv", "cv-log", "sd", "sd-log", "var", "var-log", "vmr", "vmr-log" },
         "Method of dispersion. Either all (as far as they are applicable), or any of: "
         "coefficient of variation (cv, standard deviation divided by mean), "
         "coefficient of variation log-scaled (cv-log), "
         "variance (var), variance log-scaled (var-log), "
         "variance to mean ratio (vmr, Index of Dispersion), "
         "variance to mean ratio log-scaled (vmr-log).",
+        // TODO sd
         true
     )->group( "Settings" );
-
-    // Extra settings.
-    sub->add_flag(
-        "--no-normalize",
-        options->no_normalize,
-        "If set, the masses of the input files are not normalized. "
-        "Then, each sample contributes as much as to the result as it has pqueries."
-    )->group( "Settings" );
-    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "viridis" );
@@ -154,34 +151,54 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
     std::vector<DispersionVariant> variants;
 
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
-        if(( options.method == "all" ) || ( options.method == "var" )) {
-            variants.push_back({ "masses_var", DispersionVariant::kMasses, DispersionVariant::kVar, false });
+        if(( options.method == "all" ) || ( options.method == "sd" )) {
+            variants.push_back({ "masses_sd", DispersionVariant::kMasses, DispersionVariant::kStandardDeviation, false });
         }
-        if(( options.method == "all" ) || ( options.method == "var-log" )) {
-            variants.push_back({ "masses_var_log", DispersionVariant::kMasses, DispersionVariant::kVar, true });
+        if(( options.method == "all" ) || ( options.method == "var" )) {
+            variants.push_back({ "masses_var", DispersionVariant::kMasses, DispersionVariant::kVariance, false });
         }
         if(( options.method == "all" ) || ( options.method == "cv" )) {
-            variants.push_back({ "masses_cv", DispersionVariant::kMasses, DispersionVariant::kCv, false });
-        }
-        if(( options.method == "all" ) || ( options.method == "cv-log" )) {
-            variants.push_back({ "masses_cv_log", DispersionVariant::kMasses, DispersionVariant::kCv, true });
+            variants.push_back({ "masses_cv", DispersionVariant::kMasses, DispersionVariant::kCoeffcientOfVariation, false });
         }
         if(( options.method == "all" ) || ( options.method == "vmr" )) {
-            variants.push_back({ "masses_vmr", DispersionVariant::kMasses, DispersionVariant::kVmr, false });
+            variants.push_back({ "masses_vmr", DispersionVariant::kMasses, DispersionVariant::kIndexOfDispersion, false });
         }
-        if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
-            variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kVmr, true });
+
+        // Log scaling is only reasonable for absolute masses.
+        if( options.jplace_input.absolute_mass() ) {
+            if(( options.method == "all" ) || ( options.method == "sd-log" )) {
+                variants.push_back({ "masses_sd_log", DispersionVariant::kMasses, DispersionVariant::kStandardDeviation, true });
+            }
+            if(( options.method == "all" ) || ( options.method == "var-log" )) {
+                variants.push_back({ "masses_var_log", DispersionVariant::kMasses, DispersionVariant::kVariance, true });
+            }
+            if(( options.method == "all" ) || ( options.method == "cv-log" )) {
+                variants.push_back({ "masses_cv_log", DispersionVariant::kMasses, DispersionVariant::kCoeffcientOfVariation, true });
+            }
+            if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
+                variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kIndexOfDispersion, true });
+            }
         }
     }
 
-    // For imbalances, only variance makes sense.
+    // For imbalances, only sd and variance makes sense.
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
-        if(( options.method == "all" ) || ( options.method == "var" )) {
-            variants.push_back({ "imbalances_var", DispersionVariant::kImbalances, DispersionVariant::kVar, false });
+        if(( options.method == "all" ) || ( options.method == "sd" )) {
+            variants.push_back({ "imbalances_sd", DispersionVariant::kImbalances, DispersionVariant::kStandardDeviation, false });
         }
-        // if(( options.method == "all" ) || ( options.method == "var-log" )) {
-        //     variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVar, true });
-        // }
+        if(( options.method == "all" ) || ( options.method == "var" )) {
+            variants.push_back({ "imbalances_var", DispersionVariant::kImbalances, DispersionVariant::kVariance, false });
+        }
+
+        // Log scaling is only reasonable for absolute masses.
+        if( options.jplace_input.absolute_mass() ) {
+            if(( options.method == "all" ) || ( options.method == "sd-log" )) {
+                variants.push_back({ "imbalances_sd_log", DispersionVariant::kImbalances, DispersionVariant::kStandardDeviation, true });
+            }
+            if(( options.method == "all" ) || ( options.method == "var-log" )) {
+                variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVariance, true });
+            }
+        }
     }
 
     return variants;
@@ -265,10 +282,12 @@ void run_with_matrix(
     // is not used. But these are really cheap calculations, and in the standard "all" case,
     // we need all of them twice (linear and log scaling).
     auto const mean_stddev = matrix_col_mean_stddev( values );
+    auto sd_vec  = std::vector<double>( mean_stddev.size(), 0.0 );
     auto var_vec = std::vector<double>( mean_stddev.size(), 0.0 );
     auto cv_vec  = std::vector<double>( mean_stddev.size(), 0.0 );
     auto vmr_vec = std::vector<double>( mean_stddev.size(), 0.0 );
     for( size_t i = 0; i < mean_stddev.size(); ++i ) {
+        sd_vec[ i ]  = mean_stddev[ i ].stddev;
         var_vec[ i ] = mean_stddev[ i ].stddev * mean_stddev[ i ].stddev;
         cv_vec[ i ]  = mean_stddev[ i ].stddev / mean_stddev[ i ].mean;
         vmr_vec[ i ] = mean_stddev[ i ].stddev * mean_stddev[ i ].stddev / mean_stddev[ i ].mean;
@@ -286,15 +305,19 @@ void run_with_matrix(
         // Get the data vector that we want to use for this variant.
         std::vector<double> const* vec;
         switch( variant.dispersion_value ) {
-            case DispersionVariant::kVar: {
+            case DispersionVariant::kStandardDeviation: {
+                vec = &sd_vec;
+                break;
+            }
+            case DispersionVariant::kVariance: {
                 vec = &var_vec;
                 break;
             }
-            case DispersionVariant::kCv: {
+            case DispersionVariant::kCoeffcientOfVariation: {
                 vec = &cv_vec;
                 break;
             }
-            case DispersionVariant::kVmr: {
+            case DispersionVariant::kIndexOfDispersion: {
                 vec = &vmr_vec;
                 break;
             }
@@ -364,26 +387,16 @@ void run_dispersion( DispersionOptions const& options )
 
     // Calculate things as needed.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
-        auto edge_masses = placement_weight_per_edge( sample_set );
-
-        // Normalize per row if needed.
-        if( ! options.no_normalize ) {
-            auto const rsums = matrix_row_sums( edge_masses );
-
-            #pragma omp parallel for
-            for( size_t r = 0; r < edge_masses.rows(); ++r ) {
-                for( size_t c = 0; c < edge_masses.cols(); ++c ) {
-                    edge_masses( r, c ) /= rsums[ r ];
-                }
-            }
-        }
-
+        auto edge_masses = placement_mass_per_edges_with_multiplicities( sample_set );
         run_with_matrix( options, variants, edge_masses, DispersionVariant::kMasses, tree );
     }
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
 
-        // Imbalances are already normalized.
-        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, ! options.no_normalize );
+        // The imbalances are again normalized (or not) depending on the jplace absolute mass setting.
+        // If the setting is not used, that is, we use relative masses, the imbalances are normalized.
+        // This is a slightly different normalization than the one applied by the jplace input,
+        // see epca_imbalance_matrix() for details.
+        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, ! options.jplace_input.absolute_mass() );
         run_with_matrix( options, variants, edge_imbals, DispersionVariant::kImbalances, tree );
     }
 }

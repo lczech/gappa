@@ -30,6 +30,7 @@
 #include "genesis/placement/function/epca.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/sample_set.hpp"
 #include "genesis/utils/containers/dataframe.hpp"
 #include "genesis/utils/containers/matrix.hpp"
@@ -409,7 +410,7 @@ void run_correlation( CorrelationOptions const& options )
 
     // Calculate things as needed.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
-        auto edge_masses = placement_weight_per_edge( sample_set );
+        auto edge_masses = placement_mass_per_edges_with_multiplicities( sample_set );
 
         // Normalize per row if needed.
         if( ! options.no_normalize ) {

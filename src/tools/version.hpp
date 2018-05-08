@@ -47,8 +47,8 @@ inline std::string gappa_header()
      |''   .|' ||   ||    |  ||    | .|' ||     .|'|.  ||     \n\
     '....  '|..'|'. ||...'   ||...'  '|..'|.    '||'    ||:.  \n\
     '....'          ||       ||                               \n\
-                   ''''     ''''    2017-2018 by Lucas Czech  \n\
-                                    " + gappa_version() +    "\n";
+                   ''''     ''''    " + gappa_version() + ", (c) 2017-2018\n\
+                                    by Lucas Czech and Pierre Barbera\n";
 }
 
 inline std::string gappa_title()

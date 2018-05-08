@@ -66,6 +66,35 @@ void TreeOutputOptions::add_tree_output_opts_to_app( CLI::App* sub )
 //      Run Functions
 // =================================================================================================
 
+void TreeOutputOptions::check_tree_formats() const
+{
+    if( ! write_newick_tree_ && ! write_nexus_tree_ && ! write_phyloxml_tree_ && ! write_svg_tree_ ) {
+        std::cout << "Warning: You did not specify any tree output format. ";
+        std::cout << "Thus, no tree files will be written. ";
+        std::cout << "In order to specify the wanted formats, use the --write-...-tree options.\n";
+    }
+}
+
+std::vector<std::string> TreeOutputOptions::get_extensions() const
+{
+    std::vector<std::string> res;
+
+    if( write_newick_tree_ ) {
+        res.push_back( "newick" );
+    }
+    if( write_nexus_tree_ ) {
+        res.push_back( "nexus" );
+    }
+    if( write_phyloxml_tree_ ) {
+        res.push_back( "phyloxml" );
+    }
+    if( write_svg_tree_ ) {
+        res.push_back( "svg" );
+    }
+
+    return res;
+}
+
 void TreeOutputOptions::write_tree_to_files(
     genesis::tree::DefaultTree const&         tree,
     std::string const&                        file_path_prefix

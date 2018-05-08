@@ -78,17 +78,38 @@ public:
     //     Run Functions
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Print a warning if no output tree format is specified.
+     */
+    void check_tree_formats() const;
+
+    /**
+     * @brief Return the list of file extensions (without dot) of the tree formats that were
+     * specified by the user.
+     */
+    std::vector<std::string> get_extensions() const;
+
+    /**
+     * @brief Write a simple tree with no colors to all formats specified by the user.
+     */
     void write_tree_to_files(
         genesis::tree::DefaultTree const&         tree,
         std::string const&                        file_path_prefix
     ) const;
 
+    /**
+     * @brief Write a tree with colored branches to all formats specified by the user.
+     */
     void write_tree_to_files(
         genesis::tree::DefaultTree const&         tree,
         std::vector<genesis::utils::Color> const& color_per_branch,
         std::string const&                        file_path_prefix
     ) const;
 
+    /**
+     * @brief Write a tree with colored branches to all formats specified by the user,
+     * as well as information about the color scale (with a proper scale in the svg file).
+     */
     void write_tree_to_files(
         genesis::tree::DefaultTree const&         tree,
         std::vector<genesis::utils::Color> const& color_per_branch,

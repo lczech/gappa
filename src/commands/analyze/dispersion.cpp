@@ -93,7 +93,6 @@ void setup_dispersion( CLI::App& app )
 
     // Input.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
-    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Edge value representation
     sub->add_set_ignore_case(
@@ -125,6 +124,7 @@ void setup_dispersion( CLI::App& app )
         "If set, the masses of the input files are not normalized. "
         "Then, each sample contributes as much as to the result as it has pqueries."
     )->group( "Settings" );
+    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "viridis" );

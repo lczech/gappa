@@ -99,7 +99,6 @@ void setup_correlation( CLI::App& app )
 
     // Jplace input
     options->jplace_input.add_jplace_input_opt_to_app( sub );
-    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Metadata table input.
     auto meta_opt = options->metadata_input.add_metadata_input_opt_to_app( sub );
@@ -130,6 +129,7 @@ void setup_correlation( CLI::App& app )
         "If set, the masses of the input files are not normalized. "
         "Then, each sample contributes as much as to the result as it has pqueries."
     )->group( "Settings" );
+    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "spectral" );

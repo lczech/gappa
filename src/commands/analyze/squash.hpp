@@ -26,8 +26,11 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/jplace_input.hpp"
+#include "options/color/color_map.hpp"
+#include "options/color/color_norm.hpp"
 #include "options/file_output.hpp"
+#include "options/jplace_input.hpp"
+#include "options/tree_output.hpp"
 
 #include <memory>
 #include <string>
@@ -41,10 +44,14 @@ class SquashOptions
 {
 public:
 
+    double exponent = 1.0;
     bool normalize = false; // TODO unused
 
     JplaceInputOptions jplace_input;
     FileOutputOptions  file_output;
+    ColorMapOptions    color_map;
+    // FileOutputOptions  file_output;
+    TreeOutputOptions  tree_output;
 };
 
 // =================================================================================================

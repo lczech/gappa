@@ -52,9 +52,20 @@ void setup_squash( CLI::App& app )
     // Add common options.
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
     opt->jplace_input.add_point_mass_opt_to_app( sub );
+
+    // Add custom options.
+    sub->add_option(
+        "--exponent",
+        opt->exponent,
+        "Exponent for KR integration.",
+        true
+    )->group( "Settings" );
+
     opt->file_output.add_output_dir_opt_to_app( sub );
 
-    // TODO add option for selcting the distance measure: kr/emd or nhd
+    opt->tree_output.add_tree_output_opts_to_app( sub );
+    opt->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
+    opt->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -71,11 +82,18 @@ void run_squash( SquashOptions const& options )
 {
     using namespace genesis;
 
+    if( options.exponent <= 0.0 ) {
+        throw CLI::ValidationError(
+            "--exponent (" + std::to_string( options.exponent ) +  ")",
+            "Invalid exponent value for KR distance calculation. Has to be > 0.0."
+        );
+    }
+
     // Check if any of the files we are going to produce already exists. If so, fail early.
     options.file_output.check_nonexistent_output_files({ "cluster\\.newick" });
 
     // Print some user output.
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // Get the samples.
     auto sample_set = options.jplace_input.sample_set();
@@ -84,6 +102,7 @@ void run_squash( SquashOptions const& options )
 
     // LOG_INFO << "Starting squash clustering";
     auto sc = tree::SquashClustering();
+    sc.p( options.exponent );
     sc.run( std::move( mass_trees.first ) );
     // LOG_INFO << "Finished squash clustering";
 

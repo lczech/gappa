@@ -87,14 +87,6 @@ CLI::Option* ColorMapOptions::add_color_list_opt_to_app(
 
 CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub )
 {
-    // Under Color
-    under_color_option = sub->add_option(
-        "--under-color",
-        under_color_param_,
-        "Color used to indicate values below min.",
-        true
-    )->group( "Color" );
-
     // Clip Under
     clip_under_option = sub->add_flag_function(
         "--clip-under",
@@ -103,6 +95,14 @@ CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub )
         },
         "Clip (clamp) values less than min to be inside [ min, max ]. "
         "If set, --under-color is not used to indicate values out of range."
+    )->group( "Color" );
+
+    // Under Color
+    under_color_option = sub->add_option(
+        "--under-color",
+        under_color_param_,
+        "Color used to indicate values below min.",
+        true
     )->group( "Color" );
 
     // Special: If we also use over color, we can offer a clip option shortcut.
@@ -122,14 +122,6 @@ CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub )
 
 CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub )
 {
-    // Over Color
-    over_color_option = sub->add_option(
-        "--over-color",
-        over_color_param_,
-        "Color used to indicate values above max.",
-        true
-    )->group( "Color" );
-
     // Clip Over
     clip_over_option = sub->add_flag_function(
         "--clip-over",
@@ -138,6 +130,14 @@ CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub )
         },
         "Clip (clamp) values greater than max to be inside [ min, max ]. "
         "If set, --over-color is not used to indicate values out of range."
+    )->group( "Color" );
+
+    // Over Color
+    over_color_option = sub->add_option(
+        "--over-color",
+        over_color_param_,
+        "Color used to indicate values above max.",
+        true
     )->group( "Color" );
 
     // Special: If we also use under color, we can offer a clip option shortcut.

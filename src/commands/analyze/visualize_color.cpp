@@ -59,15 +59,17 @@ void setup_visualize_color( CLI::App& app )
     options->jplace_input.add_jplace_input_opt_to_app( sub );
     options->jplace_input.add_point_mass_opt_to_app( sub );
     options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
-    options->jplace_input.add_absolute_mass_opt_to_app( sub );
+    options->jplace_input.add_mass_norm_opt_to_app( sub, false );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
-    options->color_map.add_over_color_opt_to_app( sub );
-    options->color_map.add_mask_color_opt_to_app( sub );
     options->color_norm.add_log_scaling_opt_to_app( sub );
     options->color_norm.add_max_value_opt_to_app( sub );
+    options->color_map.add_over_color_opt_to_app( sub );
+    options->color_norm.add_min_value_opt_to_app( sub );
+    options->color_map.add_under_color_opt_to_app( sub );
     options->color_norm.add_mask_value_opt_to_app( sub );
+    options->color_map.add_mask_color_opt_to_app( sub );
 
     // Output files.
     options->tree_output.add_tree_output_opts_to_app( sub );
@@ -151,7 +153,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
     }
 
     // If we use relative masses, we normalize the whole mass set once more, so that the sum is 1.
-    if( ! options.jplace_input.absolute_mass() ) {
+    if( options.jplace_input.mass_norm_relative() ) {
         auto const sum = std::accumulate( total_masses.begin(), total_masses.end(), 0.0 );
         for( size_t i = 0; i < total_masses.size(); ++i ) {
             total_masses[i] /= sum;
@@ -164,20 +166,28 @@ void run_visualize_color( VisualizeColorOptions const& options )
 
     // First, autoscale to get the max.
     // Finally, apply the user settings that might have been provided.
-    color_norm->autoscale_max( total_masses );
+    color_norm->autoscale( total_masses );
     if( options.color_norm.log_scaling() ) {
 
-        // Some user friendly safety.
-        if( color_norm->max_value() <= 1.0 ) {
-            throw std::runtime_error(
-                "Input jplace files have low masses (potentially because of the --normalize option). "
-                "There is no branch with a mass > 1.0, which means that logarithmic scaling "
-                "is not appropriate. It is meant to show large masses. Remove the --log-scaling option."
-            );
+        // Some user friendly safety. Min of 0 does not work with log scaling.
+        // Instead, if we have a max > 1, we set min to 1, which is a good case for absolute abundances.
+        // For relative abundances (normalized samples), the max is < 1, so we set the min to some
+        // value below that that spans some orders of magnitude. This is all used as default anyway,
+        // as users can overwrite this via --min-value.
+        if( color_norm->min_value() == 0.0 ) {
+            if( color_norm->max_value() > 1.0 ) {
+                color_norm->min_value( 1.0 );
+            } else {
+                color_norm->min_value( color_norm->max_value() / 10e4 );
+            }
+            color_map.clip_under( true );
+
+            // Can't really issue a warning here that easily. Users might have set the --min-value options,
+            // which will overwrite this. So, we'd need some more complex checks... not now!
+            // std::cout << "Warning: Some branches have mass 0, which cannot be shown using --log-scaling. ";
+            // std::cout << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n";
         }
 
-        color_norm->min_value( 1.0 );
-        color_map.clip_under( true );
     } else {
         color_norm->min_value( 0.0 );
     }

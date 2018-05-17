@@ -51,14 +51,15 @@ public:
     //     Run Functions
     // -------------------------------------------------------------------------
 
+    void run_global( CLI::App const& app );
+
+    void init();
     void print( CLI::App const& app ) const;
 
     std::string command_line() const;
 
     size_t verbosity() const;
     size_t threads() const;
-
-    void init();
 
     // -------------------------------------------------------------------------
     //     Option Members

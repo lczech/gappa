@@ -165,7 +165,7 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
         }
 
         // Log scaling is only reasonable for absolute masses.
-        if( options.jplace_input.absolute_mass() ) {
+        // if( options.jplace_input.absolute_mass() ) {
             if(( options.method == "all" ) || ( options.method == "sd-log" )) {
                 variants.push_back({ "masses_sd_log", DispersionVariant::kMasses, DispersionVariant::kStandardDeviation, true });
             }
@@ -178,7 +178,7 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
             if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
                 variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kIndexOfDispersion, true });
             }
-        }
+        // }
     }
 
     // For imbalances, only sd and variance makes sense.
@@ -191,14 +191,14 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
         }
 
         // Log scaling is only reasonable for absolute masses.
-        if( options.jplace_input.absolute_mass() ) {
+        // if( options.jplace_input.absolute_mass() ) {
             if(( options.method == "all" ) || ( options.method == "sd-log" )) {
                 variants.push_back({ "imbalances_sd_log", DispersionVariant::kImbalances, DispersionVariant::kStandardDeviation, true });
             }
             if(( options.method == "all" ) || ( options.method == "var-log" )) {
                 variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVariance, true });
             }
-        }
+        // }
     }
 
     return variants;
@@ -235,14 +235,17 @@ void make_color_tree(
     }
 
     // Scale correctly. This checks for invalid values as well.
-    color_norm->autoscale_max( values );
+    // color_norm->autoscale_max( values );
+    color_norm->autoscale( values );
+
+    std::cout << full_prefix << ": norm " << color_norm->min_value() << " " << color_norm->max_value() << "\n";
 
     // Some combinations do not work. Skip them.
-    if( log_scaling && color_norm->max_value() < 1.0 ) {
-        std::cout << "Skipping " << full_prefix << ", ";
-        std::cout << "because this combination does not work with values < 1.0\n";
-        return;
-    }
+    // if( log_scaling && color_norm->max_value() < 1.0 ) {
+    //     std::cout << "Skipping " << full_prefix << ", ";
+    //     std::cout << "because this combination does not work with values < 1.0\n";
+    //     return;
+    // }
 
     // Just in case...
     if( values.size() != tree.edge_count() ) {
@@ -349,7 +352,7 @@ void run_dispersion( DispersionOptions const& options )
 
     // User output.
     options.tree_output.check_tree_formats();
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // Get which variants of the method to run.
     auto const variants = get_variants( options );

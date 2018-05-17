@@ -97,7 +97,7 @@ void setup_dispersion( CLI::App& app )
     options->jplace_input.add_jplace_input_opt_to_app( sub );
     options->jplace_input.add_point_mass_opt_to_app( sub );
     options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
-    options->jplace_input.add_absolute_mass_opt_to_app( sub );
+    options->jplace_input.add_mass_norm_opt_to_app( sub, true );
 
     // Edge value representation
     sub->add_set_ignore_case(
@@ -399,7 +399,7 @@ void run_dispersion( DispersionOptions const& options )
         // If the setting is not used, that is, we use relative masses, the imbalances are normalized.
         // This is a slightly different normalization than the one applied by the jplace input,
         // see epca_imbalance_matrix() for details.
-        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, ! options.jplace_input.absolute_mass() );
+        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, options.jplace_input.mass_norm_relative() );
         run_with_matrix( options, variants, edge_imbals, DispersionVariant::kImbalances, tree );
     }
 }

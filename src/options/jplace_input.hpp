@@ -68,7 +68,7 @@ public:
 
     CLI::Option* add_point_mass_opt_to_app( CLI::App* sub );
     CLI::Option* add_ignore_multiplicities_opt_to_app( CLI::App* sub );
-    CLI::Option* add_absolute_mass_opt_to_app( CLI::App* sub );
+    CLI::Option* add_mass_norm_opt_to_app( CLI::App* sub, bool required );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -120,10 +120,13 @@ public:
         return ignore_multiplicities_;
     }
 
-    bool absolute_mass() const
+    std::string mass_norm() const
     {
-        return absolute_mass_;
+        return mass_norm_;
     }
+
+    bool mass_norm_absolute() const;
+    bool mass_norm_relative() const;
 
     virtual void print() const override;
 
@@ -137,14 +140,14 @@ private:
 
     bool point_mass_            = false;
     bool ignore_multiplicities_ = false;
-    bool absolute_mass_         = false;
+    std::string mass_norm_      = "absolute";
 
 public:
 
     CLI::Option* jplace_input_option          = nullptr;
     CLI::Option* point_mass_option            = nullptr;
     CLI::Option* ignore_multiplicities_option = nullptr;
-    CLI::Option* absolute_mass_option         = nullptr;
+    CLI::Option* mass_norm_option             = nullptr;
 
 };
 

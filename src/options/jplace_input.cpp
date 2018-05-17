@@ -84,27 +84,33 @@ CLI::Option* JplaceInputOptions::add_ignore_multiplicities_opt_to_app( CLI::App*
         "--ignore-multiplicities",
         ignore_multiplicities_,
         "Set the multiplicity of each pquery to 1."
-    )->group( "" );
-    // )->group( "Settings" );
+    )->group( "Settings" );
+    // )->group( "" );
 
     return ignore_multiplicities_option;
 }
 
-CLI::Option* JplaceInputOptions::add_absolute_mass_opt_to_app( CLI::App* sub )
+CLI::Option* JplaceInputOptions::add_mass_norm_opt_to_app( CLI::App* sub, bool required )
 {
     // Correct setup check.
-    if( absolute_mass_option != nullptr ) {
+    if( mass_norm_option != nullptr ) {
         throw std::domain_error( "Cannot set up --absolute-mass option multiple times." );
     }
 
-    absolute_mass_option = sub->add_flag(
-        "--absolute-mass",
-        absolute_mass_,
-        "Do not normalize the placement masses per sample, "
-        "but use the absolute mass of all pqueries in the sample."
+    mass_norm_option = sub->add_set_ignore_case(
+        "--mass-norm",
+        mass_norm_,
+        { "absolute", "relative" },
+        "Set the per-sample normalization method. 'absolute' does not change the masses, "
+        "while 'relative' normalizes them to a total mass of 1 per input jplace sample.",
+        true
     )->group( "Settings" );
 
-    return absolute_mass_option;
+    if( required ) {
+        mass_norm_option->required();
+    }
+
+    return mass_norm_option;
 }
 
 // =================================================================================================
@@ -135,10 +141,10 @@ genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
         }
     }
 
-    // No absolute mass: use relative mass, that is, normalize the masses by the total of the sample.
-    // We use the multiplicity for the normalization, as this does not affect mehtods that rely
+    // Use relative masses, that is, normalize the masses by the total of the sample.
+    // We use the multiplicity for the normalization, as this does not affect methods that rely
     // on LWRs close to 1.
-    if( absolute_mass_option && ! absolute_mass_ ) {
+    if( mass_norm_option && mass_norm_relative() ) {
         auto const tm = total_placement_mass_with_multiplicities( sample );
         for( auto& pquery : sample ) {
             for( auto& name : pquery.names() ) {
@@ -249,6 +255,22 @@ genesis::placement::Sample JplaceInputOptions::merged_samples() const
     return result;
 }
 
+bool JplaceInputOptions::mass_norm_absolute() const
+{
+    if( mass_norm_ != "absolute" && mass_norm_ != "relative" ) {
+        throw CLI::ValidationError(
+            "--mass-norm (" + mass_norm_ +  ")", "Invalid option value."
+        );
+    }
+
+    return mass_norm_ == "absolute";
+}
+
+bool JplaceInputOptions::mass_norm_relative() const
+{
+    return ! mass_norm_absolute();
+}
+
 void JplaceInputOptions::print() const
 {
     // Info about normalization and stuff.
@@ -260,8 +282,8 @@ void JplaceInputOptions::print() const
         if( ignore_multiplicities_option && ignore_multiplicities_ ) {
             usings.push_back( "--ignore-multiplicities" );
         }
-        if( absolute_mass_option && ! absolute_mass_ ) {
-            usings.push_back( "--absolute-mass" );
+        if( mass_norm_option ) {
+            usings.push_back( "--mass-norm " + mass_norm_ );
         }
         if( ! usings.empty() ) {
             std::cout << "Using " << genesis::utils::join( usings, ", " ) << "\n";

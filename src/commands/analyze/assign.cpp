@@ -365,6 +365,7 @@ void run_assign( AssignOptions const& options )
 {
     auto out_dir = options.output_dir.out_dir();
 
+    options.jplace_input.print();
     auto sample = options.jplace_input.merged_samples();
     auto tree = sample.tree();
 

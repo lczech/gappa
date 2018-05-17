@@ -149,7 +149,7 @@ public:
     /**
      * @brief Print some user output related to these options.
      */
-    void print_files() const;
+    virtual void print() const;
 
     // -------------------------------------------------------------------------
     //     Option Members

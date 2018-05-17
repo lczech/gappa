@@ -99,7 +99,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
     options.file_output.check_nonexistent_output_files( files_to_check );
 
     // User output.
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // Prepare results.
     Tree tree;

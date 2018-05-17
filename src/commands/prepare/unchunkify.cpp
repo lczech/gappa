@@ -249,7 +249,7 @@ HashToIndexMap<HashFunction> get_hash_to_indices_map(
         return hash_map;
     }
 
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // Print user output.
     if( global_options.verbosity() >= 2 ) {
@@ -691,7 +691,7 @@ void run_unchunkify( UnchunkifyOptions const& options )
     options.file_output.check_nonexistent_output_files({ ".*\\.jplace" });
 
     // Print some user output.
-    options.abundance_map_input.print_files();
+    options.abundance_map_input.print();
 
     // -----------------------------------------------------------
     //     Run

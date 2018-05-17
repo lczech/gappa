@@ -257,7 +257,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
     using namespace genesis::utils;
     using namespace genesis::sequence;
 
-    // using ChunkHashMap = std::unordered_map< HashFunction::DigestType, size_t >;
+    // using ChunkHashMap = std::unordered_map< typename HashFunction::DigestType, size_t >;
     using ChunkHashMap = spp::sparse_hash_map< typename HashFunction::DigestType, size_t >;
 
     // Sequences hashes, mapping to the chunk number where they are stored,
@@ -387,7 +387,7 @@ void run_chunkify( ChunkifyOptions const& options )
     );
 
     // Print some user output.
-    options.sequence_input.print_files();
+    options.sequence_input.print();
 
     // -----------------------------------------------------------
     //     Run

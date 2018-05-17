@@ -97,7 +97,7 @@ void run_krd( KrdOptions const& options )
     options.matrix_output.check_nonexistent_output_files({ options.matrix_output.output_filename() });
 
     // Print some user output.
-    options.jplace_input.print_files();
+    options.jplace_input.print();
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Reading samples.\n";
     }

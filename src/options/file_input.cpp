@@ -166,7 +166,7 @@ std::string FileInputOptions::base_file_name( size_t index ) const
     return file_filename( file_basename( file_path( index )));
 }
 
-void FileInputOptions::print_files() const
+void FileInputOptions::print() const
 {
     std::string type = file_type_;
     if( ! type.empty() ) {

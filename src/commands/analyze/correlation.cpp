@@ -384,7 +384,7 @@ void run_correlation( CorrelationOptions const& options )
     options.file_output.check_nonexistent_output_files( files_to_check );
 
     // User output for jplace input.
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // -------------------------------------------------------------------------
     //     Sample Input

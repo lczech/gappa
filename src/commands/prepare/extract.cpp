@@ -581,7 +581,7 @@ void extract_sequences(
     using namespace ::genesis::utils;
 
     // User output.
-    options.sequence_input.print_files();
+    options.sequence_input.print();
 
     // Helper: Given a clade name, get the fasta file to write to.
     auto clade_filename = [&]( std::string const& cladename ){
@@ -711,7 +711,7 @@ void run_extract( ExtractOptions const& options )
     }
 
     // User output.
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // Preparations.
     size_t file_count = 0;

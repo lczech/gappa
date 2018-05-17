@@ -93,7 +93,7 @@ void run_graft( GraftOptions const& options )
     options.file_output.check_nonexistent_output_files( out_tree_files );
 
     // Print some user output.
-    options.jplace_input.print_files();
+    options.jplace_input.print();
 
     // TODO add support for external trees, e.g., bootstrap trees.
     // for this, make sure that the attribute tree is used so that all values can be captured.

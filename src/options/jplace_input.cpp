@@ -28,6 +28,7 @@
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/masses.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -119,13 +120,13 @@ genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
     auto sample = reader_.from_file( file_path( index ) );
 
     // Point mass: remove all but the most likely placement, and set its weight to one.
-    if( point_mass_ ) {\
+    if( point_mass_option && point_mass_ ) {
         filter_n_max_weight_placements( sample );
         normalize_weight_ratios( sample );
     }
 
     // Ignore multiplicities: normalize each pquery so that it has a multiplicity of one.
-    if( ignore_multiplicities_ ) {
+    if( ignore_multiplicities_option && ignore_multiplicities_ ) {
         for( auto& pquery : sample ) {
             auto const tm = total_multiplicity( pquery );
             for( auto& name : pquery.names() ) {
@@ -137,7 +138,7 @@ genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
     // No absolute mass: use relative mass, that is, normalize the masses by the total of the sample.
     // We use the multiplicity for the normalization, as this does not affect mehtods that rely
     // on LWRs close to 1.
-    if( ! absolute_mass_ ) {
+    if( absolute_mass_option && ! absolute_mass_ ) {
         auto const tm = total_placement_mass_with_multiplicities( sample );
         for( auto& pquery : sample ) {
             for( auto& name : pquery.names() ) {
@@ -246,4 +247,27 @@ genesis::placement::Sample JplaceInputOptions::merged_samples() const
     }
 
     return result;
+}
+
+void JplaceInputOptions::print() const
+{
+    // Info about normalization and stuff.
+    if( global_options.verbosity() >= 2 ) {
+        std::vector<std::string> usings;
+        if( point_mass_option && point_mass_ ) {
+            usings.push_back( "--point-mass" );
+        }
+        if( ignore_multiplicities_option && ignore_multiplicities_ ) {
+            usings.push_back( "--ignore-multiplicities" );
+        }
+        if( absolute_mass_option && ! absolute_mass_ ) {
+            usings.push_back( "--absolute-mass" );
+        }
+        if( ! usings.empty() ) {
+            std::cout << "Using " << genesis::utils::join( usings, ", " ) << "\n";
+        }
+    }
+
+    // Print the file list.
+    FileInputOptions::print();
 }

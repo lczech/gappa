@@ -33,6 +33,7 @@
 #include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/sample_set.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/math/matrix.hpp"
 
 #include <cassert>
@@ -70,13 +71,13 @@ struct DispersionVariant
     DispersionVariant( std::string const& n, EdgeValues m, DispersionMethod d, bool l )
         : name(n)
         , edge_values(m)
-        , dispersion_value(d)
+        , dispersion_method(d)
         , log_scaling(l)
     {}
 
     std::string      name;
     EdgeValues       edge_values;
-    DispersionMethod dispersion_value;
+    DispersionMethod dispersion_method;
     bool             log_scaling = false;
 };
 
@@ -209,14 +210,15 @@ std::string output_file_name(
     DispersionOptions const&   options,
     std::string const&         prefix
 ) {
-    return options.file_output.file_prefix() + prefix;
+    using namespace genesis::utils;
+    return sanitize_filname( options.file_output.file_prefix() + prefix );
 }
 
 // =================================================================================================
 //      Make Color Tree
 // =================================================================================================
 
-void make_color_tree(
+void make_dispersion_color_tree(
     DispersionOptions const&   options,
     std::vector<double> const& values,
     bool                       log_scaling,
@@ -307,7 +309,7 @@ void run_with_matrix(
 
         // Get the data vector that we want to use for this variant.
         std::vector<double> const* vec;
-        switch( variant.dispersion_value ) {
+        switch( variant.dispersion_method ) {
             case DispersionVariant::kStandardDeviation: {
                 vec = &sd_vec;
                 break;
@@ -331,7 +333,7 @@ void run_with_matrix(
         assert( vec );
 
         // Make a tree using the data vector and name of the variant.
-        make_color_tree( options, *vec, variant.log_scaling, tree, variant.name );
+        make_dispersion_color_tree( options, *vec, variant.log_scaling, tree, variant.name );
     }
 }
 
@@ -395,11 +397,13 @@ void run_dispersion( DispersionOptions const& options )
     }
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
 
-        // The imbalances are again normalized (or not) depending on the jplace absolute mass setting.
-        // If the setting is not used, that is, we use relative masses, the imbalances are normalized.
+        // The imbalances are again normalized (or not) depending on the mass norm setting.
+        // If we use relative masses, the imbalances are normalized.
         // This is a slightly different normalization than the one applied by the jplace input,
         // see epca_imbalance_matrix() for details.
-        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, options.jplace_input.mass_norm_relative() );
+        auto const edge_imbals = epca_imbalance_matrix(
+            sample_set, true, options.jplace_input.mass_norm_relative()
+        );
         run_with_matrix( options, variants, edge_imbals, DispersionVariant::kImbalances, tree );
     }
 }

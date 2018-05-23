@@ -47,7 +47,7 @@ void print_wiki_help( CLI::App const& app, std::string prev )
         }
     }
 
-    std::cout << "Subcommand " << app.get_name() << "\n";
+    std::cout << "Subcommand: " << app.get_name() << "\n";
     std::cout << "================================\n\n";
 
     // Header for the command.
@@ -115,7 +115,13 @@ void print_wiki_help( CLI::App const& app, std::string prev )
             }
             if( ! opt->help_aftername().empty() ) {
                 // print stuff without leading space.
-                os << " <code>" << opt->help_aftername().substr( 1 ) << "</code><br>";
+                auto han = opt->help_aftername().substr( 1 );
+                auto const rp = han.find( " (REQUIRED)" );
+                if( rp != std::string::npos ) {
+                    han.erase( rp,  11 );
+                }
+
+                os << " <code>" << han << "</code><br>";
             }
             auto descr = opt->get_description();
             if( descr.substr( 0, 10 ) == "Required. " ) {

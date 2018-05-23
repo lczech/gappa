@@ -28,6 +28,7 @@
 #include "genesis/placement/function/epca.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/masses.hpp"
+#include "genesis/placement/function/operators.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -251,6 +252,8 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile() con
             // Set tree
             if( result.tree.empty() ) {
                 result.tree = smpl.tree();
+            } else if( ! genesis::placement::compatible_trees( result.tree, smpl.tree() ) ) {
+                throw std::runtime_error( "Input jplace files have differing reference trees." );
             }
 
             // Init matrices if needed.
@@ -264,7 +267,7 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile() con
             // Do some checks for correct input.
             if( fi >= result.edge_masses.rows() || fi >= result.edge_imbalances.rows() ) {
                 throw std::runtime_error(
-                    "Internal Error: Placement profile matrices have wrong number of columns."
+                    "Internal Error: Placement profile matrices have wrong number of rows."
                 );
             }
             if(
@@ -272,7 +275,9 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile() con
                 edge_masses.size() != result.edge_masses.cols()     ||
                 edge_imbals.size() != result.edge_imbalances.cols()
             ) {
-                throw std::runtime_error( "Input jplace samples have trees of different size." );
+                throw std::runtime_error(
+                    "Internal Error: Placement profile matrices have wrong number of columns."
+                );
             }
 
             // Fill the matrices.

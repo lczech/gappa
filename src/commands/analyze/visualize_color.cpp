@@ -57,9 +57,9 @@ void setup_visualize_color( CLI::App& app )
 
     // Input files.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
+    options->jplace_input.add_mass_norm_opt_to_app( sub, false );
     options->jplace_input.add_point_mass_opt_to_app( sub );
     options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
-    options->jplace_input.add_mass_norm_opt_to_app( sub, false );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );

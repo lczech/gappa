@@ -53,18 +53,18 @@ void setup_graft( CLI::App& app )
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
 
     // Fill in custom options.
-    sub->add_option(
-        "--name-prefix", opt->name_prefix,
-        "Specify a prefix to be added to all new leaf nodes, i.e., to the query sequence names.",
-        true
-    );
     sub->add_flag(
         "--fully-resolve", opt->fully_resolve,
         "If set, branches that contain multiple pqueries are resolved by creating a new branch "
         "for each of the pqueries individually, placed according to their distal/proximal lengths. "
         "If not set (default), all pqueries at one branch are collected in a subtree "
         "that branches off from the branch."
-    );
+    )->group( "Settings" );
+    sub->add_option(
+        "--name-prefix", opt->name_prefix,
+        "Specify a prefix to be added to all new leaf nodes, i.e., to the query sequence names.",
+        true
+    )->group( "Settings" );
 
     // Add output options.
     opt->file_output.add_output_dir_opt_to_app( sub );

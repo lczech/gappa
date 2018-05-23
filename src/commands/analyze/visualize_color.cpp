@@ -161,7 +161,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
     }
 
     // Get color map and norm.
-    auto color_map = options.color_map.color_map();
+    auto color_map  = options.color_map.color_map();
     auto color_norm = options.color_norm.get_sequential_norm();
 
     // First, autoscale to get the max.
@@ -174,7 +174,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
         // For relative abundances (normalized samples), the max is < 1, so we set the min to some
         // value below that that spans some orders of magnitude. This is all used as default anyway,
         // as users can overwrite this via --min-value.
-        if( color_norm->min_value() == 0.0 ) {
+        if( color_norm->min_value() <= 0.0 ) {
             if( color_norm->max_value() > 1.0 ) {
                 color_norm->min_value( 1.0 );
             } else {
@@ -191,6 +191,9 @@ void run_visualize_color( VisualizeColorOptions const& options )
     } else {
         color_norm->min_value( 0.0 );
     }
+
+    // Now overwrite the above "default" settings with what the user specified
+    // (in case that they actually did specify certain values).
     options.color_norm.apply_options( *color_norm );
 
     // Now, make a color vector and write to files.

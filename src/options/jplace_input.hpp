@@ -28,9 +28,10 @@
 
 #include "options/file_input.hpp"
 
-#include "genesis/placement/sample.hpp"
-#include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/sample_set.hpp"
+#include "genesis/placement/sample.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 #include <string>
 #include <vector>
@@ -87,12 +88,39 @@ public:
      */
     genesis::placement::SampleSet sample_set() const;
 
+    // -------------------------------------------------------------------------
+    //     Covenience Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Structure that holds all data relevant for the placement profile.
+     *
+     * In some cases, the actual placement data is not needed. Instead it is enough to know
+     * the masses per edge of the tree, and maybe their imbalances.
+     * This struct encapsulates this data.
+     */
+    struct PlacementProfile
+    {
+        genesis::tree::Tree            tree;
+        genesis::utils::Matrix<double> edge_masses;
+        genesis::utils::Matrix<double> edge_imbalances;
+    };
+
+    /**
+     * @brief Helper function to obtain the placement profile for all input samples.
+     */
+    PlacementProfile placement_profile() const;
+
     /**
      * @brief Read in all jplace files given by the user and merge all their pqueries them into a sample.
      *
      * This expects that all use the same reference tree. Otherwise, the function throws.
      */
     genesis::placement::Sample merged_samples() const;
+
+    // -------------------------------------------------------------------------
+    //     Helper Functions
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Return the JplaceReader used for the convenience functions.

@@ -381,22 +381,11 @@ void run_correlation( CorrelationOptions const& options )
     options.file_output.check_nonexistent_output_files( files_to_check );
 
     // -------------------------------------------------------------------------
-    //     Sample Input
-    // -------------------------------------------------------------------------
-
-    // Read all samples. This is memory-expensive, but for now, that's okay.
-    // Can optimize later, and process one file at a time instead to fill the matrices.
-    auto const sample_set = options.jplace_input.sample_set();
-    Tree tree;
-    try{
-        tree = average_branch_length_tree( sample_set );
-    } catch( ... ) {
-        throw std::runtime_error( "Input jplace files have differing reference trees." );
-    }
-
-    // -------------------------------------------------------------------------
     //     Calculations and Output
     // -------------------------------------------------------------------------
+
+    // Get the data. Read all samples and calcualte the matrices.
+    auto const profile = options.jplace_input.placement_profile();
 
     if( global_options.verbosity() >= 2 ) {
         std::cout << "Calculating correlations and writing files.\n";
@@ -404,23 +393,13 @@ void run_correlation( CorrelationOptions const& options )
 
     // Calculate things as needed.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
-        auto edge_masses = placement_mass_per_edges_with_multiplicities( sample_set );
-
         run_with_matrix(
-            options, variants, edge_masses, df, CorrelationVariant::kMasses, tree
+            options, variants, profile.edge_masses, df, CorrelationVariant::kMasses, profile.tree
         );
     }
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
-
-        // The imbalances are again normalized (or not) depending on the mass norm setting.
-        // If we use relative masses, the imbalances are normalized.
-        // This is a slightly different normalization than the one applied by the jplace input,
-        // see epca_imbalance_matrix() for details.
-        auto const edge_imbals = epca_imbalance_matrix(
-            sample_set, true, options.jplace_input.mass_norm_relative()
-        );
         run_with_matrix(
-            options, variants, edge_imbals, df, CorrelationVariant::kImbalances, tree
+            options, variants, profile.edge_imbalances, df, CorrelationVariant::kImbalances, profile.tree
         );
     }
 }

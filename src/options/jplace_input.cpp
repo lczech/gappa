@@ -25,6 +25,7 @@
 
 #include "options/global.hpp"
 
+#include "genesis/placement/function/epca.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/masses.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -209,6 +210,80 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
     return set;
 }
 
+// =================================================================================================
+//      Covenience Functions
+// =================================================================================================
+
+JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile() const
+{
+    using namespace genesis;
+    using namespace genesis::placement;
+    using namespace genesis::utils;
+
+    PlacementProfile result;
+    size_t fc = 0;
+
+    // Read all jplace files and accumulate their data.
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t fi = 0; fi < file_count(); ++fi ) {
+
+        // User output.
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
+            {
+                ++fc;
+                std::cout << "Reading file " << fc << " of " << file_count();
+                std::cout << ": " << file_path( fi ) << "\n";
+            }
+        }
+
+        // Read in file and get data vectors.
+        // This is the part that can trivially be done in parallel.
+        auto const smpl = sample( fi );
+        auto const edge_masses = placement_mass_per_edges_with_multiplicities( smpl );
+        auto const edge_imbals = epca_imbalance_vector( smpl, mass_norm_relative() );
+
+        // The main merging is single threaded.
+        // Could be done in parallel if we make sure that the matrices are initialized first.
+        // Right now, not worth the effort.
+        #pragma omp critical(GAPPA_JPLACE_INPUT_ACCUMULATE)
+        {
+            // Set tree
+            if( result.tree.empty() ) {
+                result.tree = smpl.tree();
+            }
+
+            // Init matrices if needed.
+            if( result.edge_masses.empty() ) {
+                result.edge_masses = Matrix<double>( file_count(), result.tree.edge_count() );
+            }
+            if( result.edge_imbalances.empty() ) {
+                result.edge_imbalances = Matrix<double>( file_count(), result.tree.edge_count() );
+            }
+
+            // Do some checks for correct input.
+            if( fi >= result.edge_masses.rows() || fi >= result.edge_imbalances.rows() ) {
+                throw std::runtime_error(
+                    "Internal Error: Placement profile matrices have wrong number of columns."
+                );
+            }
+            if(
+                edge_masses.size() != edge_imbals.size()            ||
+                edge_masses.size() != result.edge_masses.cols()     ||
+                edge_imbals.size() != result.edge_imbalances.cols()
+            ) {
+                throw std::runtime_error( "Input jplace samples have trees of different size." );
+            }
+
+            // Fill the matrices.
+            result.edge_masses.row( fi )     = edge_masses;
+            result.edge_imbalances.row( fi ) = edge_imbals;
+        }
+    }
+
+    return result;
+}
+
 genesis::placement::Sample JplaceInputOptions::merged_samples() const
 {
     using namespace genesis;
@@ -254,6 +329,10 @@ genesis::placement::Sample JplaceInputOptions::merged_samples() const
 
     return result;
 }
+
+// =================================================================================================
+//      Helper Functions
+// =================================================================================================
 
 bool JplaceInputOptions::mass_norm_absolute() const
 {

@@ -49,7 +49,7 @@
  * @brief Helper struct that stores one of the variants of the dispersion method and its properties.
  *
  * In the run function, we create a list of these, according to which options the user specified.
- * This list is then iteratored to produces the resulting coloured trees for each variant.
+ * This list is then iterated to produce the resulting coloured trees for each variant.
  */
 struct DispersionVariant
 {
@@ -95,9 +95,9 @@ void setup_dispersion( CLI::App& app )
 
     // Input.
     options->jplace_input.add_jplace_input_opt_to_app( sub );
+    options->jplace_input.add_mass_norm_opt_to_app( sub, true );
     options->jplace_input.add_point_mass_opt_to_app( sub );
     options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
-    options->jplace_input.add_mass_norm_opt_to_app( sub, true );
 
     // Edge value representation
     sub->add_set_ignore_case(
@@ -116,14 +116,14 @@ void setup_dispersion( CLI::App& app )
         "Method of dispersion. Either all (as far as they are applicable), or any of: "
         "coefficient of variation (cv, standard deviation divided by mean), "
         "coefficient of variation log-scaled (cv-log), "
+        "standard deviation (sd), standard deviation log-scaled (sd-log)"
         "variance (var), variance log-scaled (var-log), "
-        "variance to mean ratio (vmr, Index of Dispersion), "
+        "variance to mean ratio (vmr, also called Index of Dispersion), "
         "variance to mean ratio log-scaled (vmr-log).",
-        // TODO sd
         true
     )->group( "Settings" );
 
-    // Color. We allow max, but not min, as this is always 0.
+    // Color.
     options->color_map.add_color_list_opt_to_app( sub, "viridis" );
     options->color_map.add_mask_color_opt_to_app( sub );
 
@@ -150,7 +150,10 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
 {
     std::vector<DispersionVariant> variants;
 
+    // Masses can use all methods.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
+
+        // Linear
         if(( options.method == "all" ) || ( options.method == "sd" )) {
             variants.push_back({ "masses_sd", DispersionVariant::kMasses, DispersionVariant::kStandardDeviation, false });
         }
@@ -164,25 +167,25 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
             variants.push_back({ "masses_vmr", DispersionVariant::kMasses, DispersionVariant::kIndexOfDispersion, false });
         }
 
-        // Log scaling is only reasonable for absolute masses.
-        // if( options.jplace_input.absolute_mass() ) {
-            if(( options.method == "all" ) || ( options.method == "sd-log" )) {
-                variants.push_back({ "masses_sd_log", DispersionVariant::kMasses, DispersionVariant::kStandardDeviation, true });
-            }
-            if(( options.method == "all" ) || ( options.method == "var-log" )) {
-                variants.push_back({ "masses_var_log", DispersionVariant::kMasses, DispersionVariant::kVariance, true });
-            }
-            if(( options.method == "all" ) || ( options.method == "cv-log" )) {
-                variants.push_back({ "masses_cv_log", DispersionVariant::kMasses, DispersionVariant::kCoeffcientOfVariation, true });
-            }
-            if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
-                variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kIndexOfDispersion, true });
-            }
-        // }
+        // Log scaled
+        if(( options.method == "all" ) || ( options.method == "sd-log" )) {
+            variants.push_back({ "masses_sd_log", DispersionVariant::kMasses, DispersionVariant::kStandardDeviation, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "var-log" )) {
+            variants.push_back({ "masses_var_log", DispersionVariant::kMasses, DispersionVariant::kVariance, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "cv-log" )) {
+            variants.push_back({ "masses_cv_log", DispersionVariant::kMasses, DispersionVariant::kCoeffcientOfVariation, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "vmr-log" )) {
+            variants.push_back({ "masses_vmr_log", DispersionVariant::kMasses, DispersionVariant::kIndexOfDispersion, true });
+        }
     }
 
-    // For imbalances, only sd and variance makes sense.
+    // For imbalances, only sd and variance make sense.
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
+
+        // Linear
         if(( options.method == "all" ) || ( options.method == "sd" )) {
             variants.push_back({ "imbalances_sd", DispersionVariant::kImbalances, DispersionVariant::kStandardDeviation, false });
         }
@@ -190,15 +193,13 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
             variants.push_back({ "imbalances_var", DispersionVariant::kImbalances, DispersionVariant::kVariance, false });
         }
 
-        // Log scaling is only reasonable for absolute masses.
-        // if( options.jplace_input.absolute_mass() ) {
-            if(( options.method == "all" ) || ( options.method == "sd-log" )) {
-                variants.push_back({ "imbalances_sd_log", DispersionVariant::kImbalances, DispersionVariant::kStandardDeviation, true });
-            }
-            if(( options.method == "all" ) || ( options.method == "var-log" )) {
-                variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVariance, true });
-            }
-        // }
+        // Log scaled
+        if(( options.method == "all" ) || ( options.method == "sd-log" )) {
+            variants.push_back({ "imbalances_sd_log", DispersionVariant::kImbalances, DispersionVariant::kStandardDeviation, true });
+        }
+        if(( options.method == "all" ) || ( options.method == "var-log" )) {
+            variants.push_back({ "imbalances_var_log", DispersionVariant::kImbalances, DispersionVariant::kVariance, true });
+        }
     }
 
     return variants;
@@ -224,32 +225,31 @@ void make_color_tree(
 ) {
     using namespace genesis::utils;
 
+    // Just in case...
+    if( values.size() != tree.edge_count() ) {
+        throw std::runtime_error( "Internal error: Trees and matrices do not fit to each other." );
+    }
+
     // Get color norm and map.
-    auto color_map = options.color_map.color_map();
+    auto color_map  = options.color_map.color_map();
     std::unique_ptr<ColorNormalizationLinear> color_norm;
     if( log_scaling ) {
         color_norm = make_unique<ColorNormalizationLogarithmic>();
-        color_map.clip_under( true );
     } else {
         color_norm = make_unique<ColorNormalizationLinear>();
     }
 
     // Scale correctly. This checks for invalid values as well.
-    // color_norm->autoscale_max( values );
-    color_norm->autoscale( values );
+    color_norm->autoscale_max( values );
 
-    std::cout << full_prefix << ": norm " << color_norm->min_value() << " " << color_norm->max_value() << "\n";
-
-    // Some combinations do not work. Skip them.
-    // if( log_scaling && color_norm->max_value() < 1.0 ) {
-    //     std::cout << "Skipping " << full_prefix << ", ";
-    //     std::cout << "because this combination does not work with values < 1.0\n";
-    //     return;
-    // }
-
-    // Just in case...
-    if( values.size() != tree.edge_count() ) {
-        throw std::runtime_error( "Internal error: Trees and matrices do not fit to each other." );
+    // Set log scale minimum. Log scaling cannot use 0. Show some orders of magnitude instead.
+    if( log_scaling ) {
+        if( color_norm->max_value() > 1.0 ) {
+            color_norm->min_value( 1.0 );
+        } else {
+            color_norm->min_value( color_norm->max_value() / 10e4 );
+        }
+        color_map.clip_under( true );
     }
 
     // Now, make a color vector and write to files.

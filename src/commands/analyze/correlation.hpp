@@ -46,7 +46,6 @@ public:
 
     std::string edge_values = "both";
     std::string method      = "all";
-    bool no_normalize = false;
 
     JplaceInputOptions   jplace_input;
     MetadataInputOptions metadata_input;

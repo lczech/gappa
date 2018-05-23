@@ -125,8 +125,8 @@ genesis::utils::Dataframe<double> MetadataInputOptions::read_metadata() const
         // Now, warn if there are remaining fields, that is, ones that were not found in the dataframe.
         if( fields.size() > 0 ) {
             std::cout << "Warning: You specified to use only certain metadata fields to be used ";
-            std::cout << "via the --metadata-fields option. However, the following fields were ";
-            std::cout << "not found in the metadata file: " << join( fields, ", " ) << "\n";
+            std::cout << "via the --metadata-fields option. However, the following specified fields ";
+            std::cout << "were not found in the metadata file: " << join( fields, ", " ) << "\n";
         }
     }
 
@@ -201,8 +201,7 @@ bool MetadataInputOptions::check_row_names(
         return vec;
     };
 
-    // Check if the filenames and metadata rows are unique,
-    // and if the filenames match the data rows. Compare vecs order-independently.
+    // Check if the filenames match the metadata data rows. Compare vecs order-independently.
     auto const df_sci = sort_vec( df.row_names() );
     auto const bn_sci = sort_vec( row_names );
 

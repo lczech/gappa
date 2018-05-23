@@ -58,7 +58,7 @@
  * @brief Helper struct that stores one of the variants of the correlation method and its properties.
  *
  * In the run function, we create a list of these, according to which options the user specified.
- * This list is then iteratored to produces the resulting coloured trees for each variant.
+ * This list is then iterated to produce the resulting coloured trees for each variant.
  */
 struct CorrelationVariant
 {
@@ -95,11 +95,14 @@ void setup_correlation( CLI::App& app )
     auto options = std::make_shared<CorrelationOptions>();
     auto sub = app.add_subcommand(
         "correlation",
-        "Calculate the Edge Correlation between samples."
+        "Calculate the Edge Correlation of samples and metadata features."
     );
 
     // Jplace input
     options->jplace_input.add_jplace_input_opt_to_app( sub );
+    options->jplace_input.add_mass_norm_opt_to_app( sub, true );
+    options->jplace_input.add_point_mass_opt_to_app( sub );
+    options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Metadata table input.
     auto meta_opt = options->metadata_input.add_metadata_input_opt_to_app( sub );
@@ -122,15 +125,6 @@ void setup_correlation( CLI::App& app )
         "Method of correlation.",
         true
     )->group( "Settings" );
-
-    // Extra settings.
-    sub->add_flag(
-        "--no-normalize",
-        options->no_normalize,
-        "If set, the masses of the input files are not normalized. "
-        "Then, each sample contributes as much as to the result as it has pqueries."
-    )->group( "Settings" );
-    options->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "spectral" );
@@ -201,7 +195,7 @@ genesis::utils::Dataframe<double> get_metadata( CorrelationOptions const& option
         throw std::runtime_error(
             "The first column of the metadata file contains different row names "
             "than the input jplace file names. There needs to be exaclty one metadata line per "
-            "input jplace file, with the file name (without the extension .jplace) as identifier."
+            "input jplace file, using the file name (without the extension .jplace) as identifier."
         );
     }
 
@@ -238,7 +232,7 @@ std::string output_file_name(
     std::string const&        metadata_field
 ) {
     using namespace genesis::utils;
-    return sanitize_filname( options.file_output.file_prefix() + prefix + "_" + metadata_field );
+    return sanitize_filname( options.file_output.file_prefix() + metadata_field + "_" + prefix );
 }
 
 // =================================================================================================
@@ -254,14 +248,14 @@ void make_correlation_color_tree(
 ) {
     using namespace genesis::utils;
 
-    // Get color norm and map.
-    auto color_map = options.color_map.color_map();
-    auto color_norm = ColorNormalizationDiverging( -1.0, 1.0 );
-
     // Just in case...
     if( values.size() != tree.edge_count() ) {
         throw std::runtime_error( "Internal error: Trees and matrices do not fit to each other." );
     }
+
+    // Get color norm and map.
+    auto color_map = options.color_map.color_map();
+    auto color_norm = ColorNormalizationDiverging( -1.0, 1.0 );
 
     // Now, make a color vector and write to files.
     auto const colors = color_map( color_norm, values );
@@ -359,6 +353,9 @@ void run_correlation( CorrelationOptions const& options )
     //     Checks and Preparation
     // -------------------------------------------------------------------------
 
+    // User output for jplace input.
+    options.jplace_input.print();
+
     // First check for unique jplace file names. If this fails, all the rest cannot work properly,
     // as we use the file names for identifying metadata rows.
     check_jplace_input( options );
@@ -382,9 +379,6 @@ void run_correlation( CorrelationOptions const& options )
         }
     }
     options.file_output.check_nonexistent_output_files( files_to_check );
-
-    // User output for jplace input.
-    options.jplace_input.print();
 
     // -------------------------------------------------------------------------
     //     Sample Input
@@ -412,26 +406,19 @@ void run_correlation( CorrelationOptions const& options )
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
         auto edge_masses = placement_mass_per_edges_with_multiplicities( sample_set );
 
-        // Normalize per row if needed.
-        if( ! options.no_normalize ) {
-            auto const rsums = matrix_row_sums( edge_masses );
-
-            #pragma omp parallel for
-            for( size_t r = 0; r < edge_masses.rows(); ++r ) {
-                for( size_t c = 0; c < edge_masses.cols(); ++c ) {
-                    edge_masses( r, c ) /= rsums[ r ];
-                }
-            }
-        }
-
         run_with_matrix(
             options, variants, edge_masses, df, CorrelationVariant::kMasses, tree
         );
     }
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
 
-        // Imbalances are already normalized.
-        auto const edge_imbals = epca_imbalance_matrix( sample_set, true, ! options.no_normalize );
+        // The imbalances are again normalized (or not) depending on the mass norm setting.
+        // If we use relative masses, the imbalances are normalized.
+        // This is a slightly different normalization than the one applied by the jplace input,
+        // see epca_imbalance_matrix() for details.
+        auto const edge_imbals = epca_imbalance_matrix(
+            sample_set, true, options.jplace_input.mass_norm_relative()
+        );
         run_with_matrix(
             options, variants, edge_imbals, df, CorrelationVariant::kImbalances, tree
         );

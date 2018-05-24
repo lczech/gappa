@@ -36,8 +36,8 @@ class WikiOptions
 {
 public:
 
-    std::string md_dir = "doc/md/";
-    std::string out_dir;
+    std::string md_dir  = "doc/md/";
+    std::string out_dir = "../gappa.wiki/";
     CLI::App*   app;
 
 };

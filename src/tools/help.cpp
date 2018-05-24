@@ -72,7 +72,7 @@ void setup_wiki( CLI::App& app )
     );
     out_dir_opt->group( "Settings" );
     out_dir_opt->check( CLI::ExistingDirectory );
-    out_dir_opt->required();
+    // out_dir_opt->required();
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -262,7 +262,7 @@ void make_subcommands_table( std::vector<CLI::App*> subcomms, std::ostream& os )
 //     Make Wiki Page
 // -------------------------------------------------------------------------
 
-void make_wiki_page( WikiOptions const& options, CLI::App const& command )
+void make_wiki_command_page( WikiOptions const& options, CLI::App const& command )
 {
     using namespace genesis::utils;
 
@@ -333,21 +333,12 @@ void make_wiki_page( WikiOptions const& options, CLI::App const& command )
 }
 
 // -------------------------------------------------------------------------
-//     Run Function
+//     Make Wiki Home Page
 // -------------------------------------------------------------------------
 
-void run_wiki( WikiOptions const& options )
+void make_wiki_home_page( WikiOptions const& options )
 {
     using namespace genesis::utils;
-
-    // Get all subcommands of the main app and make wiki pages for all subcommands.
-    // auto subcomms = get_all_subcommands( options.app );
-    // for( auto const& subcomm : subcomms ) {
-    //     make_wiki_page( options, *subcomm );
-    // }
-
-    // Get module subcommands.
-    auto subcomms = get_sorted_subcommands( options.app );
 
     // Make Home page.
     std::cout << "Home\n";
@@ -364,6 +355,7 @@ void run_wiki( WikiOptions const& options )
     os << "\n";
 
     // Add submodule lists.
+    auto subcomms = get_sorted_subcommands( options.app );
     for( auto const& sc : subcomms ) {
         if( sc->get_group() == "" ) {
             continue;
@@ -377,11 +369,28 @@ void run_wiki( WikiOptions const& options )
     // Add home footer.
     add_markdown_content( options, "Home_footer", os );
     os.close();
+}
+
+// -------------------------------------------------------------------------
+//     Run Function
+// -------------------------------------------------------------------------
+
+void run_wiki( WikiOptions const& options )
+{
+    // Get all subcommands of the main app and make wiki pages for all subcommands.
+    // auto subcomms = get_all_subcommands( options.app );
+    // for( auto const& subcomm : subcomms ) {
+    //     make_wiki_command_page( options, *subcomm );
+    // }
+
+    // Home page.
+    make_wiki_home_page( options );
 
     // Now, make pages for the commands of the modules.
+    auto subcomms = get_sorted_subcommands( options.app );
     for( auto const& sc : subcomms ) {
         for( auto const& ssc : get_sorted_subcommands( sc )) {
-            make_wiki_page( options, *ssc );
+            make_wiki_command_page( options, *ssc );
         }
     }
 }

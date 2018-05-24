@@ -4,7 +4,11 @@ The command takes a set of `jplace` files, and calculates and visualizes the Edg
 
 Edge Dispersion is explained and evaluated in detail in our article (in preparation). The following figure and its caption are an example adapted from this article:
 
+<br>
+
 ![Dispersion Trees.](https://github.com/lczech/gappa/blob/master/doc/png/analyze_dispersion.png?raw=true)
+
+<br>
 
 The command is useful as a first exploratory tool to detect placement heterogeneity across samples. Subfigure (a) shows the standard deviation of the edge masses, without any further processing. One outlier (marked with an arrow) dominates the variances, which hides the values on most other edges. Thus, in subfigure (b), we used logarithmic scaling, which reveals more details on the edges with lower placement mass variance.
 Subfigure (c) shows the Index of Dispersion of the edge masses, that is, the variance normalized by the mean. That means, edges with a higher number of placements can also have a higher variance. The subfigure again uses a logarithmic scale because of the outlier. The subfigure reveals more details on edges that exhibit a lower variance, which are shown in medium green colors. Lastly, subfigure (d) shows the variance of edge imbalances (instead of edge masses), and thus reveals information about whole clades of the tree.

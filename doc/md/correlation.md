@@ -4,7 +4,11 @@ The command takes a set of `jplace` files (called samples), as well as a table c
 
 Edge Correlation is explained and evaluated in detail in our article (in preparation). The following figure and its caption are an example adapted from this article:
 
+<br>
+
 ![Correlation Trees.](https://github.com/lczech/gappa/blob/master/doc/png/analyze_correlation.png?raw=true)
+
+<br>
 
 All subfigures show red edges or red paths at the clade on the left hand side of the tree. This indicates that presence of placements in this clade is anti-correlated with the used metadata feature. On the other hand, blue and green edges, which indicate positive correlation, are spread throughout the tree the same way in all subfigures. The extent of correlation is larger for Spearman’s Coefficient, indicating that the correlation is
 monotonic, but not strictly linear.
@@ -40,7 +44,7 @@ Example: In order to only use the first two features of the above table, specify
 
 Controls whether to use masses or imbalances. By default, trees using both of them are crated. Using masses highlights the correlation of single edges, while using imbalances considers whole clades. See the article for details on the differences between these two variants.
 
-### Dispersion Method (`--method`)
+### Correlation Method (`--method`)
 
 Controls which method of correlation is used for the visualization. By default, Pearsons and Spearmans are used, that is, trees for each of them are created.
 

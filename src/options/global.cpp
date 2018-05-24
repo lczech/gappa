@@ -67,16 +67,6 @@ void GlobalOptions::add_to_app( CLI::App& app )
         "Number of threads to use for calculations"
     );
 
-    // Add a hidden subcommand for printing wiki-formatted help.
-    auto wiki_help = app.add_subcommand(
-        "wiki-help",
-        "Write a summary of the commands and options of gappa in a wiki-friendly way and exit."
-    );
-    wiki_help->group("");
-    wiki_help->set_callback( [&]() {
-        print_wiki_help( app );
-    });
-
     // TODO add random seed option
     // TODO add global file overwrite option.
     // TODO in order to run callbacks for certain options, use ther full functional form!

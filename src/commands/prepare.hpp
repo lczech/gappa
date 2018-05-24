@@ -50,8 +50,8 @@ void setup_prepare( CLI::App& app )
     // Add module subcommands.
     setup_art( *sub );
     setup_chunkify( *sub );
-    setup_unchunkify( *sub );
     setup_extract( *sub );
+    setup_unchunkify( *sub );
 }
 
 #endif // include guard

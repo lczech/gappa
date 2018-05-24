@@ -28,6 +28,7 @@
 #include "commands/prepare.hpp"
 
 #include "options/global.hpp"
+#include "tools/help.hpp"
 #include "tools/version.hpp"
 
 // =================================================================================================
@@ -46,7 +47,7 @@ int main( int argc, char** argv )
     CLI::App app{ gappa_header() };
     app.require_subcommand( 1 );
     app.fallthrough( true );
-    // app.set_name( "gappa" );
+    app.set_name( "gappa" );
 
     // Add app-wide global options.
     global_options.set_command_line_args( argc, argv );
@@ -56,6 +57,7 @@ int main( int argc, char** argv )
     setup_prepare( app );
     // setup_edit( app );
     setup_analyze( app );
+    setup_wiki( app );
 
     try {
         app.parse( argc, argv );

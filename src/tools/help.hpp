@@ -29,9 +29,20 @@
 #include <string>
 
 // =================================================================================================
-//      Functions
+//      Wiki Pages
 // =================================================================================================
 
-void print_wiki_help( CLI::App const& app, std::string prev = "" );
+class WikiOptions
+{
+public:
+
+    std::string md_dir = "doc/md/";
+    std::string out_dir;
+    CLI::App*   app;
+
+};
+
+void setup_wiki( CLI::App& app );
+void run_wiki( WikiOptions const& options );
 
 #endif // include guard

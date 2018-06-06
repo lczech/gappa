@@ -23,6 +23,7 @@
 
 #include "commands/analyze/pkmeans.hpp"
 
+#include "commands/common/kmeans.hpp"
 #include "options/global.hpp"
 
 #include "CLI/CLI.hpp"
@@ -101,65 +102,6 @@ void setup_pkmeans( CLI::App& app )
 // =================================================================================================
 //      Helper Functions
 // =================================================================================================
-
-std::vector<size_t> get_k_values( PkmeansOptions const& options )
-{
-    using namespace genesis::utils;
-
-    // Prepare an exception with nice text.
-    auto excpt = CLI::ValidationError(
-        "--k (" + options.ks +  ")",
-        "Invalid list of values for k. Needs to be a comma-separated list of positive numbers or "
-        "ranges, e.g., 5-10,12,15"
-    );
-
-    // Try to get the ks by splitting the list.
-    std::vector<size_t> result;
-    try {
-        result = split_range_list( options.ks );
-    } catch ( ... ) {
-        throw excpt;
-    }
-
-    // Additional condition: need numbers, but no zero.
-    if( result.size() == 0 || result[0] == 0 ) {
-        throw excpt;
-    }
-    return result;
-}
-
-void write_assignment_file(
-     PkmeansOptions const& options,
-     std::vector<size_t> const& assignments,
-     size_t k
-) {
-    auto const set_size = options.jplace_input.file_count();
-
-    // Saftey
-    if( assignments.size() != set_size ) {
-        throw std::runtime_error(
-            "Internal Error: Differing number of assignments (" + std::to_string( assignments.size() ) +
-            ") and sample set size (" + std::to_string( set_size ) + ")."
-        );
-    }
-
-
-    // Prepare assignments file.
-    // TODO check with file overwrite settings
-    auto const assm_fn
-        = options.file_output.out_dir() + options.file_output.file_prefix()
-        + "k_" + std::to_string( k ) + "_assignments.csv"
-    ;
-    std::ofstream assm_os;
-    genesis::utils::file_output_stream( assm_fn, assm_os );
-
-    // Write assignments
-    for( size_t fi = 0; fi < set_size; ++fi ) {
-        assm_os << options.jplace_input.base_file_name( fi );
-        assm_os << "\t" << assignments[fi];
-        assm_os << "\n";
-    }
-}
 
 void write_cluster_trees(
     PkmeansOptions const& options,

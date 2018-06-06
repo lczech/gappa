@@ -26,6 +26,8 @@
 
 #include "CLI/CLI.hpp"
 
+#include "commands/common/kmeans.hpp"
+
 #include "options/color/color_map.hpp"
 #include "options/color/color_norm.hpp"
 #include "options/file_output.hpp"
@@ -40,16 +42,9 @@
 // =================================================================================================
 
 class IkmeansOptions
+    : public KmeansOptions
 {
-public:
-
-    std::string ks;
-
-    JplaceInputOptions jplace_input;
-    ColorMapOptions    color_map;
-    ColorNormOptions   color_norm;
-    FileOutputOptions  file_output;
-    TreeOutputOptions  tree_output;
+    // Nothing to add.
 };
 
 // =================================================================================================

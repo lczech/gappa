@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_PKMEANS_H_
-#define GAPPA_COMMANDS_ANALYZE_PKMEANS_H_
+#ifndef GAPPA_COMMANDS_COMMON_KMEANS_H_
+#define GAPPA_COMMANDS_COMMON_KMEANS_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,8 +26,6 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/common/kmeans.hpp"
-
 #include "options/color/color_map.hpp"
 #include "options/color/color_norm.hpp"
 #include "options/file_output.hpp"
@@ -41,21 +39,29 @@
 //      Options
 // =================================================================================================
 
-class PkmeansOptions
-    : public KmeansOptions
-
+class KmeansOptions
 {
 public:
 
-    size_t bins = 0;
+    std::string ks;
 
+    JplaceInputOptions jplace_input;
+    ColorMapOptions    color_map;
+    ColorNormOptions   color_norm;
+    FileOutputOptions  file_output;
+    TreeOutputOptions  tree_output;
 };
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_pkmeans( CLI::App& app );
-void run_pkmeans( PkmeansOptions const& options );
+std::vector<size_t> get_k_values( KmeansOptions const& options );
+
+void write_assignment_file(
+     KmeansOptions const& options,
+     std::vector<size_t> const& assignments,
+     size_t k
+);
 
 #endif // include guard

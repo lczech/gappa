@@ -80,14 +80,14 @@ CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
     }
 
     // Setup.
-    auto const optname = "--" + name + "-file-prefix";
+    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "-file-prefix";
     prefix_ = initial_value;
 
     // Add option
     prefix_option = sub->add_option(
         optname,
         prefix_,
-        "File prefix for " + name + " files",
+        "File prefix for " + ( name.empty() ? "output" : name ) + " files",
         true
     );
     prefix_option->check([]( std::string const& prefix ){

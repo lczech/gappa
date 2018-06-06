@@ -108,8 +108,11 @@ public:
 
     /**
      * @brief Helper function to obtain the placement profile for all input samples.
+     *
+     * If the additional parameter is set to true, the imbalances are normalzied indepentely
+     * from the norm setting in this class.
      */
-    PlacementProfile placement_profile() const;
+    PlacementProfile placement_profile( bool force_imbal_norm = false ) const;
 
     /**
      * @brief Read in all jplace files given by the user and merge all their pqueries them into a sample.

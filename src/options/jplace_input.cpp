@@ -215,7 +215,7 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 //      Covenience Functions
 // =================================================================================================
 
-JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile() const
+JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool force_imbal_norm ) const
 {
     using namespace genesis;
     using namespace genesis::placement;
@@ -242,7 +242,7 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile() con
         // This is the part that can trivially be done in parallel.
         auto const smpl = sample( fi );
         auto const edge_masses = placement_mass_per_edges_with_multiplicities( smpl );
-        auto const edge_imbals = epca_imbalance_vector( smpl, mass_norm_relative() );
+        auto const edge_imbals = epca_imbalance_vector( smpl, force_imbal_norm || mass_norm_relative() );
 
         // The main merging is single threaded.
         // Could be done in parallel if we make sure that the matrices are initialized first.

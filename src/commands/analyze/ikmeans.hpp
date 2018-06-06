@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_H_
-#define GAPPA_COMMANDS_ANALYZE_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_IKMEANS_H_
+#define GAPPA_COMMANDS_ANALYZE_IKMEANS_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,45 +26,37 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze/assign.hpp"
-#include "commands/analyze/correlation.hpp"
-#include "commands/analyze/dispersion.hpp"
-#include "commands/analyze/graft.hpp"
-#include "commands/analyze/ikmeans.hpp"
-#include "commands/analyze/krd.hpp"
-#include "commands/analyze/nhd.hpp"
-#include "commands/analyze/pkmeans.hpp"
-#include "commands/analyze/squash.hpp"
-#include "commands/analyze/visualize_color.hpp"
+#include "options/color/color_map.hpp"
+#include "options/color/color_norm.hpp"
+#include "options/file_output.hpp"
+#include "options/jplace_input.hpp"
+#include "options/tree_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class IkmeansOptions
+{
+public:
+
+    std::string ks;
+
+    JplaceInputOptions jplace_input;
+    ColorMapOptions    color_map;
+    ColorNormOptions   color_norm;
+    FileOutputOptions  file_output;
+    TreeOutputOptions  tree_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_analyze( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "analyze",
-        "Commands for analyzing and visualizing placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    // setup_krd( *sub );
-    // setup_nhd( *sub );
-    // setup_squash( *sub );
-
-    setup_assign( *sub );
-    setup_correlation( *sub );
-    setup_dispersion( *sub );
-    setup_graft( *sub );
-    setup_ikmeans( *sub );
-    setup_pkmeans( *sub );
-    setup_visualize_color( *sub );
-}
+void setup_ikmeans( CLI::App& app );
+void run_ikmeans( IkmeansOptions const& options );
 
 #endif // include guard

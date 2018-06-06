@@ -65,20 +65,20 @@ std::vector<size_t> get_k_values( KmeansOptions const& options )
 }
 
 void write_assignment_file(
-     KmeansOptions const& options,
-     std::vector<size_t> const& assignments,
-     size_t k
+    KmeansOptions const& options,
+    std::vector<size_t> const& assignments,
+    genesis::utils::KmeansClusteringInfo const& cluster_info,
+    size_t k
 ) {
     auto const set_size = options.jplace_input.file_count();
 
     // Saftey
-    if( assignments.size() != set_size ) {
+    if( assignments.size() != set_size || cluster_info.distances.size() != set_size ) {
         throw std::runtime_error(
             "Internal Error: Differing number of assignments (" + std::to_string( assignments.size() ) +
             ") and sample set size (" + std::to_string( set_size ) + ")."
         );
     }
-
 
     // Prepare assignments file.
     // TODO check with file overwrite settings
@@ -93,6 +93,61 @@ void write_assignment_file(
     for( size_t fi = 0; fi < set_size; ++fi ) {
         assm_os << options.jplace_input.base_file_name( fi );
         assm_os << "\t" << assignments[fi];
+        assm_os << "\t" << cluster_info.distances[fi];
         assm_os << "\n";
     }
+}
+
+void write_cluster_info(
+    KmeansOptions const& options,
+    std::vector<size_t> const& assignments,
+    genesis::utils::KmeansClusteringInfo const& cluster_info,
+    size_t k
+) {
+    // Currentky not needed
+    (void) options;
+
+    // Accumulate average distanace and variance of all clusters.
+    double avg_dst = 0.0;
+    double avg_var = 0.0;
+
+    // Iterate clusters/centroids.
+    for( size_t ik = 0; ik < k; ++ik ) {
+
+        // Distance and variance of the current cluster.
+        double cavg_dst = 0.0;
+        size_t cavg_cnt = 0;
+
+        // Do the accumulation for data points that belong to the current cluster.
+        for( size_t ai = 0; ai < assignments.size(); ++ai ) {
+            if( assignments[ai] != ik ) {
+                continue;
+            }
+            avg_dst  += cluster_info.distances[ai];
+            avg_var  += cluster_info.distances[ai] * cluster_info.distances[ai];
+            cavg_dst += cluster_info.distances[ai];
+            ++cavg_cnt;
+        }
+        cavg_dst /= static_cast<double>( cavg_cnt );
+
+        std::cout << "Cluster " << ik << ": " << cluster_info.counts[ik] << " samples,";
+        std::cout << " with a variance of " << cluster_info.variances[ik];
+        std::cout << " and average distance " << cavg_dst << "\n";
+    }
+    avg_dst /= static_cast<double>( assignments.size() );
+    avg_var /= static_cast<double>( assignments.size() );
+
+    // Different calculation for result checking.
+    // Both should yield the exact values as the ones we already have.
+    // double avg_dst2 = 0.0;
+    // double avg_var2 = 0.0;
+    // for( size_t i = 0; i < cluster_info.distances.size(); ++i ) {
+    //     avg_dst2 += cluster_info.distances[i];
+    //     avg_var2  += cluster_info.distances[i] * cluster_info.distances[i];
+    // }
+    // avg_dst2 /= static_cast<double>( cluster_info.distances.size() );
+    // avg_var2  /= static_cast<double>( cluster_info.distances.size() );
+
+    std::cout << "Total average distance: " << avg_dst << "\n";
+    std::cout << "Total average variance: " << avg_var << "\n";
 }

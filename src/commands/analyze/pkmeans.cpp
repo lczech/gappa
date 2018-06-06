@@ -53,14 +53,12 @@ void setup_pkmeans( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<PkmeansOptions>();
     auto sub = app.add_subcommand(
-        "kmeans",
+        "phylogenetic-kmeans",
         "Run Phylogenetic k-means clustering on a set of samples."
     );
 
-    // Add common options.
+    // Sample input
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
-    opt->jplace_input.add_point_mass_opt_to_app( sub );
-    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Number of clusters to find.
     auto k_opt = sub->add_option(
@@ -82,6 +80,10 @@ void setup_pkmeans( CLI::App& app )
         true
     );
     bins_opt->group( "Settings" );
+
+    // Other jplace settings
+    opt->jplace_input.add_point_mass_opt_to_app( sub );
+    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Color.
     opt->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
@@ -227,12 +229,14 @@ void run_pkmeans( PkmeansOptions const& options )
     for( auto const& k : ks ) {
 
         // Run it.
-        std::cout << "Running Phylogenetic Kmeans with k=" << k << "\n";
+        std::cout << "\nRunning Phylogenetic Kmeans with k=" << k << "\n";
         auto const iterations = mkmeans.run( mass_trees, k );
+        auto const clust_info = mkmeans.cluster_info( mass_trees );
         std::cout << "Finished after " << iterations << " iterations\n";
 
         // Write output.
-        write_assignment_file( options, mkmeans.assignments(), k );
+        write_assignment_file( options, mkmeans.assignments(), clust_info, k );
+        write_cluster_info( options, mkmeans.assignments(), clust_info, k );
         write_cluster_trees( options, mkmeans.centroids(), k );
     }
 }

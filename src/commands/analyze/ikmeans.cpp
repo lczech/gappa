@@ -53,14 +53,12 @@ void setup_ikmeans( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<IkmeansOptions>();
     auto sub = app.add_subcommand(
-        "kmeans",
+        "imbalance-kmeans",
         "Run Imbalance k-means clustering on a set of samples."
     );
 
-    // Add common options.
+    // Sample input
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
-    opt->jplace_input.add_point_mass_opt_to_app( sub );
-    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Number of clusters to find.
     auto k_opt = sub->add_option(
@@ -72,6 +70,10 @@ void setup_ikmeans( CLI::App& app )
     );
     k_opt->group( "Settings" );
     k_opt->required();
+
+    // Other jplace settings
+    opt->jplace_input.add_point_mass_opt_to_app( sub );
+    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Color.
     opt->color_map.add_color_list_opt_to_app( sub, "spectral" );
@@ -191,12 +193,14 @@ void run_ikmeans( IkmeansOptions const& options )
     for( auto const& k : ks ) {
 
         // Run it.
-        std::cout << "Running Imbalance Kmeans with k=" << k << "\n";
+        std::cout << "\nRunning Imbalance Kmeans with k=" << k << "\n";
         auto const iterations = ikmeans.run( edge_imb_vec, k );
+        auto const clust_info = ikmeans.cluster_info( edge_imb_vec );
         std::cout << "Finished after " << iterations << " iterations\n";
 
         // Write output.
-        write_assignment_file( options, ikmeans.assignments(), k );
+        write_assignment_file( options, ikmeans.assignments(), clust_info, k );
+        write_cluster_info( options, ikmeans.assignments(), clust_info, k );
         write_cluster_trees( options, profile.tree, columns, ikmeans.centroids(), k );
     }
 }

@@ -32,6 +32,8 @@
 #include "options/jplace_input.hpp"
 #include "options/tree_output.hpp"
 
+#include "genesis/utils/math/kmeans.hpp"
+
 #include <string>
 #include <vector>
 
@@ -59,9 +61,17 @@ public:
 std::vector<size_t> get_k_values( KmeansOptions const& options );
 
 void write_assignment_file(
-     KmeansOptions const& options,
-     std::vector<size_t> const& assignments,
-     size_t k
+    KmeansOptions const& options,
+    std::vector<size_t> const& assignments,
+    genesis::utils::KmeansClusteringInfo const& cluster_info,
+    size_t k
+);
+
+void write_cluster_info(
+    KmeansOptions const& options,
+    std::vector<size_t> const& assignments,
+    genesis::utils::KmeansClusteringInfo const& cluster_info,
+    size_t k
 );
 
 #endif // include guard

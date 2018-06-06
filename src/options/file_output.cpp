@@ -80,7 +80,7 @@ CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
     }
 
     // Setup.
-    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "-file-prefix";
+    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "file-prefix";
     prefix_ = initial_value;
 
     // Add option

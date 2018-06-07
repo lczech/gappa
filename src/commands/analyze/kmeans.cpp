@@ -41,7 +41,6 @@
 void setup_kmeans(
     KmeansOptions* opt,
     CLI::App* app,
-    std::string const& color_palette,
     std::string const& file_prefix
 ) {
     // Sample input
@@ -72,7 +71,8 @@ void setup_kmeans(
     opt->jplace_input.add_ignore_multiplicities_opt_to_app( app );
 
     // Color.
-    opt->color_map.add_color_list_opt_to_app( app, color_palette );
+    opt->color_map.add_color_list_opt_to_app( app, "BuPuBk" );
+    opt->color_norm.add_log_scaling_opt_to_app( app );
 
     // Output files.
     opt->tree_output.add_tree_output_opts_to_app( app );
@@ -127,7 +127,7 @@ void check_kmeans_output_files(
     // Add overview file if needed.
     if( options.overview_file ) {
         files_to_check.push_back(
-            options.file_output.out_dir() + options.file_output.file_prefix() + "overview.csv"
+            options.file_output.file_prefix() + "overview.csv"
         );
     }
 

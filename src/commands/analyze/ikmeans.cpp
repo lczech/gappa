@@ -58,7 +58,7 @@ void setup_ikmeans( CLI::App& app )
     );
 
     // Setup common kmeans options.
-    setup_kmeans( opt.get(), sub, "spectral", "ikmeans_" );
+    setup_kmeans( opt.get(), sub, "ikmeans_" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -71,50 +71,69 @@ void setup_ikmeans( CLI::App& app )
 //      Helper Functions
 // =================================================================================================
 
-void write_cluster_trees(
+void write_ikmeans_cluster_trees(
     IkmeansOptions const& options,
-    genesis::tree::Tree const& tree,
-    std::vector<size_t> columns,
-    std::vector<std::vector<double>> const& centroids,
+    JplaceInputOptions::PlacementProfile const& profile,
+    std::vector<size_t> const& assignments,
     size_t k
 ) {
     using namespace genesis;
     using namespace genesis::utils;
 
-    if( centroids.size() != k ) {
+    // Assertions
+    if( assignments.size() != profile.edge_masses.rows() ) {
         throw std::runtime_error(
-            "Internal Error: Differing number of centroids (" + std::to_string( centroids.size() ) +
-            ") and  k (" + std::to_string( k ) + ")."
+            "Internal Error: Differing number of assignments (" + std::to_string( assignments.size() ) +
+            ") and edge masses (" + std::to_string( profile.edge_masses.rows() ) + ")."
         );
     }
 
     // Get color map and norm.
     auto color_map  = options.color_map.color_map();
-    auto color_norm = options.color_norm.get_diverging_norm();
+    auto color_norm = options.color_norm.get_sequential_norm();
 
     // Out base file name
     auto const base_fn = options.file_output.out_dir() + cluster_tree_basepath( options, k );
 
-    // Write all centroid trees
-    for( size_t ci = 0; ci < centroids.size(); ++ci ) {
-        auto const& centroid = centroids[ci];
+    // As we used the imbalances for the actual clustering, there is no mass tree that
+    // we can use here yet. So, we need to add up masses for each cluster.
+    // First, prepare storage for these.
+    auto centroid_masses = std::vector<std::vector<double>>( k );
+    for( size_t ik = 0; ik < k; ++ik ) {
+        centroid_masses[ik] = std::vector<double>( profile.tree.edge_count(), 0.0 );
+    }
 
-        // Init color vector with medium color of the diverging palette.
-        auto colors = std::vector<utils::Color>( tree.edge_count(), color_map( color_norm, 0.0 ));
+    // Now, add up masses.
+    for( size_t sample_idx = 0; sample_idx < assignments.size(); ++sample_idx ) {
 
-        // Overwrite color values for the columns that were used during kmeans.
-        for( size_t j = 0; j < columns.size(); ++j ) {
-            assert( -1.0 <= centroid[ j ] && centroid[ j ] <= 1.0 );
-            colors[ columns[j] ] = color_map( color_norm, centroid[ j ]);
+        // Which cluster does the sample belong to?
+        auto const assn = assignments[ sample_idx ];
+        assert( assn < k );
+        assert( sample_idx < profile.edge_masses.rows() );
+        assert( profile.edge_masses.cols() == centroid_masses[assn].size() );
+
+        // Add its masses to the centroid.
+        for( size_t i = 0; i < profile.tree.edge_count(); ++i ) {
+            centroid_masses[assn][i] += profile.edge_masses( sample_idx, i );
         }
+    }
+
+    // Now, each centroid contains the masses of all samples assigned to it.
+    // Write them to tree files.
+    for( size_t ci = 0; ci < k; ++ci ) {
+
+        // Prepare colors
+        auto const& masses = centroid_masses[ci];
+        color_norm->autoscale_max( masses );
 
         // Now, make a color vector and write to files.
+        auto const colors = color_map( *color_norm, masses );
         auto const cntr_fn = base_fn + std::to_string( ci );
         options.tree_output.write_tree_to_files(
-            tree,
+            profile.tree,
             colors,
             color_map,
-            color_norm,
+            *color_norm,
             cntr_fn
         );
     }
@@ -178,7 +197,7 @@ void run_ikmeans( IkmeansOptions const& options )
 
         // Write output.
         write_assignment_file( options, ikmeans.assignments(), clust_info, k );
-        write_cluster_trees( options, profile.tree, columns, ikmeans.centroids(), k );
+        write_ikmeans_cluster_trees( options, profile, ikmeans.assignments(), k );
 
         // Print some cluster info, and collect it for the overview file.
         auto const ci = print_cluster_info( options, ikmeans.assignments(), clust_info, k );

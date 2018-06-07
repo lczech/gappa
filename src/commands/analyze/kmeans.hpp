@@ -69,7 +69,6 @@ struct KmeansClusterOverview
 void setup_kmeans(
     KmeansOptions* opt,
     CLI::App* app,
-    std::string const& color_palette,
     std::string const& file_prefix
 );
 

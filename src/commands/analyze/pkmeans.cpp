@@ -58,7 +58,7 @@ void setup_pkmeans( CLI::App& app )
     );
 
     // Setup common kmeans options.
-    setup_kmeans( opt.get(), sub, "BuPuBk", "pkmeans_" );
+    setup_kmeans( opt.get(), sub, "pkmeans_" );
 
     // Binning.
     auto bins_opt = sub->add_option(
@@ -69,9 +69,6 @@ void setup_pkmeans( CLI::App& app )
         true
     );
     bins_opt->group( "Settings" );
-
-    // Add log scale.
-    opt->color_norm.add_log_scaling_opt_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -84,7 +81,7 @@ void setup_pkmeans( CLI::App& app )
 //      Helper Functions
 // =================================================================================================
 
-void write_cluster_trees(
+void write_pkmeans_cluster_trees(
     PkmeansOptions const& options,
     std::vector<genesis::tree::MassTree> const& centroids,
     size_t k
@@ -218,7 +215,7 @@ void run_pkmeans( PkmeansOptions const& options )
 
         // Write output.
         write_assignment_file( options, mkmeans.assignments(), clust_info, k );
-        write_cluster_trees( options, mkmeans.centroids(), k );
+        write_pkmeans_cluster_trees( options, mkmeans.centroids(), k );
 
         // Print some cluster info, and collect it for the overview file.
         auto const ci = print_cluster_info( options, mkmeans.assignments(), clust_info, k );

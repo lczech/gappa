@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_COMMON_KMEANS_H_
-#define GAPPA_COMMANDS_COMMON_KMEANS_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_KMEANS_H_
+#define GAPPA_COMMANDS_ANALYZE_KMEANS_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -46,6 +46,7 @@ class KmeansOptions
 public:
 
     std::string ks;
+    bool        overview_file;
 
     JplaceInputOptions jplace_input;
     ColorMapOptions    color_map;
@@ -54,11 +55,41 @@ public:
     TreeOutputOptions  tree_output;
 };
 
+struct KmeansClusterOverview
+{
+    size_t k;
+    double avg_distance;
+    double avg_variance;
+};
+
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-std::vector<size_t> get_k_values( KmeansOptions const& options );
+void setup_kmeans(
+    KmeansOptions* opt,
+    CLI::App* app,
+    std::string const& color_palette,
+    std::string const& file_prefix
+);
+
+std::string assignment_filepath(
+    KmeansOptions const& options,
+    size_t k
+);
+
+std::string cluster_tree_basepath(
+    KmeansOptions const& options,
+    size_t k
+);
+
+void check_kmeans_output_files(
+    KmeansOptions const& options
+);
+
+std::vector<size_t> get_k_values(
+    KmeansOptions const& options
+);
 
 void write_assignment_file(
     KmeansOptions const& options,
@@ -67,11 +98,16 @@ void write_assignment_file(
     size_t k
 );
 
-void write_cluster_info(
+KmeansClusterOverview print_cluster_info(
     KmeansOptions const& options,
     std::vector<size_t> const& assignments,
     genesis::utils::KmeansClusteringInfo const& cluster_info,
     size_t k
+);
+
+void write_overview_file(
+    KmeansOptions const& options,
+    std::vector<KmeansClusterOverview> const& overview
 );
 
 #endif // include guard

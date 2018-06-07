@@ -26,7 +26,7 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/common/kmeans.hpp"
+#include "commands/analyze/kmeans.hpp"
 
 #include "options/color/color_map.hpp"
 #include "options/color/color_norm.hpp"

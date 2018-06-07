@@ -23,7 +23,7 @@
 
 #include "commands/analyze/ikmeans.hpp"
 
-#include "commands/common/kmeans.hpp"
+#include "commands/analyze/kmeans.hpp"
 #include "options/global.hpp"
 
 #include "CLI/CLI.hpp"
@@ -57,31 +57,8 @@ void setup_ikmeans( CLI::App& app )
         "Run Imbalance k-means clustering on a set of samples."
     );
 
-    // Sample input
-    opt->jplace_input.add_jplace_input_opt_to_app( sub );
-
-    // Number of clusters to find.
-    auto k_opt = sub->add_option(
-        "-k,--k",
-        opt->ks,
-        "Number of clusters to find. Can be a comma-separated list of multiple values or "
-        "ranges for k: 1-5,8,10,12",
-        true
-    );
-    k_opt->group( "Settings" );
-    k_opt->required();
-
-    // Other jplace settings
-    opt->jplace_input.add_point_mass_opt_to_app( sub );
-    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
-
-    // Color.
-    opt->color_map.add_color_list_opt_to_app( sub, "spectral" );
-
-    // Output files.
-    opt->tree_output.add_tree_output_opts_to_app( sub );
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "", "ikmeans" );
+    // Setup common kmeans options.
+    setup_kmeans( opt.get(), sub, "spectral", "ikmeans_" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -116,10 +93,7 @@ void write_cluster_trees(
     auto color_norm = options.color_norm.get_diverging_norm();
 
     // Out base file name
-    auto const base_fn
-        = options.file_output.out_dir() + options.file_output.file_prefix()
-        + "k_" + std::to_string( k ) + "_centroid_"
-    ;
+    auto const base_fn = options.file_output.out_dir() + cluster_tree_basepath( options, k );
 
     // Write all centroid trees
     for( size_t ci = 0; ci < centroids.size(); ++ci ) {
@@ -165,6 +139,9 @@ void run_ikmeans( IkmeansOptions const& options )
         throw std::runtime_error( "Cannot run k-means with fewer than 2 samples." );
     }
 
+    // Check for existing files.
+    check_kmeans_output_files( options );
+
     // Read input data into imbalances matrix. Filter columns.
     auto profile = options.jplace_input.placement_profile( true );
     auto const columns = epca_filter_constant_columns( profile.edge_imbalances, 0.001 );
@@ -190,6 +167,7 @@ void run_ikmeans( IkmeansOptions const& options )
 
     // Run kmeans for every specified k.
     auto const ks = get_k_values( options );
+    std::vector<KmeansClusterOverview> overview;
     for( auto const& k : ks ) {
 
         // Run it.
@@ -200,7 +178,13 @@ void run_ikmeans( IkmeansOptions const& options )
 
         // Write output.
         write_assignment_file( options, ikmeans.assignments(), clust_info, k );
-        write_cluster_info( options, ikmeans.assignments(), clust_info, k );
         write_cluster_trees( options, profile.tree, columns, ikmeans.centroids(), k );
+
+        // Print some cluster info, and collect it for the overview file.
+        auto const ci = print_cluster_info( options, ikmeans.assignments(), clust_info, k );
+        overview.push_back( ci );
     }
+
+    // Write the overview file for elbow plots etc.
+    write_overview_file( options, overview );
 }

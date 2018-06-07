@@ -23,7 +23,7 @@
 
 #include "commands/analyze/pkmeans.hpp"
 
-#include "commands/common/kmeans.hpp"
+#include "commands/analyze/kmeans.hpp"
 #include "options/global.hpp"
 
 #include "CLI/CLI.hpp"
@@ -57,19 +57,8 @@ void setup_pkmeans( CLI::App& app )
         "Run Phylogenetic k-means clustering on a set of samples."
     );
 
-    // Sample input
-    opt->jplace_input.add_jplace_input_opt_to_app( sub );
-
-    // Number of clusters to find.
-    auto k_opt = sub->add_option(
-        "-k,--k",
-        opt->ks,
-        "Number of clusters to find. Can be a comma-separated list of multiple values or "
-        "ranges for k: 1-5,8,10,12",
-        true
-    );
-    k_opt->group( "Settings" );
-    k_opt->required();
+    // Setup common kmeans options.
+    setup_kmeans( opt.get(), sub, "BuPuBk", "pkmeans_" );
 
     // Binning.
     auto bins_opt = sub->add_option(
@@ -81,18 +70,8 @@ void setup_pkmeans( CLI::App& app )
     );
     bins_opt->group( "Settings" );
 
-    // Other jplace settings
-    opt->jplace_input.add_point_mass_opt_to_app( sub );
-    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
-
-    // Color.
-    opt->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
+    // Add log scale.
     opt->color_norm.add_log_scaling_opt_to_app( sub );
-
-    // Output files.
-    opt->tree_output.add_tree_output_opts_to_app( sub );
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "", "pkmeans" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -123,10 +102,7 @@ void write_cluster_trees(
     auto color_norm = options.color_norm.get_sequential_norm();
 
     // Out base file name
-    auto const base_fn
-        = options.file_output.out_dir() + options.file_output.file_prefix()
-        + "k_" + std::to_string( k ) + "_centroid_"
-    ;
+    auto const base_fn = options.file_output.out_dir() + cluster_tree_basepath( options, k );
 
     // Write all centroid trees
     for( size_t ci = 0; ci < centroids.size(); ++ci ) {
@@ -167,6 +143,12 @@ void run_pkmeans( PkmeansOptions const& options )
     if( options.jplace_input.file_count() < 2 ) {
         throw std::runtime_error( "Cannot run k-means with fewer than 2 samples." );
     }
+
+    // Get the values of k to run.
+    auto const ks = get_k_values( options );
+
+    // Check for existing files.
+    check_kmeans_output_files( options );
 
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Reading samples.\n";
@@ -225,7 +207,7 @@ void run_pkmeans( PkmeansOptions const& options )
     }
 
     // Run kmeans for every specified k.
-    auto const ks = get_k_values( options );
+    std::vector<KmeansClusterOverview> overview;
     for( auto const& k : ks ) {
 
         // Run it.
@@ -236,7 +218,13 @@ void run_pkmeans( PkmeansOptions const& options )
 
         // Write output.
         write_assignment_file( options, mkmeans.assignments(), clust_info, k );
-        write_cluster_info( options, mkmeans.assignments(), clust_info, k );
         write_cluster_trees( options, mkmeans.centroids(), k );
+
+        // Print some cluster info, and collect it for the overview file.
+        auto const ci = print_cluster_info( options, mkmeans.assignments(), clust_info, k );
+        overview.push_back( ci );
     }
+
+    // Write the overview file for elbow plots etc.
+    write_overview_file( options, overview );
 }

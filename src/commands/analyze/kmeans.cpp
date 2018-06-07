@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/common/kmeans.hpp"
+#include "commands/analyze/kmeans.hpp"
 
 #include "options/global.hpp"
 
@@ -35,7 +35,107 @@
 #endif
 
 // =================================================================================================
-//      Functions
+//      Setup
+// =================================================================================================
+
+void setup_kmeans(
+    KmeansOptions* opt,
+    CLI::App* app,
+    std::string const& color_palette,
+    std::string const& file_prefix
+) {
+    // Sample input
+    opt->jplace_input.add_jplace_input_opt_to_app( app );
+
+    // Number of clusters to find.
+    auto k_opt = app->add_option(
+        "--k",
+        opt->ks,
+        "Number of clusters to find. Can be a comma-separated list of multiple values or "
+        "ranges for k: 1-5,8,10,12",
+        true
+    );
+    k_opt->group( "Settings" );
+    k_opt->required();
+
+    // Overview file.
+    auto overview_file_opt = app->add_flag(
+        "--write-overview-file",
+        opt->overview_file,
+        "If provided, a table file is written that summarizes the average distance and "
+        "variance of the clusters for each k. Useful for elbow plots."
+    );
+    overview_file_opt->group( "Settings" );
+
+    // Other jplace settings
+    opt->jplace_input.add_point_mass_opt_to_app( app );
+    opt->jplace_input.add_ignore_multiplicities_opt_to_app( app );
+
+    // Color.
+    opt->color_map.add_color_list_opt_to_app( app, color_palette );
+
+    // Output files.
+    opt->tree_output.add_tree_output_opts_to_app( app );
+    opt->file_output.add_output_dir_opt_to_app( app );
+    opt->file_output.add_file_prefix_opt_to_app( app, "", file_prefix );
+}
+
+// =================================================================================================
+//      Output Files
+// =================================================================================================
+
+std::string assignment_filepath(
+    KmeansOptions const& options,
+    size_t k
+) {
+    return options.file_output.file_prefix() + "k_" + std::to_string( k ) + "_assignments.csv";
+}
+
+std::string cluster_tree_basepath(
+    KmeansOptions const& options,
+    size_t k
+) {
+    return options.file_output.file_prefix() + "k_" + std::to_string( k ) + "_centroid_";
+}
+
+void check_kmeans_output_files(
+    KmeansOptions const& options
+) {
+    auto const ks = get_k_values( options );
+
+    std::vector<std::string> files_to_check;
+
+    // Add assignemnt files.
+    for( auto k : ks ) {
+        files_to_check.push_back(
+            assignment_filepath( options, k )
+        );
+    }
+
+    // Add cluster tree files if specified.
+    // For each k, we need to check all cluster numbers and all tree formats.
+    for( auto k : ks ) {
+        for( size_t ci = 0; ci < k; ++ci ) {
+            for( auto const& e : options.tree_output.get_extensions() ) {
+                files_to_check.push_back(
+                    cluster_tree_basepath( options, k ) + std::to_string( ci ) + "\\." + e
+                );
+            }
+        }
+    }
+
+    // Add overview file if needed.
+    if( options.overview_file ) {
+        files_to_check.push_back(
+            options.file_output.out_dir() + options.file_output.file_prefix() + "overview.csv"
+        );
+    }
+
+    options.file_output.check_nonexistent_output_files( files_to_check );
+}
+
+// =================================================================================================
+//      Helpers
 // =================================================================================================
 
 std::vector<size_t> get_k_values( KmeansOptions const& options )
@@ -64,6 +164,10 @@ std::vector<size_t> get_k_values( KmeansOptions const& options )
     return result;
 }
 
+// =================================================================================================
+//      Output
+// =================================================================================================
+
 void write_assignment_file(
     KmeansOptions const& options,
     std::vector<size_t> const& assignments,
@@ -82,12 +186,12 @@ void write_assignment_file(
 
     // Prepare assignments file.
     // TODO check with file overwrite settings
-    auto const assm_fn
-        = options.file_output.out_dir() + options.file_output.file_prefix()
-        + "k_" + std::to_string( k ) + "_assignments.csv"
-    ;
+    auto const assm_fn = options.file_output.out_dir() + assignment_filepath( options, k );
     std::ofstream assm_os;
     genesis::utils::file_output_stream( assm_fn, assm_os );
+
+    // Write header.
+    assm_os << "Sample\tCluster\tDistance\n";
 
     // Write assignments
     for( size_t fi = 0; fi < set_size; ++fi ) {
@@ -98,7 +202,7 @@ void write_assignment_file(
     }
 }
 
-void write_cluster_info(
+KmeansClusterOverview print_cluster_info(
     KmeansOptions const& options,
     std::vector<size_t> const& assignments,
     genesis::utils::KmeansClusteringInfo const& cluster_info,
@@ -150,4 +254,33 @@ void write_cluster_info(
 
     std::cout << "Total average distance: " << avg_dst << "\n";
     std::cout << "Total average variance: " << avg_var << "\n";
+
+    return { k, avg_dst, avg_var };
+}
+
+void write_overview_file(
+    KmeansOptions const& options,
+    std::vector<KmeansClusterOverview> const& overview
+) {
+    // Only write a tree file if user specified a path.
+    if( ! options.overview_file ) {
+        return;
+    }
+
+    // Prepare assignments file.
+    // TODO check with file overwrite settings
+    auto const ov_fn
+        = options.file_output.out_dir() + options.file_output.file_prefix()
+        + "overview.csv"
+    ;
+    std::ofstream ov_os;
+    genesis::utils::file_output_stream( ov_fn, ov_os );
+
+    // Write header.
+    ov_os << "k\tDistance\tVariance\n";
+
+    // Write overview
+    for( auto const& l : overview ) {
+        ov_os << l.k << "\t" << l.avg_distance << "\t" << l.avg_variance << "\n";
+    }
 }

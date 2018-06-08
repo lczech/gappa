@@ -48,9 +48,9 @@ public:
     bool normalize = false; // TODO unused
 
     JplaceInputOptions jplace_input;
-    FileOutputOptions  file_output;
     ColorMapOptions    color_map;
-    // FileOutputOptions  file_output;
+    ColorNormOptions   color_norm;
+    FileOutputOptions  file_output;
     TreeOutputOptions  tree_output;
 };
 

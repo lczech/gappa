@@ -51,7 +51,6 @@ void setup_squash( CLI::App& app )
 
     // Add common options.
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
-    opt->jplace_input.add_point_mass_opt_to_app( sub );
 
     // Add custom options.
     sub->add_option(
@@ -63,9 +62,16 @@ void setup_squash( CLI::App& app )
 
     opt->file_output.add_output_dir_opt_to_app( sub );
 
-    opt->tree_output.add_tree_output_opts_to_app( sub );
+    // Other jplace settings
+    opt->jplace_input.add_point_mass_opt_to_app( sub );
+    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
+
+    // Color.
     opt->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
+    opt->color_norm.add_log_scaling_opt_to_app( sub );
+
+    opt->tree_output.add_tree_output_opts_to_app( sub );
+    opt->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree_" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -90,35 +96,64 @@ void run_squash( SquashOptions const& options )
     }
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({ "cluster\\.newick" });
+    std::vector<std::string> files_to_check;
+    files_to_check.push_back( "cluster\\.newick" );
+    for( auto const& e : options.tree_output.get_extensions() ) {
+        files_to_check.push_back(
+            options.file_output.file_prefix() + "[0-9]*\\." + e
+        );
+    }
+    options.file_output.check_nonexistent_output_files( files_to_check );
 
     // Print some user output.
     options.jplace_input.print();
 
-    // Get the samples.
-    auto sample_set = options.jplace_input.sample_set();
-    auto mass_trees = convert_sample_set_to_mass_trees( sample_set );
-    sample_set.clear();
+    // Read in the trees and immediately convert them to mass trees to save storage.
+    auto mass_trees = options.jplace_input.mass_tree_set();
 
-    // LOG_INFO << "Starting squash clustering";
+    // Set up squash clustering.
     auto sc = tree::SquashClustering();
     sc.p( options.exponent );
-    sc.run( std::move( mass_trees.first ) );
-    // LOG_INFO << "Finished squash clustering";
+    sc.report_initialization = [&](){
+        if( global_options.verbosity() >= 2 ) {
+            std::cout << " - Initializing Squash Clustering\n";
+        }
+    };
+    sc.report_step = [&]( size_t i, size_t total ){
+        if( global_options.verbosity() >= 2 ) {
+            std::cout << " - Step " << i << " of " << total << "\n";
+        }
+    };
 
-    // LOG_INFO << "Writing cluster tree";
+    // Run, Forrest, run!
+    sc.run( std::move( mass_trees ) );
+
+    // Write output cluster tree to newick.
     std::ofstream file_clust_tree;
     utils::file_output_stream( options.file_output.out_dir() + "cluster.newick",  file_clust_tree );
     file_clust_tree << sc.tree_string( options.jplace_input.base_file_names() );
 
-    // LOG_INFO << "Writing fat trees";
+    // Get color map and norm.
+    auto color_map  = options.color_map.color_map();
+    auto color_norm = options.color_norm.get_sequential_norm();
+
+    // Writing inner trees of the cluster hierachry.
     for( size_t i = 0; i < sc.clusters().size(); ++i ) {
-        // auto const& cc = sc.clusters()[i];
+        auto const& cc = sc.clusters()[i];
 
-        // auto const cv = tree::mass_tree_mass_per_edge( cc.tree );
-        // auto const colors = counts_to_colors(cv, false);
+        // Prepare colors
+        auto const masses = tree::mass_tree_mass_per_edge( cc.tree );
+        color_norm->autoscale_max( masses );
 
-        // write_color_tree_to_nexus( avg_tree, colors, options.out_dir + "/tree_" + std::to_string(i) + ".nexus" );
-        // write_color_tree_to_svg( avg_tree, colors, options.out_dir + "/tree_" + std::to_string(i) );
+        // Now, make a color vector and write to files.
+        auto const colors = color_map( *color_norm, masses );
+        auto const cntr_fn = options.file_output.out_dir() + options.file_output.file_prefix() + std::to_string( i );
+        options.tree_output.write_tree_to_files(
+            cc.tree,
+            colors,
+            color_map,
+            *color_norm,
+            cntr_fn
+        );
     }
 }

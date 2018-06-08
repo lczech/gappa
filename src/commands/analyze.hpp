@@ -30,10 +30,10 @@
 #include "commands/analyze/correlation.hpp"
 #include "commands/analyze/dispersion.hpp"
 #include "commands/analyze/graft.hpp"
-#include "commands/analyze/ikmeans.hpp"
+#include "commands/analyze/kmeans_imbalance.hpp"
+#include "commands/analyze/kmeans_phylogenetic.hpp"
 #include "commands/analyze/krd.hpp"
 #include "commands/analyze/nhd.hpp"
-#include "commands/analyze/pkmeans.hpp"
 #include "commands/analyze/squash.hpp"
 #include "commands/analyze/visualize_color.hpp"
 

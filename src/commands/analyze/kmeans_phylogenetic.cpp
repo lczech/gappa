@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/analyze/pkmeans.hpp"
+#include "commands/analyze/kmeans_phylogenetic.hpp"
 
 #include "commands/analyze/kmeans.hpp"
 #include "options/global.hpp"

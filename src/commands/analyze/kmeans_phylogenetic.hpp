@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_PKMEANS_H_
-#define GAPPA_COMMANDS_ANALYZE_PKMEANS_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_KMEANS_PHYLOGENETIC_H_
+#define GAPPA_COMMANDS_ANALYZE_KMEANS_PHYLOGENETIC_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis

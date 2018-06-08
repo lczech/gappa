@@ -56,7 +56,6 @@ void setup_analyze( CLI::App& app )
     // Add module subcommands.
     // setup_krd( *sub );
     // setup_nhd( *sub );
-    // setup_squash( *sub );
 
     setup_assign( *sub );
     setup_correlation( *sub );
@@ -64,6 +63,7 @@ void setup_analyze( CLI::App& app )
     setup_graft( *sub );
     setup_ikmeans( *sub );
     setup_pkmeans( *sub );
+    setup_squash( *sub );
     setup_visualize_color( *sub );
 }
 

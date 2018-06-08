@@ -29,6 +29,7 @@
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/operators.hpp"
+#include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -287,6 +288,51 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
     }
 
     return result;
+}
+
+std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set() const
+{
+    using namespace genesis;
+    using namespace genesis::placement;
+    using namespace genesis::tree;
+
+    // Prepare storage.
+    auto const set_size = file_count();
+    auto mass_trees = std::vector<MassTree>( set_size );
+    size_t file_count = 0;
+
+    // TODO branch length and compatibility checks!
+
+    // Load files.
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t fi = 0; fi < set_size; ++fi ) {
+
+        // User output.
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
+            {
+                ++file_count;
+                std::cout << "Reading file " << file_count << " of " << set_size;
+                std::cout << ": " << file_path( fi ) << "\n";
+            }
+        }
+
+        // Read in file.
+        auto const smpl = sample( fi );
+
+        // Turn it into a mass tree.
+        mass_trees[fi] = convert_sample_to_mass_tree( smpl ).first;
+    }
+
+    // Check for compatibility.
+    if( ! mass_tree_all_identical_topology( mass_trees ) ) {
+        throw std::runtime_error( "Sample reference trees do not have identical topology." );
+    }
+
+    // Make sure all have the same branch lengths.
+    mass_trees_make_average_branch_lengths( mass_trees );
+
+    return mass_trees;
 }
 
 genesis::placement::Sample JplaceInputOptions::merged_samples() const

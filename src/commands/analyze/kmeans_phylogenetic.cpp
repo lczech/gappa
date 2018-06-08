@@ -151,46 +151,15 @@ void run_pkmeans( PkmeansOptions const& options )
         std::cout << "Reading samples.\n";
     }
 
-    // Prepare storage.
-    auto const set_size = options.jplace_input.file_count();
-    auto mass_trees = std::vector<MassTree>( set_size );
-    size_t file_count = 0;
+    // Read in the trees and immediately convert them to mass trees to save storage.
+    auto mass_trees = options.jplace_input.mass_tree_set();
 
-    // TODO branch length and compatibility checks!
-
-    // Load files.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t fi = 0; fi < set_size; ++fi ) {
-
-        // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_NHD_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Reading file " << file_count << " of " << set_size;
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
-
-        // Read in file.
-        auto const sample = options.jplace_input.sample( fi );
-
-        // Turn it into a mass tree.
-        mass_trees[fi] = convert_sample_to_mass_tree( sample ).first;
-
-        // Binning.
-        if( options.bins > 0 ) {
-            mass_tree_binify_masses( mass_trees[fi], options.bins );
+    // Binning.
+    if( options.bins > 0 ) {
+        for( auto& mt : mass_trees ) {
+            mass_tree_binify_masses( mt, options.bins );
         }
     }
-
-    // Check for compatibility.
-    if( ! mass_tree_all_identical_topology( mass_trees ) ) {
-        throw std::runtime_error( "Sample reference trees do not have identical topology." );
-    }
-
-    // Make sure all have the same branch lengths.
-    mass_trees_make_average_branch_lengths( mass_trees );
 
     // Set up kmeans.
     auto mkmeans = MassTreeKmeans();

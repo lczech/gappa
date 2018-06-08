@@ -31,6 +31,7 @@
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
+#include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/utils/math/matrix.hpp"
 
 #include <string>
@@ -113,6 +114,14 @@ public:
      * from the norm setting in this class.
      */
     PlacementProfile placement_profile( bool force_imbal_norm = false ) const;
+
+    /**
+     * @brief Helper function that retuns all input samples converted to MassTrees.
+     *
+     * This is useful for commands that do not work on Samples directly, but only need their
+     * mass tree representation.
+     */
+    std::vector<genesis::tree::MassTree> mass_tree_set() const;
 
     /**
      * @brief Read in all jplace files given by the user and merge all their pqueries them into a sample.

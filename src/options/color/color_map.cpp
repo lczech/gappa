@@ -85,8 +85,13 @@ CLI::Option* ColorMapOptions::add_color_list_opt_to_app(
     return color_list_option;
 }
 
-CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub )
+CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub, std::string const& default_color )
 {
+    // Default color
+    if( ! default_color.empty() ) {
+        under_color_param_ = default_color;
+    }
+
     // Clip Under
     clip_under_option = sub->add_flag_function(
         "--clip-under",
@@ -120,8 +125,13 @@ CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub )
     return under_color_option;
 }
 
-CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub )
+CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub, std::string const& default_color )
 {
+    // Default color
+    if( ! default_color.empty() ) {
+        over_color_param_ = default_color;
+    }
+
     // Clip Over
     clip_over_option = sub->add_flag_function(
         "--clip-over",
@@ -155,8 +165,13 @@ CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub )
     return over_color_option;
 }
 
-CLI::Option* ColorMapOptions::add_mask_color_opt_to_app( CLI::App* sub )
+CLI::Option* ColorMapOptions::add_mask_color_opt_to_app( CLI::App* sub, std::string const& default_color )
 {
+    // Default color
+    if( ! default_color.empty() ) {
+        mask_color_param_ = default_color;
+    }
+
     // Mask Color
     mask_color_option = sub->add_option(
         "--mask-color",

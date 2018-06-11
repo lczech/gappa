@@ -75,9 +75,9 @@ public:
         std::string const& default_color_list
     );
 
-    CLI::Option* add_under_color_opt_to_app( CLI::App* sub );
-    CLI::Option* add_over_color_opt_to_app( CLI::App* sub );
-    CLI::Option* add_mask_color_opt_to_app( CLI::App* sub );
+    CLI::Option* add_under_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
+    CLI::Option* add_over_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
+    CLI::Option* add_mask_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
 
     // -------------------------------------------------------------------------
     //     Run Functions

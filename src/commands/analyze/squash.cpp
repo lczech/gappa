@@ -60,7 +60,6 @@ void setup_squash( CLI::App& app )
         true
     )->group( "Settings" );
 
-    opt->file_output.add_output_dir_opt_to_app( sub );
 
     // Other jplace settings
     opt->jplace_input.add_point_mass_opt_to_app( sub );
@@ -70,8 +69,9 @@ void setup_squash( CLI::App& app )
     opt->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
     opt->color_norm.add_log_scaling_opt_to_app( sub );
 
-    opt->tree_output.add_tree_output_opts_to_app( sub );
+    opt->file_output.add_output_dir_opt_to_app( sub );
     opt->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree_" );
+    opt->tree_output.add_tree_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.

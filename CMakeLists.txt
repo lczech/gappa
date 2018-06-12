@@ -109,7 +109,7 @@ include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
 # These are replaced by libs/cmake/update_dependencies.sh to the hashes that are currently checked out.
 # Thus, do not replace the hashes manually!
 SET( CLI11_COMMIT_HASH "bd890e24a1f081d6db1a59a0cc372eccc64e9e52" ) #CLI11_COMMIT_HASH#
-SET( genesis_COMMIT_HASH "3c59aa4e460f345702ec4d3920bbb735e48c517f" ) #genesis_COMMIT_HASH#
+SET( genesis_COMMIT_HASH "d535b323d61f1bf768eea30100dbd3b5a5d35f62" ) #genesis_COMMIT_HASH#
 SET( sparsepp_COMMIT_HASH "6bfe3b4bdb364993e612d6bb729d680cf4c77649" ) #sparsepp_COMMIT_HASH#
 
 # Call the github download function, which takes four arguments:

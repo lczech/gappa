@@ -8,7 +8,7 @@ Edge PCA is an analysis method for phylogenetic placement data that reveals cons
 
 The command produces two tables that contain the result of the analysis. The `projection` contains the `jplace` samples projected into principal coordinate space, and the `transformation` lists the top eigenvalues (first column) and their corresponding eigenvectors (remaining columns).
 
-The principal components projection of the samples can be plotted and for example colored according so some per-sample metadata feature, in order to reveal dependencies between the placements of a samples and its metadata:
+The principal components projection of the samples can be plotted and for example colored according to some per-sample metadata feature, in order to reveal dependencies between the placements of a samples and its metadata:
 
 ![First two Edge PCA components projected.](https://github.com/lczech/gappa/blob/master/doc/png/analyze_edgepca_plot.png?raw=true)
 

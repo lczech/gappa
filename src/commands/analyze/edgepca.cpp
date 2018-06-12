@@ -69,7 +69,7 @@ void setup_edgepca( CLI::App& app )
     sub->add_option(
         "--components",
         opt->components,
-        "Number of principal coordinates to calculate.",
+        "Number of principal coordinates to calculate. Use 0 to calculate all possible coordinates.",
         true
     )->group( "Settings" );
 
@@ -110,7 +110,7 @@ void run_edgepca( EdgepcaOptions const& options )
     // Check if any of the files we are going to produce already exists. If so, fail early.
     std::vector<std::string> files_to_check;
     files_to_check.push_back( options.file_output.file_prefix() + "projection.csv" );
-    files_to_check.push_back( options.file_output.file_prefix() + "trans.csv" );
+    files_to_check.push_back( options.file_output.file_prefix() + "transformation.csv" );
     for( auto const& e : options.tree_output.get_extensions() ) {
         files_to_check.push_back(
             options.file_output.file_prefix() + "tree_[0-9]*\\." + e
@@ -149,7 +149,7 @@ void run_edgepca( EdgepcaOptions const& options )
     proj_os.close();
 
     // Eigenvalues and Eigenvectors
-    auto const trans_fn = options.file_output.out_dir() + options.file_output.file_prefix() + "trans.csv";
+    auto const trans_fn = options.file_output.out_dir() + options.file_output.file_prefix() + "transformation.csv";
     std::ofstream trans_os;
     genesis::utils::file_output_stream( trans_fn, trans_os );
     for( size_t r = 0; r < epca_data.eigenvalues.size(); ++r ) {
@@ -172,7 +172,7 @@ void run_edgepca( EdgepcaOptions const& options )
         // Get the colors for the column we are interested in.
         auto const eigen_color_vector = color_map( color_norm, epca_data.eigenvectors.col( c ));
 
-        // Init colors with neutral mid color.
+        // Init colors with the mask color, signifying that these edges do not have a value.
         std::vector<utils::Color> color_vector( tree.edge_count(), color_map.mask_color() );
         // std::vector<utils::Color> color_vector( tree.edge_count(), color_map( color_norm, 0.0 ));
 

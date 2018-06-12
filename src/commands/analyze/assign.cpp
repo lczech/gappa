@@ -285,7 +285,7 @@ static void assign( Sample const& sample,
 {
     bool    const   auto_ratio = ( options.dist_ratio < 0.0 );
     double  const   dist_ratio = options.dist_ratio;
-    assert( auto_ratio or ( dist_ratio > 0.0 and dist_ratio <= 1.0 ) );
+    assert( auto_ratio or ( dist_ratio >= 0.0 and dist_ratio <= 1.0 ) );
 
     auto const& tree = sample.tree();
     Taxonomy diversity;
@@ -299,8 +299,24 @@ static void assign( Sample const& sample,
 
     for ( auto const& pq : sample.pqueries() ) {
         Taxonomy per_pq_assignments;
+
+        using PqueryName = genesis::placement::PqueryName;
+
+        // take the multiplicity of a PQuery as the sum of all named multiplicites within it
+        auto const multiplicity = std::accumulate(  pq.begin_names(),
+                                                    pq.end_names(),
+                                                    PqueryName(),
+            []( const PqueryName& a, const PqueryName& b ){
+                PqueryName ret;
+                ret.multiplicity = a.multiplicity + b.multiplicity;
+                return ret;
+            }
+        ).multiplicity;
+
+
         for ( auto const& p : pq.placements() ) {
-            auto const lwr = p.like_weight_ratio;
+            // scale the LWR by the multiplicity
+            auto const lwr = p.like_weight_ratio * multiplicity;
             // get its adjacent nodes
             auto const& edge = tree.edge_at( p.edge().index() );
             auto const& proximal_node   = edge.primary_node();
@@ -319,11 +335,18 @@ static void assign( Sample const& sample,
                 auto const toward_distal    = (1 / branch_length) * position;
                 // the ratio is effectively "how much lwr mass should go toward the PROXIMAL", so we need to flip it
                 ratio = 1.0 - toward_distal;
+
+                assert(ratio >= 0.0);
+                assert(ratio <= 1.0);
+                assert(ratio >= 1e-6);
             }
 
             // calculate lwr portions
             auto proximal_portion   = lwr * ratio;
             auto distal_portion     = lwr * (1.0 - ratio);
+
+            assert(proximal_portion >= 0.0);
+            assert(distal_portion >= 0.0);
 
 
             // add LW to taxopaths of the nodes according to strategy

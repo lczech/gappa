@@ -43,6 +43,7 @@
 #include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
+#include <cassert>
 #include <fstream>
 
 #ifdef GENESIS_OPENMP

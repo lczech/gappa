@@ -13,5 +13,5 @@ If the `--write-...-tree` options are used, the mass trees representing the samp
 When using this method, please do not forget to cite
 
 > Matsen FA, Evans SN (2013),
-> **"Edge Principal Components and Squash Clustering: Using the Special Structure of Phylogenetic Placement Data for Sample Comparison."**",
+> **"Edge Principal Components and Squash Clustering: Using the Special Structure of Phylogenetic Placement Data for Sample Comparison."**,
 > *PLOS ONE 8(3): e56859*, doi:[10.1371/journal.pone.0056859](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0056859)

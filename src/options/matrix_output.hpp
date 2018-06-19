@@ -29,6 +29,7 @@
 #include "options/file_output.hpp"
 
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/matrix/writer.hpp"
 
 #include <string>
 #include <vector>
@@ -62,7 +63,12 @@ public:
     //     Setup Functions
     // -------------------------------------------------------------------------
 
-    void add_matrix_output_opts_to_app( CLI::App* sub, std::string const& name );
+    void add_matrix_output_opts_to_app(
+        CLI::App* sub,
+        std::string const& name = "",
+        bool offer_triangular_mode = true,
+        bool offer_omit_labels = true
+    );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -70,7 +76,15 @@ public:
 
     std::string output_filename() const;
 
-    void write_matrix( genesis::utils::Matrix<double> const& mat ) const;
+    void check_nonexistent_output_files() const;
+
+    void write_matrix(
+        genesis::utils::Matrix<double> const& mat,
+        std::vector<std::string> const& row_names = {},
+        std::vector<std::string> const& col_names = {},
+        std::string const& corner = ""
+    ) const;
+
     // void write_matrix( genesis::utils::Matrix<std::string> const& mat ) const;
 
     // -------------------------------------------------------------------------
@@ -80,7 +94,9 @@ public:
 private:
 
     std::string format_ = "matrix";
-    // bool omit_labels_ = false;
+    bool omit_labels_ = false;
+
+    std::string name_;
 
 };
 

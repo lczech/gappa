@@ -32,6 +32,7 @@
 #include "genesis/placement/function/operators.hpp"
 
 #include "genesis/tree/default/distances.hpp"
+#include "genesis/tree/default/functions.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/mass_tree/emd.hpp"
@@ -58,21 +59,33 @@ void setup_krd( CLI::App& app )
     auto opt = std::make_shared<KrdOptions>();
     auto sub = app.add_subcommand(
         "krd",
-        "Calcualte the pairwise Kantorovich-Rubinstein (KR) Distance between samples."
+        "Calcualte the pairwise Kantorovich-Rubinstein (KR) distance matrix between samples."
     );
 
-    // Add common options.
+    // File input
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
-    opt->jplace_input.add_point_mass_opt_to_app( sub );
-    opt->matrix_output.add_matrix_output_opts_to_app( sub, "distance" );
 
-    // Add custom options.
+    // Exponent for kr integration
     sub->add_option(
         "--exponent",
         opt->exponent,
         "Exponent for KR integration.",
         true
-    );
+    )->group( "Settings" );
+
+    // Normalize to tree length
+    sub->add_flag(
+        "--normalize",
+        opt->normalize,
+        "Divide the KR distance by the tree length to get normalized values."
+    )->group( "Settings" );
+
+    // Further input settings
+    opt->jplace_input.add_point_mass_opt_to_app( sub );
+    opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
+
+    // Output
+    opt->matrix_output.add_matrix_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -93,56 +106,38 @@ void run_krd( KrdOptions const& options )
     using namespace genesis::utils;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    // TODO this is ugly.
-    options.matrix_output.check_nonexistent_output_files({ options.matrix_output.output_filename() });
+    options.matrix_output.check_nonexistent_output_files();
 
     // Print some user output.
     options.jplace_input.print();
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading samples.\n";
+
+    // Base check
+    if( options.jplace_input.file_count() < 2 ) {
+        throw std::runtime_error( "Cannot run krd with fewer than 2 samples." );
     }
 
-    // Prepare storage.
-    auto const set_size = options.jplace_input.file_count();
-    auto mass_trees = std::vector<MassTree>( set_size );
-    size_t file_count = 0;
+    // Read files.
+    auto const mass_trees = options.jplace_input.mass_tree_set();
 
-    // TODO branch length and compatibility checks!
-
-    // Load files.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t fi = 0; fi < set_size; ++fi ) {
-
-        // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_NHD_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
-
-        // Read in file.
-        auto const sample = options.jplace_input.sample( fi );
-
-        // Turn it into a mass tree.
-        mass_trees[fi] = convert_sample_to_mass_tree( sample ).first;
-    }
-
+    // Calculate result matrix.
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Calculating pairwise KR distances.\n";
     }
+    auto krd_matrix = earth_movers_distance( mass_trees, options.exponent );
 
-    // Calculate result matrix.
-    auto const krd_matrix = earth_movers_distance( mass_trees, options.exponent );
+    // Normalize by tree length if necessary.
+    if( options.normalize ) {
+        assert( mass_trees.size() > 0 );
+        auto const len = length( mass_trees[0] );
+        for( auto& e : krd_matrix ) {
+            e /= len;
+        }
+    }
 
+    // Write output matrix in the specified format
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Writing distance matrix.\n";
     }
-    options.matrix_output.write_matrix( krd_matrix );
-
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Finished.\n";
-    }
+    auto const names = options.jplace_input.base_file_names();
+    options.matrix_output.write_matrix( krd_matrix, names, names, "Sample" );
 }

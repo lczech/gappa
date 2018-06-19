@@ -89,7 +89,7 @@ void run_nhd( NhdOptions const& options )
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
     // TODO this is ugly.
-    options.matrix_output.check_nonexistent_output_files({ options.matrix_output.output_filename() });
+    options.matrix_output.check_nonexistent_output_files();
 
     // Print some user output.
     options.jplace_input.print();

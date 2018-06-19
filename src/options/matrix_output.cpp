@@ -34,24 +34,38 @@
 //      Setup Functions
 // =================================================================================================
 
-void MatrixOutputOptions::add_matrix_output_opts_to_app( CLI::App* sub, std::string const& name )
-{
+void MatrixOutputOptions::add_matrix_output_opts_to_app(
+    CLI::App* sub,
+    std::string const& name,
+    bool offer_triangular_mode,
+    bool offer_omit_labels
+) {
+    name_ = name;
+
     add_output_dir_opt_to_app( sub, name, ".", "Matrix Output" );
     add_file_prefix_opt_to_app( sub, name, name, "Matrix Output" );
 
-    // sub->add_set_ignore_case(
-    //     "--" + name + "-matrix-format",
-    //     format_,
-    //     { "matrix", "triangular", "list" },
-    //     "Format of the output file.",
-    //     true
-    // )->group( "Matrix Output" );
+    // Add output format.
+    auto formats = std::set<std::string>{ "matrix", "list" };
+    if( offer_triangular_mode ) {
+        formats.insert( "triangular" );
+    }
+    sub->add_set_ignore_case(
+        "--" + name + ( name.empty() ? "" : "-" ) + "matrix-format",
+        format_,
+        formats,
+        "Format of the output matrix file.",
+        true
+    )->group( "Matrix Output" );
 
-    // sub->add_flag(
-    //     "--omit-" + name + "-matrix-labels",
-    //     omit_labels_,
-    //     "If set, the matrix is written without column and row labels."
-    // );
+    // Add label setting
+    if( offer_omit_labels ) {
+        sub->add_flag(
+            "--omit-" + name + ( name.empty() ? "" : "-" ) + "matrix-labels",
+            omit_labels_,
+            "If set, the output matrix is written without column and row labels."
+        )->group( "Matrix Output" );
+    }
 }
 
 // =================================================================================================
@@ -60,36 +74,47 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app( CLI::App* sub, std::str
 
 std::string MatrixOutputOptions::output_filename() const
 {
-    return file_prefix() + ".csv";
+    return file_prefix() + "krd.csv";
 }
 
-void MatrixOutputOptions::write_matrix( genesis::utils::Matrix<double> const& mat ) const
+void MatrixOutputOptions::check_nonexistent_output_files() const
 {
+    FileOutputOptions::check_nonexistent_output_files({ output_filename() });
+}
+
+void MatrixOutputOptions::write_matrix(
+    genesis::utils::Matrix<double> const& mat,
+    std::vector<std::string> const& row_names,
+    std::vector<std::string> const& col_names,
+    std::string const& corner
+) const {
     using namespace genesis;
     using namespace genesis::utils;
 
-    // TODO offer function for checking nonexistent out file beforehand
     // TODO offer function for dataframe, for other matrix types etc
     // TODO add double presicison
     // TODO add separator char
-    // TODO implement other output formats (see below)
 
     auto const filename = out_dir() + output_filename();
+    auto writer = MatrixWriter<double>();
 
+    // Set output format.
     if( format_ == "matrix" ) {
-
-        // TODO directly write to stream instead of intermediate string!
-        utils::file_write( utils::to_string( mat ), filename );
-
-    // } else if( format_ == "triangular" ) {
-    //
-    //
-    // } else if( format_ == "list" ) {
-
-
+        writer.format( MatrixWriter<double>::Format::kMatrix );
+    } else if( format_ == "list" ) {
+        writer.format( MatrixWriter<double>::Format::kList );
+    } else if( format_ == "triangular" ) {
+        writer.format( MatrixWriter<double>::Format::kTriangular );
     } else {
         throw CLI::ValidationError(
-            "--svg-tree-shape", "Invalid format '" + format_ + "'."
+            "--" + name_ + ( name_.empty() ? "" : "-" ) + "matrix-format", "Invalid format '" + format_ + "'."
         );
+    }
+
+    // Do the writing
+    if( omit_labels_ ) {
+        writer.to_file( mat, filename );
+    } else {
+        writer.to_file( mat, filename, row_names, col_names, corner );
     }
 }

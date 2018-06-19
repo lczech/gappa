@@ -41,7 +41,7 @@ class KrdOptions
 public:
 
     double exponent = 1.0;
-    bool normalize = false; // TODO unused
+    bool normalize = false;
 
     JplaceInputOptions jplace_input;
     MatrixOutputOptions  matrix_output;

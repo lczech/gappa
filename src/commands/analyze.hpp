@@ -54,16 +54,16 @@ void setup_analyze( CLI::App& app )
     );
     sub->require_subcommand( 1 );
 
-    // Add module subcommands.
-    // setup_krd( *sub );
-    // setup_nhd( *sub );
 
+    // Add module subcommands.
     setup_assign( *sub );
     setup_correlation( *sub );
     setup_dispersion( *sub );
     setup_edgepca( *sub );
     setup_graft( *sub );
     setup_ikmeans( *sub );
+    setup_krd( *sub );
+    // setup_nhd( *sub );
     setup_pkmeans( *sub );
     setup_squash( *sub );
     setup_visualize_color( *sub );

@@ -29,14 +29,18 @@
 
 #include "genesis/taxonomy/formats/taxopath_parser.hpp"
 #include "genesis/taxonomy/formats/taxopath_generator.hpp"
+#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
 #include "genesis/taxonomy/functions/taxopath.hpp"
+#include "genesis/taxonomy/functions/taxonomy.hpp"
 #include "genesis/taxonomy/iterator/preorder.hpp"
+#include "genesis/taxonomy/iterator/postorder.hpp"
 #include "genesis/taxonomy/taxopath.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include "genesis/tree/default/functions.hpp"
 #include "genesis/tree/default/tree.hpp"
@@ -76,9 +80,26 @@ void setup_assign( CLI::App& app )
 
     sub->add_option(
         "--taxon-file",
-        opt->taxon_file,
-        "File containing a tab-separated list of taxon to taxonomic string assignments."
+        opt->taxon_map_file,
+        "File containing a tab-separated list of reference taxon to taxonomic string assignments."
     )->check(CLI::ExistingFile)->required()->group("Input");
+
+    auto taxonomy_option = sub->add_option(
+        "--taxonomy",
+        opt->taxonomy_file,
+        "EXPERIMENTAL: File containing a tab-separated list defining the taxonomy."
+        " If mapping is incomplete (for example if the output taxonomy shall be NCBI,"
+        " but SILVA was used as the basis in the --taxon-file) a best-effort mapping is attempted."
+    )->check(CLI::ExistingFile)->group("Input");
+
+    sub->add_option(
+        "--ranks-string",
+        opt->rank_constraint,
+        "String specifying the rank names, in order, to which the taxonomy adheres. Required when using "
+        "the CAMI output format. Assignments not adhereing to this constrained will be collapsed to the "
+        "last valid mapping\n"
+        "EXAMPLE: superkingdom|phylum|class|order|family|genus|species"
+    )->check(CLI::ExistingFile)->group("Input");
 
     // Add specific options.
     sub->add_option(
@@ -99,6 +120,12 @@ void setup_assign( CLI::App& app )
     // Output
     opt->output_dir.add_output_dir_opt_to_app( sub );
 
+    sub->add_flag(
+        "--cami",
+        opt->cami,
+        "EXPERIMENTAL: Print result in the CAMI Taxonomic Profiling Output Format."
+    )->group("Output")->needs(taxonomy_option);
+
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [ opt ]() {
@@ -116,7 +143,12 @@ using namespace genesis::tree;
 using namespace genesis::taxonomy;
 using namespace genesis::utils;
 
-static Taxopath intersect( Taxopath const& lhs, Taxopath const& rhs )
+bool equals_closely( std::string const& lhs, std::string const& rhs )
+{
+    return to_lower( lhs ) == to_lower( rhs );
+}
+
+Taxopath intersect( Taxopath const& lhs, Taxopath const& rhs )
 {
     Taxopath result;
 
@@ -132,7 +164,7 @@ static Taxopath intersect( Taxopath const& lhs, Taxopath const& rhs )
 }
 
 // go through the tree in postorder fashion and label inner nodes according to the most common taxonomic rank of the children
-static void postorder_label( PlacementTree const& tree, std::vector<Taxopath>& node_labels )
+void postorder_label( PlacementTree const& tree, std::vector<Taxopath>& node_labels )
 {
     for ( auto it : postorder(tree) ) {
         if ( it.node().is_inner() ) {
@@ -146,7 +178,7 @@ static void postorder_label( PlacementTree const& tree, std::vector<Taxopath>& n
     }
 }
 
-static void print_labelled( PlacementTree const& tree,
+void print_labelled( PlacementTree const& tree,
                             std::vector<Taxopath> const& node_labels,
                             std::string const& file_name )
 {
@@ -161,7 +193,7 @@ static void print_labelled( PlacementTree const& tree,
     writer.to_file( tree, file_name );
 }
 
-static std::vector<Taxopath> assign_leaf_taxopaths( PlacementTree const& tree,
+std::vector<Taxopath> assign_leaf_taxopaths( PlacementTree const& tree,
                                                     std::string const& taxon_file)
 {
     TaxopathParser tpp;
@@ -201,9 +233,9 @@ static std::vector<Taxopath> assign_leaf_taxopaths( PlacementTree const& tree,
     return node_labels;
 }
 
-static void add_lwr_to_taxonomy(const double lwr,
-                                Taxopath const& path,
-                                Taxonomy& taxonomy )
+void add_lwr_to_taxonomy(   const double lwr,
+                            Taxopath const& path,
+                            Taxonomy& taxonomy )
 {
     auto cur_tax = &add_from_taxopath( taxonomy, path );
 
@@ -226,34 +258,383 @@ static void add_lwr_to_taxonomy(const double lwr,
     } while( cur_tax != nullptr );
 }
 
-void print_taxonomy_with_lwr( Taxonomy const& t, std::ostream& stream )
+void print_taxonomy_with_lwr( Taxonomy const& tax, std::ostream& stream )
 {
     // get total LWR as sum of all top level aLWR
     double sum = 0.0;
-    for( auto const& ct : t ) {
+    for( auto const& ct : tax ) {
         sum += ct.data<AssignTaxonData>().aLWR;
     }
 
-    preorder_for_each( t, [&]( Taxon const& tax ){
-
-        stream  << std::setprecision(4)
-                << tax.data<AssignTaxonData>().LWR
-                << "\t"
-                << tax.data<AssignTaxonData>().LWR / sum
-                << "\t"
-                << tax.data<AssignTaxonData>().aLWR
-                << "\t"
-                << tax.data<AssignTaxonData>().aLWR / sum
-                << "\t"
-                << TaxopathGenerator().to_string( tax )
-                << "\n";
+    preorder_for_each( tax, [&]( Taxon const& taxon ){
+        if ( taxon.data<AssignTaxonData>().aLWR != 0 ) {
+            stream  << std::setprecision(4)
+                            << taxon.data<AssignTaxonData>().LWR
+                    << "\t" << taxon.data<AssignTaxonData>().LWR / sum
+                    << "\t" << taxon.data<AssignTaxonData>().aLWR
+                    << "\t" << taxon.data<AssignTaxonData>().aLWR / sum
+                    << "\t" << TaxopathGenerator().to_string( taxon )
+                    << "\n";
+        }
     });
 }
 
-void print_taxonomy_table( Taxonomy const& t, std::ostream& stream )
+void print_taxonomy_table( Taxonomy const& t, std::string const& path )
 {
+    std::ofstream stream;
+    genesis::utils::file_output_stream( path, stream );
+
     stream << "LWR\tfract\taLWR\tafract\ttaxopath\n";
     print_taxonomy_with_lwr( t, stream );
+}
+
+using vec_iter = std::vector<std::string>::const_iterator;
+
+/**
+ * Inserts as many taxons between first and last as specified by the rank name range [rank_first, rank end).
+ * Updates the 'last' pointer to point to the new
+ */
+Taxon* insert_between( Taxon* first, Taxon* last, vec_iter const rank_first, vec_iter const rank_end, Taxon const* map_entry ) {
+    assert( std::distance(rank_first, rank_end) > 0 );
+    assert( first );
+    assert( last );
+    assert( map_entry );
+
+    // ensure map_entry starts at parent-equvalent (in the map) of 'last'
+    assert( equals_closely( last->name(), map_entry->name() ) );
+    assert( map_entry->parent() );
+    map_entry = map_entry->parent();
+
+    // generate a list of Taxons to be inserted
+    auto first_id = first->id();
+    std::vector<Taxon> to_insert;
+    do {
+        auto& entry = *map_entry;
+        // only add taxa that conform to the rank constraint
+        auto found = std::find( rank_first, rank_end, entry.rank() );
+        if ( found != rank_end ) {
+            to_insert.emplace_back(
+                Taxon( entry.name(), entry.rank(), entry.id() ).reset_data( AssignTaxonData::create() )
+            );
+        }
+        map_entry = entry.parent();
+    } while ( map_entry and map_entry->id() != first_id );
+
+    // go through the list of taxons to add in reverse order
+    Taxon* running = first;
+    if ( not to_insert.empty() ) {
+        for ( auto it = to_insert.rbegin(); it != to_insert.rend(); ++it ) {
+            if( global_options.verbosity() >= 3 ) {
+                std::cout << "\tInserting '" << it->name() << "' ('" << it->rank() << "', " << it->id() << ")" << std::endl;
+            }
+            running = &( running->add_child( *it ) );
+        }
+
+        // finally, set parent pointer of 'last' to the last added empty Taxon
+        auto new_last = &( running->add_child( *last ) );
+
+        // delete 'last' taxon as it is now copied into the taxonomy as a new sub tree
+        last->parent()->remove_child( last->name() );
+
+        // last = new_last;
+
+        return new_last;
+    } else {
+        return last;
+    }
+}
+
+void transfer_lwr( Taxon* source, Taxon* dest ) {
+    assert( source );
+    assert( source->data_ptr() );
+    if ( not dest ) {
+        throw std::runtime_error{"No last successful match to assign LWR to. (taxopath and Taxonomy"
+                                " fundamentally incompatible?)"};
+    }
+    assert( dest->data_ptr() );
+
+
+    if ( source->data_ptr() == nullptr or dest->data_ptr() == nullptr ) {
+        throw std::runtime_error{"bad data pointer"};
+    }
+
+    auto& dd = dest->data<AssignTaxonData>();
+    auto& sd = source->data<AssignTaxonData>();
+    dd.LWR += sd.LWR;
+
+    // (aLWR already accounted for by definition)
+
+    // reset the old
+    sd.LWR = 0.0;
+    sd.aLWR = 0.0;
+}
+
+/**
+ * Prune a Taxon from the taxonomy, transferring its children to the parent.
+ *
+ * returns a pointer to the parent
+ */
+Taxon* prune( Taxon* const taxon )
+{
+    auto parent = taxon->parent();
+    assert( parent );
+    // if we are at the top.. well fuck, throw for now
+    assert( taxon->parent() );
+
+    if( global_options.verbosity() >= 3 ) {
+        std::cout << "\tPruning '" << taxon->name() << "' to '" << parent->name() << "' (" << parent->rank() << ")" << std::endl;
+    }
+
+    // transfer the children
+    for ( auto& child : *taxon ) {
+        parent->add_child( child );
+    }
+
+    // remove the taxon from parent
+    parent->remove_child( taxon->name() );
+
+    return parent;
+}
+
+/**
+ * Maps the given Taxon and its predeccesors according to the given Taxonomy.
+ *
+ * Here, mapping means assigning the appropriate rank name and ID when a Taxon matches.
+ * If no match is found, a taxon has its LWR/aLWR transferred to the last parent to still be mapped
+ * successfully.
+ *
+ */
+Taxon const* map_according_to( Taxonomy const& map, Taxon& taxon, std::string const& rank_constraint )
+{
+    // short cuircuit if Taxon already mapped
+    if( not taxon.id().empty() ) {
+        if( global_options.verbosity() >= 3 ) {
+            std::cout << "Already Mapped!" << std::endl;
+        }
+        return &taxon;
+    }
+
+    // make rank contraint into a vector
+    auto const valid_ranks = split( rank_constraint, "|" );
+    auto rank_iter = valid_ranks.begin();
+    auto const rank_end = valid_ranks.end();
+
+    // pointer to the last successfully mapped Taxon
+    Taxon* last_success = nullptr;
+    std::vector<int> taxon_list;
+
+    // Go up the Taxon-chain to the top or the last successful mapping
+    Taxon* cur_taxon = &taxon;
+    // signal the end
+    taxon_list.emplace_back(-1);
+    for (; cur_taxon->parent() and cur_taxon->parent()->id().empty(); cur_taxon = cur_taxon->parent() ) {
+        // add to a taxon-pointer-list while doing so
+        taxon_list.emplace_back( cur_taxon->data<AssignTaxonData>().tmp_id );
+    }
+
+    // if we stopped before the top that means we have a last_success
+    if ( cur_taxon->parent() ) {
+        last_success = cur_taxon->parent();
+
+        // make sure we start the valid rank stuff accordingly
+        rank_iter = std::find( rank_iter, rank_end, last_success->rank() );
+        if ( rank_iter == rank_end ) {
+            throw std::runtime_error{std::string()
+                + "last_success somehow did not have a valid rank! last_success->rank(): "
+                + last_success->rank()
+            };
+        }
+    }
+
+    // then go through the taxon_list in reverse order
+    // Use a pointer that is updated in the loop while we go deeper and deeper into the mapping taxonomy.
+    Taxonomy const* cur_ref_taxon = &map;
+    for (auto it = taxon_list.rbegin(); it != taxon_list.rend(); ++it) {
+        bool do_mapping = true;
+        // find current taxon in map
+        auto const entry = find_taxon( *cur_ref_taxon, [&cur_taxon](Taxon const& other) {
+            return equals_closely( cur_taxon->name(), other.name() );
+        });
+
+        if ( entry ) {
+        // success:
+            // check rank name validities
+            if ( entry->rank() != *rank_iter ) {
+                // did we perhaps skip some?
+                auto found_rank = std::find( rank_iter, rank_end, entry->rank() );
+                if ( found_rank != rank_end ) {
+                    // looks like we skipped some, so lets insert some empty Taxon between last success and here
+                    if( global_options.verbosity() >= 3 ) {
+                        std::cout   << "Inserting " << std::distance(rank_iter, found_rank) << " ranks between '"
+                                    << last_success->name() << "' (" << last_success->rank() << ") and '"
+                                    << cur_taxon->name()  << "' (" << cur_taxon->rank()  << ")" << std::endl;
+                    }
+
+                    cur_taxon = insert_between( last_success, cur_taxon, rank_iter, found_rank, entry );
+                    rank_iter = found_rank;
+                } else {
+                    // nope, this entries rank just doesnt make any sense according to the constraint
+                    // so lets transfer its LWR to the last succesful rank
+                    if( global_options.verbosity() >= 3 ) {
+                        std::cout   << "Transferring LWR from '" << cur_taxon->name() << "' to '"
+                                    << last_success->name() << "', because rank '"
+                                    << entry->rank() << "' is outside of the constraint." << std::endl;
+                    }
+                    transfer_lwr( cur_taxon, last_success );
+                    // not just do we need to skip, we also need to prune this taxon
+                    cur_taxon = prune( cur_taxon );
+                    // skip the actual ID assignment
+                    do_mapping = false;
+                }
+            }
+
+            if ( do_mapping ) {
+                if( global_options.verbosity() >= 3 ) {
+                    std::cout << "Mapping '" << cur_taxon->name();
+                    std::cout << "' to '" << entry->name();
+                    std::cout << "' (" << entry->rank() << ")" << std::endl;
+                }
+
+                // copy over rank name and ID
+                cur_taxon->id( entry->id() );
+                cur_taxon->rank( entry->rank() );
+                // need to take the new name as well, as we do a ignore-case search
+                cur_taxon->name( entry->name() );
+                // update last_success to this Taxon
+                last_success = cur_taxon;
+                // update rolling ref taxonomy ptr to the entry
+                cur_ref_taxon = entry;
+                // iterate valid rank
+                ++rank_iter;
+            }
+        } else {
+        // failure:
+            // transfer lwr to last_success
+            if( global_options.verbosity() >= 3 ) {
+                std::cout << "Transferring LWR from '" << cur_taxon->name() << "' to '";
+                std::cout << last_success->name() << "'" << std::endl;
+            }
+            transfer_lwr( cur_taxon, last_success );
+            cur_taxon = prune( cur_taxon );
+        }
+
+        if ( *it >= 0 ) {
+            // we have to get the next iterations pointer from the current, as the structure may have changed! (in the insert_between case)
+            cur_taxon = find_taxon(*cur_taxon, [&it](Taxon const& t){
+                return t.data<AssignTaxonData>().tmp_id == *it;
+            }, BreadthFirstSearch{} );
+            assert( cur_taxon );
+        }
+    }
+    return cur_taxon;
+}
+
+/**
+ * Adds Taxonomic IDs to the taxopaths according to the Taxonomy file
+ * @param tax     Taxonomy structure to be updated
+ * @param options options object
+ */
+void add_taxon_ids( Taxonomy& tax, AssignOptions const& options )
+{
+    // load taxonomy tsv into internal
+    Taxonomy map;
+    TaxonomyReader().id_field_position(1)
+                    .rank_field_position(2)
+                    .from_file( options.taxonomy_file, map );
+
+    /* dirty hack time! yaay
+    *  since we will have a very hard time changing the taxonomy while traversing it
+    *  my dirty solution is to first give the leaves of the taxonomy unique IDs
+    *  based on their traversal. Then we iterate over these IDs, using them to
+    *  get the Taxons in-order, always from the currently 'fresh' taxonomy.
+    */
+
+    // set temporary, unique ids
+    int tmp_id = 0;
+    postorder_for_each( tax, [&tmp_id]( Taxon& taxon ) {
+        taxon.data<AssignTaxonData>().tmp_id = tmp_id++;
+    }, true); // true means also traverse inner taxa
+
+    // map all taxa
+    // std::cout << "ROOT NAME: " << dynamic_cast<Taxon*>(&tax)->name() << std::endl;
+    for (int i = 0; i < tmp_id; ++i) {
+        auto taxon = find_taxon( tax, [&i](Taxon const& other) {
+            return other.data<AssignTaxonData>().tmp_id == i;
+        });
+
+        if ( taxon ) { // its possible that we don't find the taxon since it may have been pruned
+            if( global_options.verbosity() >= 3 ) {
+                std::cout << "== trying to map " << taxon->name() << " ==" << std::endl;
+            }
+            map_according_to( map, *taxon, options.rank_constraint );
+        }
+    }
+}
+
+std::string get_rank_string( Taxonomy const& tax )
+{
+    std::vector<std::string> ranks;
+    preorder_for_each( tax, [&]( Taxon const& taxon ) {
+        auto const level = taxon_level( taxon );
+
+        // Add missing ranks.
+        for (size_t i = ranks.size(); i <= level; ++i) {
+            ranks.push_back("");
+        }
+
+        // Check consistency
+        if ( not ranks[level].empty() and ranks[level] != taxon.rank() ) {
+            throw std::runtime_error{
+                std::string() +
+                "Taxonomy has internally inconsistent taxonomic rank annotations. " +
+                "ranks["+std::to_string(level)+"]: " + ranks[level] +
+                " |vs| taxon.rank(): " + taxon.rank() +
+                "\nCulprit: " + TaxopathGenerator().to_string( taxon )
+            };
+        }
+
+        // Add level
+        ranks[level] = taxon.rank();
+    });
+
+    return join(ranks, "|");
+}
+
+void print_cami( Taxonomy const& tax, std::string const& path )
+{
+    std::ofstream stream;
+    genesis::utils::file_output_stream( path, stream );
+
+    // taxopath generator
+    auto gen = TaxopathGenerator().delimiter("|");
+    using Field = TaxopathGenerator::TaxonField;
+
+    // Print the header
+    stream << "@SampleID:SAMPLEID\n"; // TODO: sampleid based on file name?
+    stream << "@Version:0.9.3\n";
+    stream << "@Ranks:superkingdom|phylum|class|order|family|genus|species" << "\n";
+
+    // data section
+    stream << "@@TAXID\tRANK\tTAXPATH\tTAXPATHSN\tPERCENTAGE\n";
+
+    // get total LWR as sum of all top level aLWR
+    double sum = 0.0;
+    for( auto const& ct : tax ) {
+        sum += ct.data<AssignTaxonData>().aLWR;
+    }
+
+    preorder_for_each( tax, [&]( Taxon const& taxon ){
+        if ( taxon.data<AssignTaxonData>().aLWR != 0 ) {
+            stream  << std::setprecision(4)
+                            << taxon.id()                                             // TAXID
+                    << "\t" << taxon.rank()                                           // RANK
+                    << "\t" << gen.field(Field::kId).to_string( taxon )               // TAXPATH
+                    << "\t" << gen.field(Field::kName).to_string( taxon )             // TAXPATHSN
+                    << "\t" << ( taxon.data<AssignTaxonData>().aLWR / sum ) * 100.0   // PERCENTAGE
+                    << "\n";
+        }
+    });
+
 }
 
 Taxonomy& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
@@ -288,6 +669,7 @@ static void assign( Sample const& sample,
     assert( auto_ratio or ( dist_ratio >= 0.0 and dist_ratio <= 1.0 ) );
 
     auto const& tree = sample.tree();
+
     Taxonomy diversity;
 
     std::ofstream per_pquery_out_stream;
@@ -305,7 +687,7 @@ static void assign( Sample const& sample,
         // take the multiplicity of a PQuery as the sum of all named multiplicites within it
         auto const multiplicity = std::accumulate(  pq.begin_names(),
                                                     pq.end_names(),
-                                                    PqueryName(),
+                                                    PqueryName("", 0),
             []( const PqueryName& a, const PqueryName& b ){
                 PqueryName ret;
                 ret.multiplicity = a.multiplicity + b.multiplicity;
@@ -369,19 +751,30 @@ static void assign( Sample const& sample,
             print_taxonomy_with_lwr( per_pq_assignments, per_pquery_out_stream );
         }
     }
-    auto out_dir = options.output_dir.out_dir();
+
+    // if specified, use the taxonomy table to label the taxopaths according to their tax IDs
+    if ( not options.taxonomy_file.empty() ) {
+        add_taxon_ids( diversity, options );
+    }
+
+    // ========= OUTPUT =============
+
+    std::string out_dir = options.output_dir.out_dir();
 
     // return diversity profile
-    std::ofstream profile;
-    genesis::utils::file_output_stream( out_dir + "profile.csv", profile );
-    print_taxonomy_table( diversity, profile );
+    print_taxonomy_table( diversity, out_dir + "profile.csv" );
+
+    // print result in CAMI format if desired
+    if ( options.cami ) {
+        print_cami( diversity, out_dir + "cami.profile" );
+    }
 
     // constrain to subtaxonomy if specified
-    const auto subtaxonomy = get_subtaxonomy( diversity, options );
-    // and print to file
-    std::ofstream profile_filtered;
-    genesis::utils::file_output_stream( out_dir + "profile_filtered.csv", profile_filtered );
-    print_taxonomy_table( subtaxonomy, profile_filtered );
+    if ( not options.sub_taxopath.empty() ) {
+        const auto subtaxonomy = get_subtaxonomy( diversity, options );
+        // and print to file
+        print_taxonomy_table( subtaxonomy, out_dir + "profile_filtered.csv" );
+    }
 }
 
 void run_assign( AssignOptions const& options )
@@ -397,12 +790,12 @@ void run_assign( AssignOptions const& options )
     }
 
     if( global_options.verbosity() >= 2 ) {
-        std::cout << "Getting taxonomic information from: " << options.taxon_file << "\n";
+        std::cout << "Getting taxonomic information from: " << options.taxon_map_file << "\n";
     }
 
     // vector to hold the per node taxopaths
     // fill the per node taxon assignments
-    auto node_labels = assign_leaf_taxopaths(tree, options.taxon_file);
+    auto node_labels = assign_leaf_taxopaths(tree, options.taxon_map_file);
 
     // assign taxpaths to inner nodes
     postorder_label( tree, node_labels );

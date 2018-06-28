@@ -42,13 +42,16 @@ class AssignOptions
 {
 public:
 
-    std::string         taxon_file;
+    std::string         taxon_map_file;
+    std::string         taxonomy_file;
+    std::string         rank_constraint = "superkingdom|phylum|class|order|family|genus|species";
     std::string         sub_taxopath;
     JplaceInputOptions  jplace_input;
 
-    double  dist_ratio = -1.0;
+    double              dist_ratio = -1.0;
 
     FileOutputOptions   output_dir;
+    bool                cami = false;
 };
 
 // =================================================================================================
@@ -100,8 +103,13 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    double aLWR = 0.0;
-    double LWR  = 0.0;
+    double aLWR         = 0.0;
+    double LWR          = 0.0;
+
+    /**
+     * related to the dirty hack in add_taxon_ids(..)
+     */
+    int tmp_id       = -1;
 };
 
 #endif // include guard

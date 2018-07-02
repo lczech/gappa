@@ -555,6 +555,9 @@ void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy:
     genesis::utils::file_output_stream( fn, cons_seq_os );
     auto const tax_gen = TaxopathGenerator();
 
+    // Collect taxa that do not have any data
+    std::vector<std::string> no_data_taxa;
+
     // Calculate consensus sequences and write them.
     auto make_consensus_sequences = [&]( Taxon const& t ) {
 
@@ -572,6 +575,11 @@ void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy:
         auto const name = sanitize_label( tax_gen(t) );
         auto const& counts = t.data<EntropyTaxonData>().counts;
 
+        // Collect taxa with no data. This is reported to the user later.
+        if( counts.added_sequences_count() == 0 ) {
+            no_data_taxa.push_back( name );
+        }
+
         // Consensus sequence.
         std::string sites;
         if( options.consensus_method == "majorities" ) {
@@ -588,6 +596,16 @@ void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy:
     };
     preorder_for_each( tax, make_consensus_sequences );
     cons_seq_os.close();
+
+    // User warning for empty taxa
+    if( ! no_data_taxa.empty() ) {
+        std::cout << "Warning: Some taxa did not have any sequences in the database, ";
+        std::cout << "and thus generate empty consensus sequences, ";
+        std::cout << "which will be an issue for the tree inference:\n";
+        for( auto const& sn : no_data_taxa ) {
+            std::cout << " - " << sn << "\n";
+        }
+    }
 }
 
 // =================================================================================================

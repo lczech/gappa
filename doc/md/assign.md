@@ -88,6 +88,23 @@ The meaning of the column headers are:
  - `afract`: `aLWR` divided by the global total likelihood weight
  - `taxopath`: the taxonomic path
 
+#### Example
+
+ ```
+ LWR     fract   aLWR    afract  taxopath
+ 0       0       2       1       Eukaryota
+ 0       0       2       1       Eukaryota;Animalia
+ 0.49    0.245   2       1       Eukaryota;Animalia;Chordata
+ 0       0       1       0.5     Eukaryota;Animalia;Chordata;Amphibia
+ 0.49    0.245   1       0.5     Eukaryota;Animalia;Chordata;Amphibia;Anura
+ 0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Amphibia;Anura;Rhacophoridae
+ 0       0       0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia
+ 0       0       0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia
+ 0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
+ ```
+
+#### Additional Output Formats
+
 Furthermore, additional output formats are available:
 
  - When using `--cami`, an additional file "cami.profile" is written, using the
@@ -100,21 +117,6 @@ Furthermore, additional output formats are available:
    [ktImportText](https://github.com/marbl/Krona/wiki/Importing-text-and-XML-data#text) command.
    If using this format and visualization, do not forget to
    [cite their paper](https://www.ncbi.nlm.nih.gov/pubmed/21961884).
-
-#### Example
-
-```
-LWR     fract   aLWR    afract  taxopath
-0       0       2       1       Eukaryota
-0       0       2       1       Eukaryota;Animalia
-0.49    0.245   2       1       Eukaryota;Animalia;Chordata
-0       0       1       0.5     Eukaryota;Animalia;Chordata;Amphibia
-0.49    0.245   1       0.5     Eukaryota;Animalia;Chordata;Amphibia;Anura
-0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Amphibia;Anura;Rhacophoridae
-0       0       0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia
-0       0       0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia
-0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
-```
 
 ### Filtering (`--sub-taxopath`)
 

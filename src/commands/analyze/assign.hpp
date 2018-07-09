@@ -46,6 +46,7 @@ public:
     std::string         taxonomy_file;
     std::string         rank_constraint = "superkingdom|phylum|class|order|family|genus|species";
     std::string         sub_taxopath;
+    size_t              max_tax_level;
     JplaceInputOptions  jplace_input;
 
     double              dist_ratio = -1.0;

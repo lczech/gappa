@@ -109,6 +109,15 @@ void setup_assign( CLI::App& app )
         "Doesn't affect intermediate results, and an unfiltered verison will be printed as well."
     )->group("Settings");
 
+    // Add specific options.
+    sub->add_option(
+        "--max-level",
+        opt->max_tax_level,
+        "Maximal level of the taxonomy to be printed. Default is 0, that is, the whole taxonomy "
+        "is printed. If set to a value about 0, only this many levels are printed. That is, "
+        "taxonomic levels below the specified one are omitted."
+    )->group("Settings");
+
     sub->add_option(
         "--distribution-ratio",
         opt->dist_ratio,
@@ -258,8 +267,12 @@ void add_lwr_to_taxonomy(   const double lwr,
     } while( cur_tax != nullptr );
 }
 
-void print_taxonomy_with_lwr( Taxonomy const& tax, std::ostream& stream )
-{
+void print_taxonomy_with_lwr(
+    AssignOptions const& options,
+    size_t const base_tax_level,
+    Taxonomy const& tax,
+    std::ostream& stream
+) {
     // get total LWR as sum of all top level aLWR
     double sum = 0.0;
     for( auto const& ct : tax ) {
@@ -267,25 +280,39 @@ void print_taxonomy_with_lwr( Taxonomy const& tax, std::ostream& stream )
     }
 
     preorder_for_each( tax, [&]( Taxon const& taxon ){
-        if ( taxon.data<AssignTaxonData>().aLWR != 0 ) {
-            stream  << std::setprecision(4)
-                            << taxon.data<AssignTaxonData>().LWR
-                    << "\t" << taxon.data<AssignTaxonData>().LWR / sum
-                    << "\t" << taxon.data<AssignTaxonData>().aLWR
-                    << "\t" << taxon.data<AssignTaxonData>().aLWR / sum
-                    << "\t" << TaxopathGenerator().to_string( taxon )
-                    << "\n";
+        // Only print if there is some weight.
+        if ( taxon.data<AssignTaxonData>().aLWR == 0 ) {
+            return;
         }
+
+        // Only print if the level of the taxon is within the max level
+        // (if specified by the user), taking care of the base level for subtaxonomies.
+        auto const tax_level = taxon_level( taxon ) - base_tax_level;
+        if( options.max_tax_level > 0 && tax_level >= options.max_tax_level ) {
+            return;
+        }
+
+        stream << std::setprecision(4);
+        stream << taxon.data<AssignTaxonData>().LWR;
+        stream << "\t" << taxon.data<AssignTaxonData>().LWR / sum;
+        stream << "\t" << taxon.data<AssignTaxonData>().aLWR;
+        stream << "\t" << taxon.data<AssignTaxonData>().aLWR / sum;
+        stream << "\t" << TaxopathGenerator().to_string( taxon );
+        stream << "\n";
     });
 }
 
-void print_taxonomy_table( Taxonomy const& t, std::string const& path )
-{
+void print_taxonomy_table(
+    AssignOptions const& options,
+    size_t const base_tax_level,
+    Taxonomy const& t,
+    std::string const& path
+) {
     std::ofstream stream;
     genesis::utils::file_output_stream( path, stream );
 
     stream << "LWR\tfract\taLWR\tafract\ttaxopath\n";
-    print_taxonomy_with_lwr( t, stream );
+    print_taxonomy_with_lwr( options, base_tax_level, t, stream );
 }
 
 using vec_iter = std::vector<std::string>::const_iterator;
@@ -600,8 +627,11 @@ std::string get_rank_string( Taxonomy const& tax )
     return join(ranks, "|");
 }
 
-void print_cami( Taxonomy const& tax, std::string const& path )
-{
+void print_cami(
+    AssignOptions const& options,
+    Taxonomy const& tax,
+    std::string const& path
+) {
     std::ofstream stream;
     genesis::utils::file_output_stream( path, stream );
 
@@ -624,38 +654,41 @@ void print_cami( Taxonomy const& tax, std::string const& path )
     }
 
     preorder_for_each( tax, [&]( Taxon const& taxon ){
-        if ( taxon.data<AssignTaxonData>().aLWR != 0 ) {
-            stream  << std::setprecision(4)
-                            << taxon.id()                                             // TAXID
-                    << "\t" << taxon.rank()                                           // RANK
-                    << "\t" << gen.field(Field::kId).to_string( taxon )               // TAXPATH
-                    << "\t" << gen.field(Field::kName).to_string( taxon )             // TAXPATHSN
-                    << "\t" << ( taxon.data<AssignTaxonData>().aLWR / sum ) * 100.0   // PERCENTAGE
-                    << "\n";
+        // Only print if there is some weight.
+        if ( taxon.data<AssignTaxonData>().aLWR == 0 ) {
+            return;
         }
-    });
 
+        // Only print if the level of the taxon is within the max level (if specified by the user).
+        if( options.max_tax_level > 0 && taxon_level( taxon ) >= options.max_tax_level ) {
+            return;
+        }
+
+        stream << std::setprecision(4);
+        stream << taxon.id();                                                     // TAXID
+        stream << "\t" << taxon.rank();                                           // RANK
+        stream << "\t" << gen.field(Field::kId).to_string( taxon );               // TAXPATH
+        stream << "\t" << gen.field(Field::kName).to_string( taxon );             // TAXPATHSN
+        stream << "\t" << ( taxon.data<AssignTaxonData>().aLWR / sum ) * 100.0;   // PERCENTAGE
+        stream << "\n";
+    });
 }
 
-Taxonomy& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
+Taxon& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
 {
-    // Init a pointer to the whole taxonomy.
-    Taxonomy* subtax = &tax;
+    // This function is only called if the option for sub tax is spefied.
+    assert( ! options.sub_taxopath.empty() );
 
-    // If the user only wants a sub taxon, overwrite the pointer.
-    if( ! options.sub_taxopath.empty() ) {
-        auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
-        subtax = find_taxon_by_taxopath( tax, taxopath );
+    auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
+    auto const subtax = find_taxon_by_taxopath( tax, taxopath );
 
-        if( subtax == nullptr ) {
-            throw std::runtime_error(
-                "Taxon " + options.sub_taxopath + " not found in the taxonomy."
-            );
-        }
+    if( subtax == nullptr ) {
+        throw std::runtime_error(
+            "Taxon " + options.sub_taxopath + " not found in the taxonomy."
+        );
     }
 
     assert( subtax != nullptr );
-
     return *subtax;
 }
 
@@ -748,7 +781,7 @@ static void assign( Sample const& sample,
                 per_pquery_out_stream << name.name;
             }
             per_pquery_out_stream << std::endl;
-            print_taxonomy_with_lwr( per_pq_assignments, per_pquery_out_stream );
+            print_taxonomy_with_lwr( options, 0, per_pq_assignments, per_pquery_out_stream );
         }
     }
 
@@ -762,18 +795,23 @@ static void assign( Sample const& sample,
     std::string out_dir = options.output_dir.out_dir();
 
     // return diversity profile
-    print_taxonomy_table( diversity, out_dir + "profile.csv" );
+    print_taxonomy_table( options, 0, diversity, out_dir + "profile.csv" );
 
     // print result in CAMI format if desired
     if ( options.cami ) {
-        print_cami( diversity, out_dir + "cami.profile" );
+        print_cami( options, diversity, out_dir + "cami.profile" );
     }
 
     // constrain to subtaxonomy if specified
     if ( not options.sub_taxopath.empty() ) {
-        const auto subtaxonomy = get_subtaxonomy( diversity, options );
+        const auto& subtaxonomy = get_subtaxonomy( diversity, options );
+
+        // Get the level of the taxon to be printed.
+        // Need this for the max level filter.
+        auto const base_level = taxon_level( subtaxonomy );
+
         // and print to file
-        print_taxonomy_table( subtaxonomy, out_dir + "profile_filtered.csv" );
+        print_taxonomy_table( options, base_level, subtaxonomy, out_dir + "profile_filtered.csv" );
     }
 }
 

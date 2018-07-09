@@ -135,6 +135,12 @@ void setup_assign( CLI::App& app )
         "EXPERIMENTAL: Print result in the CAMI Taxonomic Profiling Output Format."
     )->group("Output")->needs(taxonomy_option);
 
+    sub->add_flag(
+        "--krona",
+        opt->krona,
+        "Print result in the Krona text format."
+    )->group("Output");
+
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [ opt ]() {
@@ -674,6 +680,35 @@ void print_cami(
     });
 }
 
+void print_krona(
+    AssignOptions const& options,
+    Taxonomy const& tax,
+    std::string const& path
+) {
+    std::ofstream stream;
+    genesis::utils::file_output_stream( path, stream );
+    stream << std::setprecision(4);
+
+    // taxopath generator
+    auto gen = TaxopathGenerator().delimiter("\t");
+
+    preorder_for_each( tax, [&]( Taxon const& taxon ){
+        // Only print if there is some weight.
+        if ( taxon.data<AssignTaxonData>().aLWR == 0 ) {
+            return;
+        }
+
+        // Only print if the level of the taxon is within the max level (if specified by the user).
+        if( options.max_tax_level > 0 && taxon_level( taxon ) >= options.max_tax_level ) {
+            return;
+        }
+
+        stream << taxon.data<AssignTaxonData>().LWR;
+        stream << "\t" << gen.to_string( taxon );
+        stream << "\n";
+    });
+}
+
 Taxon& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
 {
     // This function is only called if the option for sub tax is spefied.
@@ -800,6 +835,11 @@ static void assign( Sample const& sample,
     // print result in CAMI format if desired
     if ( options.cami ) {
         print_cami( options, diversity, out_dir + "cami.profile" );
+    }
+
+    // print result in krona format if desired
+    if ( options.krona ) {
+        print_krona( options, diversity, out_dir + "krona.profile" );
     }
 
     // constrain to subtaxonomy if specified

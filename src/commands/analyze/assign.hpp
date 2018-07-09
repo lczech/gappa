@@ -53,6 +53,7 @@ public:
 
     FileOutputOptions   output_dir;
     bool                cami = false;
+    bool                krona = false;
 };
 
 // =================================================================================================

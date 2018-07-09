@@ -88,6 +88,19 @@ The meaning of the column headers are:
  - `afract`: `aLWR` divided by the global total likelihood weight
  - `taxopath`: the taxonomic path
 
+Furthermore, additional output formats are available:
+
+ - When using `--cami`, an additional file "cami.profile" is written, using the
+   [CAMI (Taxonomic) Profiling Output Format](https://github.com/CAMI-challenge/contest_information/blob/master/file_formats/CAMI_TP_specification.mkd).
+   This format can be used to compare the taxonomic assignment to other tools that participated in
+   the [CAMI challenge](https://data.cami-challenge.org/).
+   If using this format, do not forget to [cite their paper](https://www.nature.com/articles/nmeth.4458).
+ - When using `--krona`, an additional file "krona.profile" is written, which can be visualized
+   with [Krona](https://github.com/marbl/Krona/wiki), using the
+   [ktImportText](https://github.com/marbl/Krona/wiki/Importing-text-and-XML-data#text) command.
+   If using this format and visualization, do not forget to
+   [cite their paper](https://www.ncbi.nlm.nih.gov/pubmed/21961884).
+
 #### Example
 
 ```

@@ -129,11 +129,17 @@ void setup_assign( CLI::App& app )
     // Output
     opt->output_dir.add_output_dir_opt_to_app( sub );
 
-    sub->add_flag(
+    auto cami_flag = sub->add_flag(
         "--cami",
         opt->cami,
         "EXPERIMENTAL: Print result in the CAMI Taxonomic Profiling Output Format."
     )->group("Output")->needs(taxonomy_option);
+
+    sub->add_option(
+        "--sample-id",
+        opt->sample_id,
+        "Sample-ID string to be used in the CAMI output file"
+    )->group("Output")->needs(cami_flag);
 
     sub->add_flag(
         "--krona",
@@ -252,6 +258,9 @@ void add_lwr_to_taxonomy(   const double lwr,
                             Taxopath const& path,
                             Taxonomy& taxonomy )
 {
+    if ( path.at(0) == UNDETERMINED) {
+        return;
+    }
     auto cur_tax = &add_from_taxopath( taxonomy, path );
 
     bool first = true;
@@ -418,13 +427,16 @@ Taxon* prune( Taxon* const taxon )
         std::cout << "\tPruning '" << taxon->name() << "' to '" << parent->name() << "' (" << parent->rank() << ")" << std::endl;
     }
 
+    // get the index of the taxon to prune
+    auto const remove_index = parent->index_of( taxon->name() );
+
     // transfer the children
     for ( auto& child : *taxon ) {
-        parent->add_child( child );
+        parent->add_child( child, false );
     }
 
     // remove the taxon from parent
-    parent->remove_child( taxon->name() );
+    parent->remove_at( remove_index );
 
     return parent;
 }
@@ -646,7 +658,7 @@ void print_cami(
     using Field = TaxopathGenerator::TaxonField;
 
     // Print the header
-    stream << "@SampleID:SAMPLEID\n"; // TODO: sampleid based on file name?
+    stream << "@SampleID: " << options.sample_id << "\n"; // TODO: sampleid based on file name?
     stream << "@Version:0.9.3\n";
     stream << "@Ranks:superkingdom|phylum|class|order|family|genus|species" << "\n";
 

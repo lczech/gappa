@@ -52,8 +52,11 @@ public:
     double              dist_ratio = -1.0;
 
     FileOutputOptions   output_dir;
+
     bool                cami = false;
     bool                krona = false;
+
+    std::string         sample_id = "";
 };
 
 // =================================================================================================

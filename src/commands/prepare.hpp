@@ -26,9 +26,9 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/prepare/art.hpp"
 #include "commands/prepare/chunkify.hpp"
 #include "commands/prepare/extract.hpp"
+#include "commands/prepare/phat.hpp"
 #include "commands/prepare/unchunkify.hpp"
 
 #include <string>
@@ -48,9 +48,9 @@ void setup_prepare( CLI::App& app )
     sub->require_subcommand( 1 );
 
     // Add module subcommands.
-    setup_art( *sub );
     setup_chunkify( *sub );
     setup_extract( *sub );
+    setup_phat( *sub );
     setup_unchunkify( *sub );
 }
 

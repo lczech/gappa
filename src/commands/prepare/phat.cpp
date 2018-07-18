@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/prepare/art.hpp"
+#include "commands/prepare/phat.hpp"
 
 #include "options/global.hpp"
 
@@ -68,13 +68,13 @@
 //      Setup
 // =================================================================================================
 
-void setup_art( CLI::App& app )
+void setup_phat( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto opt = std::make_shared<ArtOptions>();
+    auto opt = std::make_shared<PhatOptions>();
     auto sub = app.add_subcommand(
-        "art",
-        "Generate consensus sequences from a sequence database according to the ART method."
+        "phat",
+        "Generate consensus sequences from a sequence database according to the PhAT method."
     );
 
     // -----------------------------------------------------------
@@ -211,7 +211,7 @@ void setup_art( CLI::App& app )
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [ opt ]() {
-        run_art( *opt );
+        run_phat( *opt );
     });
 }
 
@@ -219,7 +219,7 @@ void setup_art( CLI::App& app )
 //      Read Taxonomy
 // =================================================================================================
 
-genesis::taxonomy::Taxonomy read_taxonomy( ArtOptions const& options )
+genesis::taxonomy::Taxonomy read_taxonomy( PhatOptions const& options )
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
@@ -291,7 +291,7 @@ genesis::taxonomy::Taxonomy read_taxonomy( ArtOptions const& options )
 //      Fill Site Counts
 // =================================================================================================
 
-void fill_site_counts( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
+void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& tax )
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
@@ -428,7 +428,7 @@ void fill_site_counts( ArtOptions const& options, genesis::taxonomy::Taxonomy& t
 //      Calculate Entropy
 // =================================================================================================
 
-void calculate_entropy( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
+void calculate_entropy( PhatOptions const& options, genesis::taxonomy::Taxonomy& tax )
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
@@ -464,7 +464,7 @@ void calculate_entropy( ArtOptions const& options, genesis::taxonomy::Taxonomy& 
 //      Select Taxa
 // =================================================================================================
 
-void select_taxa( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
+void select_taxa( PhatOptions const& options, genesis::taxonomy::Taxonomy& tax )
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
@@ -530,7 +530,7 @@ void select_taxa( ArtOptions const& options, genesis::taxonomy::Taxonomy& tax )
 //      Generate Consensus Sequences
 // =================================================================================================
 
-void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy::Taxonomy const& tax )
+void generate_consensus_sequences( PhatOptions const& options, genesis::taxonomy::Taxonomy const& tax )
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
@@ -612,7 +612,7 @@ void generate_consensus_sequences( ArtOptions const& options, genesis::taxonomy:
 //      Write Taxonomy Info
 // =================================================================================================
 
-void write_info_files( ArtOptions const& options, genesis::taxonomy::Taxonomy const& tax )
+void write_info_files( PhatOptions const& options, genesis::taxonomy::Taxonomy const& tax )
 {
     using namespace genesis::taxonomy;
 
@@ -692,7 +692,7 @@ void write_info_files( ArtOptions const& options, genesis::taxonomy::Taxonomy co
 //      Run
 // =================================================================================================
 
-void run_art( ArtOptions const& options )
+void run_phat( PhatOptions const& options )
 {
     using namespace genesis::utils;
 

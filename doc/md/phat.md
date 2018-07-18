@@ -1,9 +1,9 @@
 ## Description
 
-Given a set of sequences and a fitting taxonomy, the command produces consensus sequences representing taxonomic clades, according to our ART method as described [here](https://www.biorxiv.org/content/early/2018/04/11/299792).
+Given a set of sequences and a fitting taxonomy, the command produces consensus sequences representing taxonomic clades, according to our PhAT method as described [here](https://www.biorxiv.org/content/early/2018/04/11/299792).
 The main inputs are `--sequence-file` and `--taxonomy-file`, which provide the input data, as well as the `--target-size` of how many consensus sequences to build.
 
-![ART workflow.](https://github.com/lczech/gappa/blob/master/doc/png/workflow_art.png?raw=true)
+![PhAT workflow.](https://github.com/lczech/gappa/blob/master/doc/png/workflow_phat.png?raw=true)
 
 After running the command, the resulting set of sequences can be used to infer a reference tree using any tree inference program.
 
@@ -16,7 +16,7 @@ The taxonomy file needs to contain a list of the taxa used for the taxonomic exp
 Example:
 
 ```
-Eukaryota;	4	domain		
+Eukaryota;	4	domain
 Eukaryota;Amoebozoa;	4052	kingdom		119
 Eukaryota;Amoebozoa;Myxogastria;	4094	phylum		119
 Eukaryota;Amoebozoa;Myxogastria;Amaurochaete;	4095	genus		119

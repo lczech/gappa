@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PREPARE_ART_H_
-#define GAPPA_COMMANDS_PREPARE_ART_H_
+#ifndef GAPPA_COMMANDS_PREPARE_PHAT_H_
+#define GAPPA_COMMANDS_PREPARE_PHAT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -36,7 +36,7 @@
 //      Options
 // =================================================================================================
 
-class ArtOptions
+class PhatOptions
 {
 public:
 
@@ -73,7 +73,7 @@ public:
 //      Functions
 // =================================================================================================
 
-void setup_art( CLI::App& app );
-void run_art( ArtOptions const& options );
+void setup_phat( CLI::App& app );
+void run_phat( PhatOptions const& options );
 
 #endif // include guard

@@ -14,8 +14,8 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.92.3 (unknown)"
-   sodipodi:docname="workflow_art.svg"
-   inkscape:export-filename="/home/lucas/github/gappa/doc/img/png/workflow_art.png"
+   sodipodi:docname="workflow_phat.svg"
+   inkscape:export-filename="/home/lucas/github/gappa/doc/png/workflow_phat.png"
    inkscape:export-xdpi="110.75402"
    inkscape:export-ydpi="110.75402">
   <defs
@@ -317,14 +317,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.1273319"
-     inkscape:cx="229.51754"
-     inkscape:cy="40.308922"
+     inkscape:zoom="1.5042508"
+     inkscape:cx="213.66537"
+     inkscape:cy="68.298625"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g950"
      showgrid="true"
      inkscape:window-width="1694"
-     inkscape:window-height="1388"
+     inkscape:window-height="1028"
      inkscape:window-x="51"
      inkscape:window-y="24"
      inkscape:window-maximized="0"
@@ -518,7 +518,7 @@
              x="148.1911"
              y="350.18866" /></flowRegion><flowPara
            id="flowPara941"
-           style="font-size:9.86169338px;line-height:1.25">ART</flowPara></flowRoot>    </g>
+           style="font-size:9.86169338px;line-height:1.25">PhAT</flowPara></flowRoot>    </g>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
        d="m 200.75,103.11218 h 25"

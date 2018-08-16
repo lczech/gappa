@@ -230,7 +230,7 @@ CladeTaxaList get_clade_taxa_lists( ExtractOptions const& options )
 // =================================================================================================
 
 /**
- * @brief Return a list clades, each itself containing a list of edge indices of that clade.
+ * @brief Return a list of clades, each itself containing a list of edge indices of that clade.
  *
  * The function takes a list of clades with their taxa as input, and a reference tree.
  * It then inspects all clades and findes the edges of the tree that belong to a clade.
@@ -303,7 +303,7 @@ CladeEdgeList get_clade_edges(
                     }
                 }
                 throw std::runtime_error(
-                    "Clades " + clade.first + " and " + colliding_clade + " collidate! "
+                    "Clades " + clade.first + " and " + colliding_clade + " collide! "
                     "That is, there are edges that are in both clades. "
                     "The clade file needs to be cleaned up to fix this."
                 );

@@ -102,6 +102,22 @@ The meaning of the column headers are:
  0       0       0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia
  0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
  ```
+ 
+In addition to this, the command will print a file called `per_query_assign` containing one assignment profile per input query. Though the columns are not labelled, they have identical meaning to the aforementioned final output file. Each per-query profile starts with the query name:
+```
+S0R9827501
+0       0       0.9992  1       Bacteria
+0       0       0.9992  1       Bacteria;Firmicutes
+0       0       0.9992  1       Bacteria;Firmicutes;Bacilli
+S0R4231960
+0       0       0.9949  1       Bacteria
+0       0       0.9949  1       Bacteria;Firmicutes
+0       0       0.9949  1       Bacteria;Firmicutes;Bacilli
+0.237   0.2382  0.9949  1       Bacteria;Firmicutes;Bacilli;Lactobacillales
+0.3242  0.3258  0.7415  0.7453  Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae
+0.3667  0.3686  0.3667  0.3686  Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Pediococcus
+0.05058 0.05084 0.05058 0.05084 Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus
+```
 
 #### Additional Output Formats
 

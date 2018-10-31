@@ -47,11 +47,13 @@
 #include "genesis/tree/default/newick_writer.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/bipartition/functions.hpp"
 #include "genesis/tree/tree/edge.hpp"
 
 #include "genesis/placement/sample.hpp"
 #include "genesis/placement/pquery.hpp"
 #include "genesis/placement/pquery/placement.hpp"
+#include "genesis/placement/function/manipulation.hpp"
 
 
 #include <fstream>
@@ -83,6 +85,12 @@ void setup_assign( CLI::App& app )
         opt->taxon_map_file,
         "File containing a tab-separated list of reference taxon to taxonomic string assignments."
     )->check(CLI::ExistingFile)->required()->group("Input");
+
+    sub->add_option(
+        "--root-outgroup",
+        opt->outgroup_file,
+        "Root the tree by the outgroup taxa defined in the specified file."
+    )->check(CLI::ExistingFile)->group("Input");
 
     auto taxonomy_option = sub->add_option(
         "--taxonomy",
@@ -214,8 +222,8 @@ void print_labelled( PlacementTree const& tree,
     writer.to_file( tree, file_name );
 }
 
-std::vector<Taxopath> assign_leaf_taxopaths( PlacementTree const& tree,
-                                                    std::string const& taxon_file)
+std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
+                                            std::string const& taxon_file)
 {
     TaxopathParser tpp;
     CsvReader csv_reader;
@@ -336,7 +344,13 @@ using vec_iter = std::vector<std::string>::const_iterator;
  * Inserts as many taxons between first and last as specified by the rank name range [rank_first, rank end).
  * Updates the 'last' pointer to point to the new
  */
-Taxon* insert_between( Taxon* first, Taxon* last, vec_iter const rank_first, vec_iter const rank_end, Taxon const* map_entry ) {
+Taxon* insert_between(
+    Taxon* first,
+    Taxon* last,
+    vec_iter const rank_first,
+    vec_iter const rank_end,
+    Taxon const* map_entry
+) {
     assert( std::distance(rank_first, rank_end) > 0 );
     assert( first );
     assert( last );
@@ -870,13 +884,59 @@ static void assign( Sample const& sample,
     }
 }
 
+TreeEdge* lowest_common_ancestor( Tree& tree, std::vector<TreeNode const*>& nodes )
+{
+    assert( not nodes.empty() );
+
+    auto bipart = find_smallest_subtree( tree, bipartition_set( tree ), nodes );
+
+    if ( bipart.empty() ) {
+        throw std::invalid_argument{"Rooting could not be determined."};
+    }
+
+    return const_cast<TreeEdge*>( &bipart.link().edge() );
+
+}
+
+void outgroup_rooting(  Sample& sample,
+                        std::vector<std::string> const& outgroup_names )
+{
+    // find MRCA edge containing all matched to the outgroup pattern
+    auto& tree = sample.tree();
+    std::vector<PlacementTreeNode const*> nodes;
+    for ( auto& name : outgroup_names ) {
+        auto node_ptr = find_node( tree, name );
+
+        if ( node_ptr == nullptr ) {
+            throw std::invalid_argument{name + " was not found in the tree!"};
+        }
+
+        nodes.push_back( node_ptr );
+    }
+
+    PlacementTreeEdge* edge_ptr = nullptr;
+
+    if ( nodes.size() == 0 ) {
+        throw std::invalid_argument{"Outgroup file didn't contain any valid taxa."};
+    } else if ( nodes.size() == 1 ) {
+        edge_ptr = const_cast<PlacementTreeEdge*>(&( nodes[0]->primary_link().edge() ));
+    } else {
+        edge_ptr = lowest_common_ancestor( tree, nodes );
+    }
+
+    assert( edge_ptr );
+
+    // root on that edge
+    root( sample, *edge_ptr );
+}
+
 void run_assign( AssignOptions const& options )
 {
     auto out_dir = options.output_dir.out_dir();
 
     options.jplace_input.print();
     auto sample = options.jplace_input.merged_samples();
-    auto tree = sample.tree();
+    auto& tree = sample.tree();
 
     if ( not is_bifurcating(tree) ) {
         throw std::runtime_error{"Supplied tree is not bifurcating."};
@@ -884,6 +944,18 @@ void run_assign( AssignOptions const& options )
 
     if( global_options.verbosity() >= 2 ) {
         std::cout << "Getting taxonomic information from: " << options.taxon_map_file << "\n";
+    }
+
+    // root the tree if necessary
+    if ( not options.outgroup_file.empty() ) {
+        // get the names of the outgroup taxa
+        std::vector<std::string> names;
+        std::ifstream outgroup_file( options.outgroup_file );
+        std::copy(std::istream_iterator<std::string>(outgroup_file),
+            std::istream_iterator<std::string>(),
+            std::back_inserter(names));
+        // root
+        outgroup_rooting(sample, names);
     }
 
     // vector to hold the per node taxopaths

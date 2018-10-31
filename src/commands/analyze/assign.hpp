@@ -44,6 +44,7 @@ public:
 
     std::string         taxon_map_file;
     std::string         taxonomy_file;
+    std::string         outgroup_file;
     std::string         rank_constraint = "superkingdom|phylum|class|order|family|genus|species";
     std::string         sub_taxopath;
     size_t              max_tax_level;

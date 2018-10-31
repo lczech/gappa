@@ -794,13 +794,16 @@ static void assign( Sample const& sample,
                 auto const position         = p.proximal_length;
                 auto const branch_length    = edge.data<DefaultEdgeData>().branch_length;
                 // in percent, how far toward the distal are we?
-                auto const toward_distal    = (1 / branch_length) * position;
+                auto const toward_distal    = (1.0 / branch_length) * position;
                 // the ratio is effectively "how much lwr mass should go toward the PROXIMAL", so we need to flip it
                 ratio = 1.0 - toward_distal;
 
+                // guarding against improperly rounded inputs
+                ratio = std::min(ratio, 1.0);
+                ratio = std::max(ratio, 0.0);
+
                 assert(ratio >= 0.0);
                 assert(ratio <= 1.0);
-                assert(ratio >= 1e-6);
             }
 
             // calculate lwr portions

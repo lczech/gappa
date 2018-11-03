@@ -44,7 +44,7 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/bipartition/bipartition.hpp"
 #include "genesis/tree/bipartition/functions.hpp"
-#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/drawing/functions.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/drawing/layout_tree.hpp"
@@ -254,7 +254,7 @@ CladeEdgeList get_clade_edges(
     // edges in more than one clade.
     std::unordered_set<size_t> basal_branches;
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
-        basal_branches.insert( (*it)->index() );
+        basal_branches.insert( it->index() );
     }
 
     // Prepare.

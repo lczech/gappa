@@ -302,7 +302,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
 
             // Check for min abundance.
             auto const abundance = guess_sequence_abundance( *it );
-            if( abundance < options.min_abundance ) {
+            if( abundance.second < options.min_abundance ) {
                 continue;
             }
             #pragma omp atomic
@@ -314,7 +314,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
 
             // Increment seq abundance for this file and label.
             auto& seq_abun = seq_abundances[ hash_hex ];
-            seq_abun.abundances[ it->label() ] += abundance;
+            seq_abun.abundances[ abundance.first ] += abundance.second;
 
             // The hash calculation above is the main work of this loop.
             // The rest is "just" setting some values (and the occasional chunk flush),

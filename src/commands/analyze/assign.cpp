@@ -42,9 +42,9 @@
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/tree.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/bipartition/functions.hpp"
@@ -196,7 +196,7 @@ Taxopath intersect( Taxopath const& lhs, Taxopath const& rhs )
 void postorder_label( PlacementTree const& tree, std::vector<Taxopath>& node_labels )
 {
     for ( auto it : postorder(tree) ) {
-        if ( it.node().is_inner() ) {
+        if( is_inner( it.node() )) {
             auto const child_1_idx = it.node().link().next().outer().node().index();
             auto const child_2_idx = it.node().link().next().next().outer().node().index();
 
@@ -211,7 +211,7 @@ void print_labelled( PlacementTree const& tree,
                             std::vector<Taxopath> const& node_labels,
                             std::string const& file_name )
 {
-    DefaultTreeNewickWriter writer;
+    CommonTreeNewickWriter writer;
     writer.node_to_element_plugins.push_back(
         [&]( TreeNode const& node, NewickBrokerElement& element ){
             element.comments.emplace_back(
@@ -252,8 +252,8 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
 
     // check if any leafs weren't assigned a Taxopath
     for ( auto const& node_it : tree.nodes() ) {
-        if ( node_it->is_leaf() and node_labels[ node_it->index() ].empty() ) {
-            auto name = node_it->data< DefaultNodeData >().name;
+        if ( is_leaf( node_it ) and node_labels[ node_it.index() ].empty() ) {
+            auto name = node_it.data< CommonNodeData >().name;
             throw std::runtime_error{"The leaf in the tree labelled '" + name
                 + "' wasn't assigned a taxonomic path. Did you forget to include it in the taxon file?"};
         }
@@ -806,7 +806,7 @@ static void assign( Sample const& sample,
             // determine the ratio
             if ( auto_ratio ) {
                 auto const position         = p.proximal_length;
-                auto const branch_length    = edge.data<DefaultEdgeData>().branch_length;
+                auto const branch_length    = edge.data<CommonEdgeData>().branch_length;
                 // in percent, how far toward the distal are we?
                 auto const toward_distal    = (1.0 / branch_length) * position;
                 // the ratio is effectively "how much lwr mass should go toward the PROXIMAL", so we need to flip it
@@ -927,7 +927,7 @@ void outgroup_rooting(  Sample& sample,
     assert( edge_ptr );
 
     // root on that edge
-    root( sample, *edge_ptr );
+    make_rooted( sample, *edge_ptr );
 }
 
 void run_assign( AssignOptions const& options )

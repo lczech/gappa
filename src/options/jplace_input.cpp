@@ -321,11 +321,11 @@ std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set() const
         auto const smpl = sample( fi );
 
         // Turn it into a mass tree.
-        mass_trees[fi] = convert_sample_to_mass_tree( smpl ).first;
+        mass_trees[fi] = convert_sample_to_mass_tree( smpl, true ).first;
     }
 
     // Check for compatibility.
-    if( ! mass_tree_all_identical_topology( mass_trees ) ) {
+    if( ! identical_topology( mass_trees ) ) {
         throw std::runtime_error( "Sample reference trees do not have identical topology." );
     }
 

@@ -30,7 +30,7 @@
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/nhd.hpp"
 #include "genesis/placement/function/operators.hpp"
-#include "genesis/tree/default/distances.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/utils/containers/matrix.hpp"

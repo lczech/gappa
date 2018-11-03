@@ -28,7 +28,7 @@
 
 #include "options/tree_output/svg.hpp"
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/map.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"
@@ -93,7 +93,7 @@ public:
      * @brief Write a simple tree with no colors to all formats specified by the user.
      */
     void write_tree_to_files(
-        genesis::tree::DefaultTree const&         tree,
+        genesis::tree::CommonTree const&         tree,
         std::string const&                        file_path_prefix
     ) const;
 
@@ -101,7 +101,7 @@ public:
      * @brief Write a tree with colored branches to all formats specified by the user.
      */
     void write_tree_to_files(
-        genesis::tree::DefaultTree const&         tree,
+        genesis::tree::CommonTree const&         tree,
         std::vector<genesis::utils::Color> const& color_per_branch,
         std::string const&                        file_path_prefix
     ) const;
@@ -111,7 +111,7 @@ public:
      * as well as information about the color scale (with a proper scale in the svg file).
      */
     void write_tree_to_files(
-        genesis::tree::DefaultTree const&         tree,
+        genesis::tree::CommonTree const&         tree,
         std::vector<genesis::utils::Color> const& color_per_branch,
         genesis::utils::ColorMap const&           color_map,
         genesis::utils::ColorNormalization const& color_norm,

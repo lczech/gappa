@@ -31,8 +31,8 @@
 #include "genesis/placement/function/emd.hpp"
 #include "genesis/placement/function/operators.hpp"
 
-#include "genesis/tree/default/distances.hpp"
-#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/mass_tree/emd.hpp"

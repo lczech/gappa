@@ -32,7 +32,7 @@
 #include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/function/tree.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/utils/core/fs.hpp"
 
 #include <algorithm>

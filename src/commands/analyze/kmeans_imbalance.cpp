@@ -36,6 +36,7 @@
 #include "genesis/tree/mass_tree/kmeans.hpp"
 #include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/math/euclidean_kmeans.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <fstream>

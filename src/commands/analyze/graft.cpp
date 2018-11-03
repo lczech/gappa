@@ -29,7 +29,7 @@
 
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/placement/function/tree.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/utils/core/fs.hpp"
 
 #ifdef GENESIS_OPENMP
@@ -120,6 +120,8 @@ void run_graft( GraftOptions const& options )
         auto const tog    = labelled_tree( sample, options.fully_resolve, options.name_prefix );
 
         // Write output to file.
-        tree::DefaultTreeNewickWriter().to_file( tog, options.file_output.out_dir() + out_tree_files[i] );
+        tree::CommonTreeNewickWriter().to_file(
+            tog, options.file_output.out_dir() + out_tree_files[i]
+        );
     }
 }

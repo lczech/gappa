@@ -96,7 +96,7 @@ std::vector<std::string> TreeOutputOptions::get_extensions() const
 }
 
 void TreeOutputOptions::write_tree_to_files(
-    genesis::tree::DefaultTree const&         tree,
+    genesis::tree::CommonTree const&         tree,
     std::string const&                        file_path_prefix
 ) const {
     using namespace genesis::tree;
@@ -123,7 +123,7 @@ void TreeOutputOptions::write_tree_to_files(
 }
 
 void TreeOutputOptions::write_tree_to_files(
-    genesis::tree::DefaultTree const&         tree,
+    genesis::tree::CommonTree const&         tree,
     std::vector<genesis::utils::Color> const& color_per_branch,
     std::string const&                        file_path_prefix
 ) const {
@@ -157,7 +157,7 @@ void TreeOutputOptions::write_tree_to_files(
 }
 
 void TreeOutputOptions::write_tree_to_files(
-    genesis::tree::DefaultTree const&         tree,
+    genesis::tree::CommonTree const&         tree,
     std::vector<genesis::utils::Color> const& color_per_branch,
     genesis::utils::ColorMap const&           color_map,
     genesis::utils::ColorNormalization const& color_norm,

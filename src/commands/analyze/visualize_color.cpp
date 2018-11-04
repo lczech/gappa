@@ -200,7 +200,6 @@ void run_visualize_color( VisualizeColorOptions const& options )
             std::cout << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n";
             std::cout << "This will lead to those branches being shown in the color specified by ";
             std::cout << "--mask-color. Use --clip-under and --min-value to change this.";
-        // } else if( *options.color_map.clip_under_option ) {
         } else {
 
             // The log color norm yields -inf for 0 values.

@@ -167,6 +167,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
     // First, autoscale to get the max.
     // Finally, apply the user settings that might have been provided.
     color_norm->autoscale( total_masses );
+    auto const auto_min = color_norm->min_value();
     if( options.color_norm.log_scaling() ) {
 
         // Some user friendly safety. Min of 0 does not work with log scaling.
@@ -180,12 +181,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
             } else {
                 color_norm->min_value( color_norm->max_value() / 10e4 );
             }
-            color_map.clip_under( true );
-
-            // Can't really issue a warning here that easily. Users might have set the --min-value options,
-            // which will overwrite this. So, we'd need some more complex checks... not now!
-            // std::cout << "Warning: Some branches have mass 0, which cannot be shown using --log-scaling. ";
-            // std::cout << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n";
+            // color_map.clip_under( true );
         }
 
     } else {
@@ -195,6 +191,28 @@ void run_visualize_color( VisualizeColorOptions const& options )
     // Now overwrite the above "default" settings with what the user specified
     // (in case that they actually did specify certain values).
     options.color_norm.apply_options( *color_norm );
+
+    // Issue a warning if we needed to set the min due to log, but there was no manual overwrite,
+    // and if this leads to having under values.
+    if( options.color_norm.log_scaling() && auto_min <= 0.0 ) {
+        if( ! *options.color_norm.min_value_option && ! *options.color_map.clip_under_option ) {
+            std::cout << "Warning: Some branches have mass 0, which cannot be shown using --log-scaling. ";
+            std::cout << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n";
+            std::cout << "This will lead to those branches being shown in the color specified by ";
+            std::cout << "--mask-color. Use --clip-under and --min-value to change this.";
+        // } else if( *options.color_map.clip_under_option ) {
+        } else {
+
+            // The log color norm yields -inf for 0 values.
+            // But if we have clip under or a min value, this is not what we want.
+            // So, set 0 values to something that is not invalid.
+            for( auto& v : total_masses ) {
+                if( v <= 0.0 ) {
+                    v = color_norm->min_value() / 2.0;
+                }
+            }
+        }
+    }
 
     // Now, make a color vector and write to files.
     auto const colors = color_map( *color_norm, total_masses );

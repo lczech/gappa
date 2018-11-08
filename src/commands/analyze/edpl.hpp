@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_H_
-#define GAPPA_COMMANDS_ANALYZE_H_
+#ifndef GAPPA_COMMANDS_ANALYZE_EDPL_H_
+#define GAPPA_COMMANDS_ANALYZE_EDPL_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,48 +26,32 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze/assign.hpp"
-#include "commands/analyze/correlation.hpp"
-#include "commands/analyze/dispersion.hpp"
-#include "commands/analyze/edgepca.hpp"
-#include "commands/analyze/edpl.hpp"
-#include "commands/analyze/graft.hpp"
-#include "commands/analyze/kmeans_imbalance.hpp"
-#include "commands/analyze/kmeans_phylogenetic.hpp"
-#include "commands/analyze/krd.hpp"
-#include "commands/analyze/nhd.hpp"
-#include "commands/analyze/squash.hpp"
-#include "commands/analyze/visualize_color.hpp"
+#include "options/jplace_input.hpp"
+#include "options/file_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class EdplOptions
+{
+public:
+
+    size_t histogram_bins = 25;
+    double histogram_max  = -1.0;
+
+    JplaceInputOptions jplace_input;
+    FileOutputOptions  file_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_analyze( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "analyze",
-        "Commands for analyzing and visualizing placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_assign( *sub );
-    setup_correlation( *sub );
-    setup_dispersion( *sub );
-    setup_edgepca( *sub );
-    setup_edpl( *sub );
-    setup_graft( *sub );
-    setup_ikmeans( *sub );
-    setup_krd( *sub );
-    // setup_nhd( *sub );
-    setup_pkmeans( *sub );
-    setup_squash( *sub );
-    setup_visualize_color( *sub );
-}
+void setup_edpl( CLI::App& app );
+void run_edpl( EdplOptions const& options );
 
 #endif // include guard

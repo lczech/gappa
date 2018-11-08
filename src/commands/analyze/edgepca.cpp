@@ -123,7 +123,7 @@ void run_edgepca( EdgepcaOptions const& options )
 
     // Base check
     if( options.jplace_input.file_count() < 2 ) {
-        throw std::runtime_error( "Cannot run k-means with fewer than 2 samples." );
+        throw std::runtime_error( "Cannot run Edge PCA with fewer than 2 samples." );
     }
 
     // Read samples

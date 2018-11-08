@@ -128,6 +128,7 @@ void run_edgepca( EdgepcaOptions const& options )
 
     // Read samples
     auto const sample_set = options.jplace_input.sample_set();
+    assert( sample_set.size() >= 2 );
 
     // TODO check kappa and epsilon ranges!
     // TODO edge pca technically only needs the imbalance matrix. could refactor this to save mem!
@@ -161,7 +162,7 @@ void run_edgepca( EdgepcaOptions const& options )
     }
 
     // Trees
-    auto const& tree = sample_set.at(0).sample.tree();
+    auto const& tree = sample_set.at(0).tree();
     for( size_t c = 0; c < epca_data.projection.cols(); ++c ) {
         auto color_map = options.color_map.color_map();
         auto color_norm = options.color_norm.get_diverging_norm();

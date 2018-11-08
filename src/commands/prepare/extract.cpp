@@ -423,10 +423,8 @@ void write_sample_set(
     // User output.
     if( global_options.verbosity() >= 1 ) {
         for( size_t si = 0; si < sample_set.size(); ++si ) {
-            auto const& named_sample = sample_set.at( si );
-
-            std::cout << "Collected " << named_sample.sample.size() << " pqueries in clade ";
-            std::cout << named_sample.name << "\n";
+            std::cout << "Collected " << sample_set.at( si ).size() << " pqueries in clade ";
+            std::cout << sample_set.name_at( si ) << "\n";
         }
 
         std::cout << "Writing " << sample_set.size() << " clade sample files.\n";
@@ -436,10 +434,8 @@ void write_sample_set(
     auto writer = JplaceWriter();
     #pragma omp parallel for schedule(dynamic)
     for( size_t si = 0; si < sample_set.size(); ++si ) {
-        auto const& named_sample = sample_set.at( si );
-
-        auto const fn = options.jplace_output.file_prefix() + named_sample.name + ".jplace";
-        writer.to_file( named_sample.sample, options.jplace_output.out_dir() + fn );
+        auto const fn = options.jplace_output.file_prefix() + sample_set.name_at( si ) + ".jplace";
+        writer.to_file( sample_set.at( si ), options.jplace_output.out_dir() + fn );
     }
 }
 
@@ -541,8 +537,8 @@ PqueryNamesPerCladeList get_pqueries_per_clade(
     PqueryNamesPerCladeList list;
     size_t duplicate_names = 0;
 
-    for( auto const& named_sample : sample_set ) {
-        for( auto const& pquery : named_sample.sample ) {
+    for( size_t si = 0; si < sample_set.size(); ++si ) {
+        for( auto const& pquery : sample_set.at(si) ) {
             for( auto const& pquery_name : pquery.names() ) {
 
                 // Check if it is not already there.
@@ -553,7 +549,7 @@ PqueryNamesPerCladeList get_pqueries_per_clade(
                 }
 
                 // Add it to the list.
-                list[ named_sample.name ].insert( pquery_name.name );
+                list[ sample_set.name_at(si) ].insert( pquery_name.name );
             }
         }
     }

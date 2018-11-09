@@ -11,13 +11,13 @@ for easy assessment. The histograms can for example be visualized as follows:
 
 ![Example of the LWR histograms for the first three most likely LWRs.](https://github.com/lczech/gappa/blob/master/doc/png/lwr_histogram.png?raw=true)
 
-The histogram shows the percentage of the first, second, and third most likely placement
+The histogram shows the percentage of the first, second, and third most likely placement.
 The x-axis are likelihood weight ratios (always in the range 0.0 to 1.0), the y-axis shows how
 many of the query sequences have their first, second and third most likely placement
 at that LWR value.
 For example, the highest bin indicates that almost 50% of the query sequences have a first
-(most likely) placement position at or above 0.96. That is, these placements have a high LWR
-and are hence placed with high certainty at their respective branches.
+(most likely) placement position at or above an LWR of 0.96. That is, these placements have a high
+LWR and are hence placed with high certainty at their respective branches.
 
 Note that the second most likely placement can never have a probability of more than 50%
 (otherwise, it would be the most likely one), the third most likely not more than 33%, and so forth.

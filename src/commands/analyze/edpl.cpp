@@ -89,7 +89,7 @@ void setup_edpl( CLI::App& app )
         "If set, do not write out the EDPL per pquery, but just the histogram file. "
         "As the list needs to keep all pquery names in memory (to get the correct order), "
         "the memory requirements might be too large. In that case, this option can help."
-    );
+    )->group( "Settings" );
 
     // Output
     opt->file_output.add_output_dir_opt_to_app( sub );

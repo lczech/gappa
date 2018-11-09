@@ -42,6 +42,7 @@ public:
 
     size_t histogram_bins = 25;
     double histogram_max  = -1.0;
+    bool   no_list_file   = false;
 
     JplaceInputOptions jplace_input;
     FileOutputOptions  file_output;

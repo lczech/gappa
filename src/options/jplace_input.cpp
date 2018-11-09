@@ -82,13 +82,11 @@ CLI::Option* JplaceInputOptions::add_ignore_multiplicities_opt_to_app( CLI::App*
         throw std::domain_error( "Cannot set up --ignore-multiplicities option multiple times." );
     }
 
-    // Currently, this is a hidden option, because it goes too deep for the average user.
     ignore_multiplicities_option = sub->add_flag(
         "--ignore-multiplicities",
         ignore_multiplicities_,
         "Set the multiplicity of each pquery to 1."
     )->group( "Settings" );
-    // )->group( "" );
 
     return ignore_multiplicities_option;
 }

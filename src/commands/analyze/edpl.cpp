@@ -28,6 +28,7 @@
 #include "CLI/CLI.hpp"
 
 #include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/measures.hpp"
 #include "genesis/placement/function/operators.hpp"
 
@@ -58,7 +59,7 @@ void setup_edpl( CLI::App& app )
     auto opt = std::make_shared<EdplOptions>();
     auto sub = app.add_subcommand(
         "edpl",
-        "Calcualte the Expected Distance between Placement Locations (EDPL) for all Pqueries."
+        "Calcualte the Expected Distance between Placement Locations (EDPL) for all pqueries."
     );
 
     // File input
@@ -80,6 +81,15 @@ void setup_edpl( CLI::App& app )
         "To use the maximal EDPL found in the samples, use a negative value (default).",
         true
     )->group( "Settings" );
+
+    // Offer to skip list file
+    sub->add_flag(
+        "--no-list-file",
+        opt->no_list_file,
+        "If set, do not write out the EDPL per pquery, but just the histogram file. "
+        "As the list needs to keep all pquery names in memory (to get the correct order), "
+        "the memory requirements might be too large. In that case, this option can help."
+    );
 
     // Output
     opt->file_output.add_output_dir_opt_to_app( sub );
@@ -116,6 +126,7 @@ void run_edpl( EdplOptions const& options )
     Tree tree;
     utils::Matrix<double> node_distances;
     size_t file_count = 0;
+    double max_edpl = - std::numeric_limits<double>::infinity();
 
     // Helper for expressiveness and conciseness.
     // Stores an edpl value for a pquery name.
@@ -123,6 +134,7 @@ void run_edpl( EdplOptions const& options )
     {
         std::string name;
         double      edpl;
+        double      weight;
     };
 
     // Prepare result. The outer vector is indexed by samples, the inner lists the pquery names
@@ -149,8 +161,7 @@ void run_edpl( EdplOptions const& options )
         // Read in file.
         auto const sample = options.jplace_input.sample( fi );
 
-        // The main accumulation is single threaded.
-        // We could optimize more, but seriously, it is fast enough already.
+        // Check whether the tree is the same, and get its distance matrix.
         #pragma omp critical(GAPPA_EDPL_TREE)
         {
             // Tree
@@ -182,8 +193,18 @@ void run_edpl( EdplOptions const& options )
         auto temp = std::vector<NameEdpl>( sample.size() );
         for( auto const& pquery : sample ) {
             auto const edplv = edpl( pquery, node_distances );
-            for( auto const& name : pquery.names() ) {
-                temp.push_back({ name.name, edplv });
+            max_edpl = std::max( max_edpl, edplv );
+
+            // If we do not write a list file, we can simply add empty strings.
+            // This is a bit inefficient, but makes the rest of the code so much easier.
+            // Good enough for now.
+            if( options.no_list_file ) {
+                auto const mult = total_multiplicity( pquery );
+                temp.push_back({ "", edplv, mult });
+            } else {
+                for( auto const& name : pquery.names() ) {
+                    temp.push_back({ name.name, edplv, name.multiplicity });
+                }
             }
         }
         edpl_values[fi] = temp;
@@ -194,24 +215,24 @@ void run_edpl( EdplOptions const& options )
         std::cout << "Writing output files.\n";
     }
 
-    // Prepare list file
-    auto const list_file_name = options.file_output.out_dir() + options.file_output.file_prefix() + "list.csv";
-    std::ofstream list_ofs;
-    file_output_stream( list_file_name, list_ofs );
-    double max_edpl = - std::numeric_limits<double>::infinity();
+    if( ! options.no_list_file ) {
+        // Prepare list file
+        auto const list_file_name = options.file_output.out_dir() + options.file_output.file_prefix() + "list.csv";
+        std::ofstream list_ofs;
+        file_output_stream( list_file_name, list_ofs );
 
-    // Write list file. We also use the iteration to find the max edpl,
-    // which we need for making the histogram.
-    list_ofs << "Sample,Pquery,EDPL\n";
-    for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
-        auto const file_name = options.jplace_input.base_file_name( fi );
+        // Write list file.
+        list_ofs << "Sample,Pquery,EDPL,Weight\n";
+        for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
+            auto const file_name = options.jplace_input.base_file_name( fi );
 
-        for( auto const& entry : edpl_values[fi] ) {
-            list_ofs << file_name << "," << entry.name << "," << entry.edpl << "\n";
-            max_edpl = std::max( max_edpl, entry.edpl );
+            for( auto const& entry : edpl_values[fi] ) {
+                list_ofs << file_name << "," << entry.name << "," << entry.edpl;
+                list_ofs << "," << entry.weight << "\n";
+            }
         }
+        list_ofs.close();
     }
-    list_ofs.close();
 
     // Get the max value to use for the histogram. Use a warning if needed.
     if( options.histogram_max > 0.0 && options.histogram_max < 0.75 * max_edpl ) {
@@ -232,7 +253,7 @@ void run_edpl( EdplOptions const& options )
     auto hist = Histogram( options.histogram_bins, 0.0, hist_max );
     for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
         for( auto const& entry : edpl_values[fi] ) {
-            hist.increment( entry.edpl );
+            hist.accumulate( entry.edpl, entry.weight );
         }
     }
 
@@ -242,12 +263,14 @@ void run_edpl( EdplOptions const& options )
     file_output_stream( hist_file_name, hist_ofs );
 
     // Write histogram
-    hist_ofs << "Bin,Start,End,Value,Percentage,\"Accumulated Value\",\"Accumulated Percentage\"\n";
+    hist_ofs << "Bin,Start,End,Range,Value,Percentage,";
+    hist_ofs << "\"Accumulated Value\",\"Accumulated Percentage\"\n";
     auto const hist_sum = sum(hist);
     double hist_acc = 0.0;
     for( size_t i = 0; i < hist.bins(); ++i ) {
         hist_acc += hist[i];
         hist_ofs << i << "," << hist.bin_range(i).first << "," << hist.bin_range(i).second << ",";
+        hist_ofs << "\"[" << hist.bin_range(i).first << ", " << hist.bin_range(i).second << ")\",";
         hist_ofs << hist[i] << "," << ( hist[i] / hist_sum ) << ",";
         hist_ofs << hist_acc << "," << ( hist_acc / hist_sum ) << "\n";
     }

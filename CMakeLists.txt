@@ -140,9 +140,9 @@ set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GENESIS_EXE_LINKER_FLAG
 if( NOT OPENMP_FOUND )
     string(ASCII 27 Esc)
     message( STATUS "${Esc}[31m"
-        "Could not find OpenMP. This results in a considerably slower runtime for the program. Try "
-        "to use a different compiler. Alternatively, if you are sure your compiler supports OpenMP, "
-        "you can add the needed compiler flags to the CMake script."
+        "OpenMP was not found or has been deactivated. This results in a considerably slower "
+        "runtime for the program. Try to use a different compiler. Alternatively, if you are sure "
+        "your compiler supports OpenMP, you can add the needed compiler flags to the CMake script."
         # " See BUILD.md for details."
     "${Esc}[0m" )
 endif()

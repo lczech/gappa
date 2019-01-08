@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/input_source.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -41,7 +42,6 @@ SequenceInputOptions::SequenceInputOptions()
 {
     fasta_reader_.site_casing( genesis::sequence::FastaReader::SiteCasing::kUnchanged );
     phylip_reader_.site_casing( genesis::sequence::PhylipReader::SiteCasing::kUnchanged );
-    phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kAutomatic );
 }
 
 // =================================================================================================
@@ -69,9 +69,9 @@ CLI::Option* SequenceInputOptions::add_fasta_input_opt_to_app( CLI::App* sub, bo
 genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index ) const
 {
     using namespace genesis::sequence;
+    using namespace genesis::utils;
 
     // Prepare.
-    SequenceSet result;
     auto const& file_name = file_path( index );
     auto const ext = genesis::utils::file_extension( file_name );
 
@@ -85,35 +85,42 @@ genesis::sequence::SequenceSet SequenceInputOptions::sequence_set( size_t index 
     if( ext == "phylip" || ext == "phy" ) {
 
         // Try phylip if extension says so. Return if successfull.
+        // First sequential, and if this does not work, interleaved.
         try{
-            phylip_reader_.from_file( file_name, result );
-            return result;
+            phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kSequential );
+            return phylip_reader_.read( from_file( file_name ));
+        } catch ( std::exception& ex ) {
+            error_message = ex.what();
+        }
+        try{
+            phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kInterleaved );
+            return phylip_reader_.read( from_file( file_name ));
         } catch ( std::exception& ex ) {
             error_message = ex.what();
         }
 
         // Otherwise try fasta, again returning on success.
         try{
-            result.clear();
-            fasta_reader_.from_file( file_name, result );
-            return result;
+            return fasta_reader_.read( from_file( file_name ));
         } catch ( ... ) {}
 
     } else {
 
         // For all other extensions, try fasta first. Return if successfull.
         try{
-            fasta_reader_.from_file( file_name, result );
-            return result;
+            return fasta_reader_.read( from_file( file_name ));
         } catch ( std::exception& ex ) {
             error_message = ex.what();
         }
 
         // If this does not work, try phylip.
         try{
-            result.clear();
-            phylip_reader_.from_file( file_name, result );
-            return result;
+            phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kSequential );
+            return phylip_reader_.read( from_file( file_name ));
+        } catch ( ... ) {}
+        try{
+            phylip_reader_.mode( genesis::sequence::PhylipReader::Mode::kInterleaved );
+            return phylip_reader_.read( from_file( file_name ));
         } catch ( ... ) {}
     }
 

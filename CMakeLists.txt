@@ -1,5 +1,5 @@
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+# Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
 # These are replaced by libs/cmake/update_dependencies.sh to the hashes that are currently checked out.
 # Thus, do not replace the hashes manually!
 SET( CLI11_COMMIT_HASH "bd890e24a1f081d6db1a59a0cc372eccc64e9e52" ) #CLI11_COMMIT_HASH#
-SET( genesis_COMMIT_HASH "0d9cd2a366b2184bce8f5f37cd72db407122ce68" ) #genesis_COMMIT_HASH#
+SET( genesis_COMMIT_HASH "8ad91395fd9af67e1801ab7008c13753be7020b6" ) #genesis_COMMIT_HASH#
 SET( sparsepp_COMMIT_HASH "6bfe3b4bdb364993e612d6bb729d680cf4c77649" ) #sparsepp_COMMIT_HASH#
 
 # Call the github download function, which takes four arguments:

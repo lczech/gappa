@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/md5.hpp"
-#include "genesis/utils/tools/sha1.hpp"
-#include "genesis/utils/tools/sha256.hpp"
+#include "genesis/utils/tools/hash/md5.hpp"
+#include "genesis/utils/tools/hash/sha1.hpp"
+#include "genesis/utils/tools/hash/sha256.hpp"
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -295,8 +295,11 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
         AbundancesHashMap seq_abundances;
 
         // Iterate sequences
-        auto it = FastaInputIterator( options.sequence_input.fasta_reader() );
-        for( it.from_file( fasta_filename ); it; ++it ) {
+        auto it = FastaInputIterator(
+            from_file( fasta_filename ),
+            options.sequence_input.fasta_reader()
+        );
+        while( it ) {
             #pragma omp atomic
             ++total_seqs_count;
 
@@ -309,7 +312,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
             ++min_abun_count;
 
             // Calculate (relatively expensive) hashes.
-            auto const hash_digest = HashFunction::from_string_digest( it->sites() );
+            auto const hash_digest = HashFunction::read_digest( from_string( it->sites() ));
             auto const hash_hex = HashFunction::digest_to_hex( hash_digest );
 
             // Increment seq abundance for this file and label.
@@ -343,6 +346,8 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
                     }
                 }
             }
+
+            ++it;
         }
 
         // Finished a fasta file. Write its abundances.

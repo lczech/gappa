@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,12 +30,6 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
-
-// Relative path resolution for printing.
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <linux/limits.h>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -191,16 +185,14 @@ void FileInputOptions::print() const
     } else {
         std::cout << "Found " << files.size() << type << " files:\n";
 
-        char resolved_path[PATH_MAX];
         for( auto const& file : files ) {
-            auto ptr = realpath( file.c_str(), resolved_path );
-            if( errno == 0 ) {
-                std::cout << "  - " << ptr << "\n";
-            } else {
-                std::cout << "  - " << file << "\n";
-                // use std::strerror(errno) to get error message
-                errno = 0;
+            std::string rp;
+            try{
+                rp = genesis::utils::real_path( file );
+            } catch(...) {
+                rp = file;
             }
+            std::cout << "  - " << rp << "\n";
         }
     }
 }

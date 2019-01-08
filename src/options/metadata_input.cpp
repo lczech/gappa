@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "genesis/utils/containers/dataframe.hpp"
 #include "genesis/utils/containers/dataframe/reader.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -72,7 +73,7 @@ CLI::Option* MetadataInputOptions::add_metadata_input_opt_to_app(
 //      Run Functions
 // =================================================================================================
 
-genesis::utils::Dataframe<double> MetadataInputOptions::read_metadata() const
+genesis::utils::Dataframe MetadataInputOptions::read_metadata() const
 {
     using namespace genesis::utils;
 
@@ -90,13 +91,13 @@ genesis::utils::Dataframe<double> MetadataInputOptions::read_metadata() const
     });
 
     // Do the reading.
-    auto df = reader.from_file( metadata_file_ );
+    auto df = reader.read( from_file( metadata_file_ ));
 
     // If the user specified to use only certain columns, remove the others.
     if( ! metadata_fields_.empty() ) {
 
         // We use a csv reader to make sure that we properly parse the fields option.
-        auto const fields_arr = CsvReader().from_string( metadata_fields_ );
+        auto const fields_arr = CsvReader().read( from_string( metadata_fields_ ));
         if( fields_arr.size() != 1 ) {
             throw CLI::ValidationError(
                 "--metadata-fields (" + metadata_fields_ +  ")",
@@ -136,7 +137,7 @@ genesis::utils::Dataframe<double> MetadataInputOptions::read_metadata() const
     std::vector<std::string> rem_names;
     size_t i = 0;
     while( i < df.cols() ) {
-        auto const& col = df[i];
+        auto const& col = df[i].as<double>();
         auto const bad_vals = std::all_of( col.begin(), col.end(), []( double v ){
             return v == 0.0 || ! std::isfinite( v );
         });
@@ -166,7 +167,8 @@ genesis::utils::Dataframe<double> MetadataInputOptions::read_metadata() const
     if( global_options.verbosity() >= 3 ) {
         std::cout << "Using metadata fields: \n";
         for( size_t i = 0; i < df.cols(); ++i ) {
-            size_t const cnt = std::count_if( df[i].begin(), df[i].end(), []( double v ){
+            auto const& col = df[i].as<double>();
+            size_t const cnt = std::count_if( col.begin(), col.end(), []( double v ){
                 return std::isfinite( v );
             });
             if( cnt != df.rows() ) {
@@ -190,7 +192,7 @@ genesis::utils::Dataframe<double> MetadataInputOptions::read_metadata() const
 }
 
 bool MetadataInputOptions::check_row_names(
-    genesis::utils::Dataframe<double> const& df,
+    genesis::utils::Dataframe const& df,
     std::vector<std::string> const&          row_names
 ) {
 
@@ -208,17 +210,17 @@ bool MetadataInputOptions::check_row_names(
     return df_sci == bn_sci;
 }
 
-genesis::utils::Dataframe<double> MetadataInputOptions::sort_rows(
-    genesis::utils::Dataframe<double> const& df,
+genesis::utils::Dataframe MetadataInputOptions::sort_rows(
+    genesis::utils::Dataframe const& df,
     std::vector<std::string> const&          row_name_order
 ) {
     // We here simply make a sorted copy of the dataframe, because sorting inline is nasty.
     // This is not really a nice solution, but works for now.
 
     // Make a dataframe with the correct columns.
-    genesis::utils::Dataframe<double> res;
+    genesis::utils::Dataframe res;
     for( auto const& col : df ) {
-        res.add_col( col.name() );
+        res.add_col<double>( col.name() );
     }
 
     // Add the rows in the correct order, and fill in the values.
@@ -230,7 +232,7 @@ genesis::utils::Dataframe<double> MetadataInputOptions::sort_rows(
         auto const old_ridx = df.row_index( row_name );
 
         for( size_t cidx = 0; cidx < res.cols(); ++cidx ) {
-            res( ridx, cidx ) = df( old_ridx, cidx );
+            res.at( cidx ).get<double>( ridx ) = df.at( cidx ).get<double>( old_ridx );
         }
     }
 

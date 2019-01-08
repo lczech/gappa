@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
         true
     );
     prefix_option->check([]( std::string const& prefix ){
-        if( ! genesis::utils::is_valid_filname( prefix ) ) {
+        if( ! genesis::utils::is_valid_filename( prefix ) ) {
             return std::string(
                 "File prefix contains invalid characters (<>:\"\\/|?*) or surrounding whitespace."
             );

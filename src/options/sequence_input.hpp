@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -133,8 +133,9 @@ public:
 
 private:
 
+    // Phylip Reader is mutable so that we can change the reading mode.
+    mutable genesis::sequence::PhylipReader phylip_reader_;
     genesis::sequence::FastaReader  fasta_reader_;
-    genesis::sequence::PhylipReader phylip_reader_;
 
     static const std::string fasta_extensions_;
     static const std::string phylip_extensions_;

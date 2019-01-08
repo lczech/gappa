@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <iostream>
@@ -124,7 +125,7 @@ genesis::placement::Sample JplaceInputOptions::sample( size_t index ) const
     using namespace genesis::placement;
 
     // Do the reading.
-    auto sample = reader_.from_file( file_path( index ) );
+    auto sample = reader_.read( utils::from_file( file_path( index ) ));
 
     // Point mass: remove all but the most likely placement, and set its weight to one.
     if( point_mass_option && point_mass_ ) {

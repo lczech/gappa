@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/math/euclidean_kmeans.hpp"
+#include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <fstream>
@@ -164,7 +165,7 @@ void run_ikmeans( IkmeansOptions const& options )
 
     // Read input data into imbalances matrix. Filter columns.
     auto profile = options.jplace_input.placement_profile( true );
-    auto const columns = epca_filter_constant_columns( profile.edge_imbalances, 0.001 );
+    auto const columns = filter_constant_columns( profile.edge_imbalances, 0.001 );
 
     // Move data into vectors, as this is what the kmeans needs.
     // It is a bit stupid, but otherweise the const column filtering would be weird...

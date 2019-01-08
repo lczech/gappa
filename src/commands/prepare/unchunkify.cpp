@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,10 +36,11 @@
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/iterator.hpp"
 #include "genesis/utils/formats/json/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/md5.hpp"
-#include "genesis/utils/tools/sha1.hpp"
-#include "genesis/utils/tools/sha256.hpp"
+#include "genesis/utils/tools/hash/md5.hpp"
+#include "genesis/utils/tools/hash/sha1.hpp"
+#include "genesis/utils/tools/hash/sha256.hpp"
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -353,7 +354,9 @@ std::shared_ptr<MappedSample<HashFunction>> load_sample(
 
     // Create the result and load the sample.
     auto mapped_sample = std::make_shared<MappedSample<HashFunction>>();
-    mapped_sample->sample = genesis::placement::JplaceReader().from_file( file_path );
+    mapped_sample->sample = genesis::placement::JplaceReader().read(
+        genesis::utils::from_file( file_path )
+    );
 
     // If we are in a mode that needs per-sample indicies, create the map from hashes to indices.
     if( mode == UnchunkifyMode::kChunkFileExpression || mode == UnchunkifyMode::kChunkListFile ) {
@@ -604,7 +607,7 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
         }
 
         // Read map file and do some checks.
-        auto doc = JsonReader().from_file( map_filename );
+        auto doc = JsonReader().read( genesis::utils::from_file( map_filename ));
         if( ! doc.is_object() ) {
             throw std::runtime_error( "Invalid abundance map: " + map_filename );
         }

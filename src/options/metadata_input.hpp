@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -115,22 +115,22 @@ public:
     /**
      * @brief Get metadata table.
      */
-    genesis::utils::Dataframe<double> read_metadata() const;
+    genesis::utils::Dataframe read_metadata() const;
 
     /**
      * @brief Return whether the row names of a dataframe are the same as the given list of names,
      * order independently.
      */
     static bool check_row_names(
-        genesis::utils::Dataframe<double> const& df,
+        genesis::utils::Dataframe const& df,
         std::vector<std::string> const& row_names
     );
 
     /**
      * @brief Sort the rows of a dataframe by a given order.
      */
-    static genesis::utils::Dataframe<double> sort_rows(
-        genesis::utils::Dataframe<double> const& df,
+    static genesis::utils::Dataframe sort_rows(
+        genesis::utils::Dataframe const& df,
         std::vector<std::string> const&          row_name_order
     );
 

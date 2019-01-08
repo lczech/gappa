@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 #include "genesis/taxonomy/taxopath.hpp"
 
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -223,6 +224,7 @@ genesis::taxonomy::Taxonomy read_taxonomy( PhatOptions const& options )
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
+    using namespace genesis::utils;
 
     // User output.
     if( global_options.verbosity() >= 1 ) {
@@ -230,13 +232,12 @@ genesis::taxonomy::Taxonomy read_taxonomy( PhatOptions const& options )
     }
 
     // Get alignment length.
-    auto it = FastaInputIterator();
-    it.from_file( options.sequence_file );
+    auto it = FastaInputIterator( from_file( options.sequence_file ) );
     auto const seq_len = it->size();
 
     // Read from file.
     auto tax = Taxonomy();
-    TaxonomyReader().from_file( options.taxonomy_file, tax );
+    TaxonomyReader().read( from_file( options.taxonomy_file ), tax );
     sort_by_name( tax );
 
     // Init a pointer to the whole taxonomy.
@@ -246,7 +247,7 @@ genesis::taxonomy::Taxonomy read_taxonomy( PhatOptions const& options )
     if( ! options.sub_taxopath.empty() ) {
 
         // Find the sub taxon and assign it to the taxonomy as our new main taxon.
-        auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
+        auto const taxopath = TaxopathParser().parse( options.sub_taxopath );
         auto subtaxon = find_taxon_by_taxopath( tax, taxopath );
         subtax = subtaxon;
 
@@ -295,6 +296,7 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
 {
     using namespace genesis::sequence;
     using namespace genesis::taxonomy;
+    using namespace genesis::utils;
 
     // User output.
     if( global_options.verbosity() >= 1 ) {
@@ -315,8 +317,8 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
     fasta_reader.site_casing( FastaReader::SiteCasing::kToUpper );
 
     // Iterate sequences.
-    auto it = FastaInputIterator( fasta_reader );
-    for( it.from_file( options.sequence_file ); it; ++it ) {
+    auto it = FastaInputIterator( from_file( options.sequence_file ), fasta_reader );
+    while( it ) {
 
         // User output.
         // If we have verbose output, count characters.
@@ -345,7 +347,7 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
         // Parse the taxo path and find it in the taxonomy.
         // If the first attempt fails, remove the last element (assumed to be species level),
         // and try again. If we fail again, we cannot use this sequence.
-        auto taxopath = taxopath_parser( taxopath_str );
+        auto taxopath = taxopath_parser.parse( taxopath_str );
         auto taxp = find_taxon_by_taxopath( tax, taxopath );
         if( taxp == nullptr ) {
             taxopath.pop_back();
@@ -380,6 +382,8 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
             cur_tax->data<EntropyTaxonData>().counts.add_sequence( *it );
             cur_tax = cur_tax->parent();
         } while( cur_tax != nullptr && cur_tax->has_data() );
+
+        ++it;
     }
 
     // User output.
@@ -479,7 +483,7 @@ void select_taxa( PhatOptions const& options, genesis::taxonomy::Taxonomy& tax )
 
     // If the user only wants a sub taxon, overwrite the pointer.
     if( ! options.sub_taxopath.empty() ) {
-        auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
+        auto const taxopath = TaxopathParser().parse( options.sub_taxopath );
         subtax = find_taxon_by_taxopath( tax, taxopath );
 
         if( subtax == nullptr ) {

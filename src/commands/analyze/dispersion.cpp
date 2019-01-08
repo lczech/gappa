@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -211,7 +211,7 @@ std::string output_file_name(
     std::string const&         prefix
 ) {
     using namespace genesis::utils;
-    return sanitize_filname( options.file_output.file_prefix() + prefix );
+    return sanitize_filename( options.file_output.file_prefix() + prefix );
 }
 
 // =================================================================================================
@@ -279,9 +279,28 @@ void run_with_matrix(
     DispersionVariant::EdgeValues         edge_values,
     genesis::tree::Tree const&            tree
 ) {
+    using namespace genesis::utils;
+
     if( values.cols() != tree.edge_count() ) {
         throw std::runtime_error( "Internal Error: Edge values does not have corrent length." );
     }
+
+    auto matrix_col_mean_stddev = []( Matrix<double> const& data ){
+        auto ret = std::vector<MeanStddevPair>( data.cols(), { 0.0, 0.0 } );
+
+        // Nothing to do. Better stop here or we risk dividing by zero.
+        if( data.rows() == 0 ) {
+            return ret;
+        }
+
+        // Iterate columns.
+        #pragma omp parallel for
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            ret[c] = mean_stddev( data.col(c).begin(), data.col(c).end() );
+        }
+
+        return ret;
+    };
 
     // Calculate things. We calculate everyting, which might be a bit wasteful if the "all" option
     // is not used. But these are really cheap calculations, and in the standard "all" case,

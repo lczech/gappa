@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Pierre Barbera, Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Pierre Barbera, Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include "genesis/taxonomy/taxonomy.hpp"
 
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -54,7 +55,6 @@
 #include "genesis/placement/pquery.hpp"
 #include "genesis/placement/pquery/placement.hpp"
 #include "genesis/placement/function/manipulation.hpp"
-
 
 #include <fstream>
 
@@ -247,7 +247,7 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
             throw std::runtime_error{"Could not find node with name: " + name};
         }
 
-        node_labels[ node_ptr->index() ] = tpp.from_string( tax_string );
+        node_labels[ node_ptr->index() ] = tpp.parse( tax_string );
     }
 
     // check if any leafs weren't assigned a Taxopath
@@ -597,9 +597,10 @@ void add_taxon_ids( Taxonomy& tax, AssignOptions const& options )
 {
     // load taxonomy tsv into internal
     Taxonomy map;
-    TaxonomyReader().id_field_position(1)
-                    .rank_field_position(2)
-                    .from_file( options.taxonomy_file, map );
+    auto tr = TaxonomyReader();
+    tr.id_field_position(1);
+    tr.rank_field_position(2);
+    tr.read( genesis::utils::from_file( options.taxonomy_file ), map );
 
     /* dirty hack time! yaay
     *  since we will have a very hard time changing the taxonomy while traversing it
@@ -740,7 +741,7 @@ Taxon& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
     // This function is only called if the option for sub tax is spefied.
     assert( ! options.sub_taxopath.empty() );
 
-    auto const taxopath = TaxopathParser().from_string( options.sub_taxopath );
+    auto const taxopath = TaxopathParser().parse( options.sub_taxopath );
     auto const subtax = find_taxon_by_taxopath( tax, taxopath );
 
     if( subtax == nullptr ) {

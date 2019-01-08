@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/color/qualitative_lists.hpp"
 
@@ -175,7 +176,7 @@ CladeTaxaList get_clade_taxa_lists( ExtractOptions const& options )
 
     // Create a list of all clades and fill each clade with its taxa.
     CladeTaxaList clades;
-    auto table = csv_reader.from_file( clade_filename );
+    auto table = csv_reader.read( from_file( clade_filename ));
     for( size_t i = 0; i < table.size(); ++i ) {
         auto const& line = table[i];
         if( line.size() != 2 ) {
@@ -619,8 +620,11 @@ void extract_sequences(
             }
         }
 
-        auto it = FastaInputIterator( options.sequence_input.fasta_reader() );
-        for( it.from_file( fasta_filename ); it; ++it ) {
+        auto it = FastaInputIterator(
+            from_file( fasta_filename ),
+            options.sequence_input.fasta_reader()
+        );
+        while( it ) {
             #pragma omp atomic
             ++total_seqs_count;
 
@@ -662,6 +666,8 @@ void extract_sequences(
                     clade_seqs.clear();
                 }
             }
+
+            ++it;
         }
     }
 

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ std::vector<CorrelationVariant> get_variants( CorrelationOptions const& options 
 /**
  * @brief Get the metadata table sorted and checked against the input jplace files.
  */
-genesis::utils::Dataframe<double> get_metadata( CorrelationOptions const& options )
+genesis::utils::Dataframe get_metadata( CorrelationOptions const& options )
 {
     // Get the metadata.
     options.metadata_input.print();
@@ -232,7 +232,7 @@ std::string output_file_name(
     std::string const&        metadata_field
 ) {
     using namespace genesis::utils;
-    return sanitize_filname( options.file_output.file_prefix() + metadata_field + "_" + prefix );
+    return sanitize_filename( options.file_output.file_prefix() + metadata_field + "_" + prefix );
 }
 
 // =================================================================================================
@@ -279,7 +279,7 @@ void run_with_matrix(
     CorrelationOptions const&                options,
     std::vector<CorrelationVariant> const&   variants,
     genesis::utils::Matrix<double> const&    edge_values,
-    genesis::utils::Dataframe<double> const& df,
+    genesis::utils::Dataframe const&         df,
     CorrelationVariant::EdgeValues           edge_value_type,
     genesis::tree::Tree const&               tree
 ) {
@@ -304,6 +304,7 @@ void run_with_matrix(
 
         // Calculate correlation for each metadata field.
         for( auto const& meta_col : df ) {
+            auto const& meta_dbl = meta_col.as<double>();
 
             // Prepare a vector for the correlation coefficients of all edges.
             auto corr_vec = std::vector<double>( tree.edge_count() );
@@ -314,14 +315,14 @@ void run_with_matrix(
                 switch( variant.correlation_value ) {
                     case CorrelationVariant::kPearson: {
                         corr_vec[e] = pearson_correlation_coefficient(
-                            meta_col.begin(), meta_col.end(),
+                            meta_dbl.begin(), meta_dbl.end(),
                             edge_values.col( e ).begin(), edge_values.col( e ).end()
                         );
                         break;
                     }
                     case CorrelationVariant::kSpearman: {
                         corr_vec[e] = spearmans_rank_correlation_coefficient(
-                            meta_col.begin(), meta_col.end(),
+                            meta_dbl.begin(), meta_dbl.end(),
                             edge_values.col( e ).begin(), edge_values.col( e ).end()
                         );
                         break;

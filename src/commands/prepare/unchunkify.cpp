@@ -50,6 +50,7 @@
 #include <cassert>
 #include <limits>
 #include <memory>
+#include <unordered_map>
 #include <utility>
 
 // =================================================================================================
@@ -97,7 +98,7 @@ template< class HashFunction >
 using HashToIndexMap = std::unordered_map<typename HashFunction::DigestType, SamplePqueryIndices>;
 
 /**
- * @brief Cache for chunk jplace files, mapping frmo file path to sample.
+ * @brief Cache for chunk jplace files, mapping from file path to sample.
  */
 template< class HashFunction >
 using ChunkCache = genesis::utils::MruCache<std::string, std::shared_ptr<MappedSample<HashFunction>>>;

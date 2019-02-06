@@ -155,6 +155,12 @@ void setup_assign( CLI::App& app )
         "Print result in the Krona text format."
     )->group("Output");
 
+    sub->add_flag(
+        "--sativa",
+        opt->sativa,
+        "Print result as SATIVA would."
+    )->group("Output");
+
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [ opt ]() {
@@ -323,6 +329,50 @@ void print_taxonomy_with_lwr(
         stream << "\t" << TaxopathGenerator().to_string( taxon );
         stream << "\n";
     });
+}
+
+void print_sativa_string(
+    std::ostream& stream,
+    std::string const& name,
+    Taxonomy const& tax
+) {
+    Taxon const * most_supported = nullptr;
+
+    // determine which path is the "most supported"
+    postorder_for_each( tax, [&]( Taxon const& taxon ){
+        // Only print if there is some weight.
+        if ( taxon.data<AssignTaxonData>().aLWR == 0 ) {
+            return;
+        }
+
+        if ( not most_supported ) {
+            most_supported = &taxon;
+        } else {
+            auto cur_max = most_supported->data<AssignTaxonData>().LWR;
+            if ( taxon.data<AssignTaxonData>().LWR > cur_max ) {
+                most_supported = &taxon;
+            }
+        }
+    });
+
+    // get that path in full, with the per rank confidences
+    std::vector<std::string> taxpath;
+    std::vector<double> confidences;
+
+    while ( most_supported ) {
+        confidences.push_back( most_supported->data<AssignTaxonData>().aLWR );
+        taxpath.emplace_back( most_supported->name() );
+
+        most_supported = most_supported->parent();
+    }
+
+    std::reverse( std::begin(confidences), std::end(confidences) );
+    std::reverse( std::begin(taxpath), std::end(taxpath) );
+
+    stream << name;
+    stream << "\t" << join( taxpath, ";" );
+    stream << "\t" << join( confidences, ";" );
+    stream << "\n";
 }
 
 void print_taxonomy_table(
@@ -774,6 +824,11 @@ static void assign( Sample const& sample,
         genesis::utils::file_output_stream( per_pquery_result_file, per_pquery_out_stream );
     }
 
+    std::ofstream sativa_out_stream;
+    if ( options.sativa ) {
+        genesis::utils::file_output_stream( options.output_dir.out_dir() + "per_query_sativa", sativa_out_stream );
+    }
+
     for ( auto const& pq : sample.pqueries() ) {
         Taxonomy per_pq_assignments;
 
@@ -842,11 +897,19 @@ static void assign( Sample const& sample,
         }
 
         if ( intermediate_results ) {
+            std::string composite_name;
             for ( auto const& name : pq.names() ) {
-                per_pquery_out_stream << name.name;
+                if ( not composite_name.empty() ) {
+                    composite_name += ";";
+                }
+                composite_name += name;
             }
-            per_pquery_out_stream << std::endl;
+            per_pquery_out_stream << composite_name << "\n";
             print_taxonomy_with_lwr( options, 0, per_pq_assignments, per_pquery_out_stream );
+
+            if ( options.sativa ) {
+                print_sativa_string( sativa_out_stream, composite_name, per_pq_assignments );
+            }
         }
     }
 

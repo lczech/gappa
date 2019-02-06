@@ -3,11 +3,11 @@
 The command takes one or more `jplace` files as input and assigns the likelihood weights of each placement to a taxonomic rank, then prints a high level profile of how the total likelihood weight is distributed on the taxonomy (specified by the `--taxon-file`). To achieve this, the command operates in three phases.
 
 First, the tree found in the `jplace` input is labelled according to the information found in the [`taxon-file`](#taxonomic-label-file--taxon-file), beginning at the tip nodes.
-Inner nodes of the tree are labelled according to the most specific taxonomic rank shared by both its child nodes (i.e. if one child is labelled "A;B;C", and the other is labelled "A;B;D", the parent node will be labelled "A;B"). The resulting labelled tree is printed to file as the first intermediate result (filename `labelled_tree`).
+Inner nodes of the tree are labelled according to the most specific taxonomic rank shared by both its child nodes (i.e. if one child is labelled "A;B;C", and the other is labelled "A;B;D", the parent node will be labelled "A;B"). The resulting labelled tree is printed to file as the first intermediate result (filename `labelled_tree.newick`).
 
-Second, the algorithm goes through each placement in the `jplace` input and assigns its likelihood weight to one or more taxonomic ranks, according to the [specified strategy](#distribution-ratio---distribution-ratio). This triggers the second intermediate result, which is a file containing the per-query results of this assignment (filename `per_query_assign`).
+Second, the algorithm goes through each placement in the `jplace` input and assigns its likelihood weight to one or more taxonomic ranks, according to the [specified strategy](#distribution-ratio---distribution-ratio). This triggers the second intermediate result, which is a file containing the per-query results of this assignment (filename `per_query.tsv`).
 
-Third, the command summarizes these assignments by collapsing them into one tabulation, showing information about the total distribution of likelihood weight across the taxonomy ([example](#final-output), filename `profile.csv`).
+Third, the command summarizes these assignments by collapsing them into one tabulation, showing information about the total distribution of likelihood weight across the taxonomy ([example](#final-output), filename `profile.tsv`).
 
 ## Details
 
@@ -78,7 +78,7 @@ We however usually recommend using the default automatic ratio (that is, do not 
 
 ### Final Output
 
-The final output of the command is a tabulation of the distribution of the total likelihood weight across the taxonomy, which is written to the file `profile.csv`.
+The final output of the command is a tabulation of the distribution of the total likelihood weight across the taxonomy, which is written to the file `profile.tsv`.
 
 The meaning of the column headers are:
 
@@ -102,21 +102,30 @@ The meaning of the column headers are:
  0       0       0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia
  0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
  ```
- 
-In addition to this, the command will print a file called `per_query_assign` containing one assignment profile per input query. Though the columns are not labelled, they have identical meaning to the aforementioned final output file. Each per-query profile starts with the query name:
+
+In addition to this, the command will print a file called `per_query.tsv` containing one assignment profile per input query.
 ```
-S0R9827501
-0       0       0.9992  1       Bacteria
-0       0       0.9992  1       Bacteria;Firmicutes
-0       0       0.9992  1       Bacteria;Firmicutes;Bacilli
-S0R4231960
-0       0       0.9949  1       Bacteria
-0       0       0.9949  1       Bacteria;Firmicutes
-0       0       0.9949  1       Bacteria;Firmicutes;Bacilli
-0.237   0.2382  0.9949  1       Bacteria;Firmicutes;Bacilli;Lactobacillales
-0.3242  0.3258  0.7415  0.7453  Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae
-0.3667  0.3686  0.3667  0.3686  Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Pediococcus
-0.05058 0.05084 0.05058 0.05084 Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus
+name  LWR     fract   aLWR    afract  taxopath
+Carp  0       0       1       1       Eukaryota
+Carp  0       0       1       1       Eukaryota;Animalia
+Carp  0       0       1       1       Eukaryota;Animalia;Chordata
+Carp  0       0       1       1       Eukaryota;Animalia;Chordata;Amphibia
+Carp  0.4489  0.4489  1       1       Eukaryota;Animalia;Chordata;Amphibia;Anura
+Carp  0.5511  0.5511  0.5511  0.5511  Eukaryota;Animalia;Chordata;Amphibia;Anura;Rhacophoridae
+Rat   0       0       1       1       Eukaryota
+Rat   0       0       1       1       Eukaryota;Animalia
+Rat   0.5002  0.5002  1       1       Eukaryota;Animalia;Chordata
+Rat   0       0       0.4998  0.4998  Eukaryota;Animalia;Chordata;Mammalia
+Rat   0       0       0.4998  0.4998  Eukaryota;Animalia;Chordata;Mammalia;Rodentia
+Rat   0.4998  0.4998  0.4998  0.4998  Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
+
+```
+
+This can be combined with the `--best-hit` option to only print the taxopath that itself has the highest LWR:
+```
+name  LWR     fract   aLWR    afract  taxopath
+Carp  0.5511  0.5511  0.5511  0.5511  Eukaryota;Animalia;Chordata;Amphibia;Anura;Rhacophoridae
+Rat   0.5002  0.5002  1       1       Eukaryota;Animalia;Chordata
 ```
 
 #### Additional Output Formats
@@ -133,11 +142,12 @@ Furthermore, additional output formats are available:
    [ktImportText](https://github.com/marbl/Krona/wiki/Importing-text-and-XML-data#text) command.
    If using this format and visualization, do not forget to
    [cite their paper](https://www.ncbi.nlm.nih.gov/pubmed/21961884).
+ - When using `--sativa`, an additional file "sativa.tsv" is written, which emulates the outout of [SATIVA](https://github.com/amkozlov/sativa).
 
 ### Filtering (`--sub-taxopath`)
 
 Additionally, the tabulated output may be filtered (constrained) to include only a part of the taxonomy.
-This behavior is regulated via the `--sub-taxopath` option, and the result is printed to a file called `profile_filtered.csv` in the specified output directory.
+This behavior is regulated via the `--sub-taxopath` option, and the result is printed to a file called `profile_filtered.tsv` in the specified output directory.
 
 For this output, the normalization of the accumulated LWR and fraction columns only takes the specified subtaxonomy into account.
 This option is hence useful to get a more detailed view at a specific part of the taxonomy.

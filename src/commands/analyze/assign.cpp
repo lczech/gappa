@@ -161,6 +161,12 @@ void setup_assign( CLI::App& app )
         "Print result as SATIVA would."
     )->group("Output");
 
+    sub->add_flag(
+        "--best-hit",
+        opt->best_hit,
+        "In the intermediate results, only print the taxonomic path with the highest LWR."
+    )->group("Output");
+
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->set_callback( [ opt ]() {
@@ -296,46 +302,8 @@ void add_lwr_to_taxonomy(   const double lwr,
     } while( cur_tax != nullptr );
 }
 
-void print_taxonomy_with_lwr(
-    AssignOptions const& options,
-    size_t const base_tax_level,
-    Taxonomy const& tax,
-    std::ostream& stream
-) {
-    // get total LWR as sum of all top level aLWR
-    double sum = 0.0;
-    for( auto const& ct : tax ) {
-        sum += ct.data<AssignTaxonData>().aLWR;
-    }
-
-    preorder_for_each( tax, [&]( Taxon const& taxon ){
-        // Only print if there is some weight.
-        if ( taxon.data<AssignTaxonData>().aLWR == 0 ) {
-            return;
-        }
-
-        // Only print if the level of the taxon is within the max level
-        // (if specified by the user), taking care of the base level for subtaxonomies.
-        auto const tax_level = taxon_level( taxon ) - base_tax_level;
-        if( options.max_tax_level > 0 && tax_level >= options.max_tax_level ) {
-            return;
-        }
-
-        stream << std::setprecision(4);
-        stream << taxon.data<AssignTaxonData>().LWR;
-        stream << "\t" << taxon.data<AssignTaxonData>().LWR / sum;
-        stream << "\t" << taxon.data<AssignTaxonData>().aLWR;
-        stream << "\t" << taxon.data<AssignTaxonData>().aLWR / sum;
-        stream << "\t" << TaxopathGenerator().to_string( taxon );
-        stream << "\n";
-    });
-}
-
-void print_sativa_string(
-    std::ostream& stream,
-    std::string const& name,
-    Taxonomy const& tax
-) {
+Taxon const * get_most_supported(Taxonomy const& tax)
+{
     Taxon const * most_supported = nullptr;
 
     // determine which path is the "most supported"
@@ -354,6 +322,69 @@ void print_sativa_string(
             }
         }
     });
+
+    return most_supported;
+}
+
+void print_weighted_taxopath(
+    std::ostream& stream,
+    std::string const& name,
+    Taxon const& taxon,
+    double const sum)
+{
+    stream << std::setprecision(4);
+    if ( not name.empty() ) {
+        stream << name << "\t";
+    }
+    stream << taxon.data<AssignTaxonData>().LWR;
+    stream << "\t" << taxon.data<AssignTaxonData>().LWR / sum;
+    stream << "\t" << taxon.data<AssignTaxonData>().aLWR;
+    stream << "\t" << taxon.data<AssignTaxonData>().aLWR / sum;
+    stream << "\t" << TaxopathGenerator().to_string( taxon );
+    stream << "\n";
+}
+
+void print_taxonomy_with_lwr(
+    std::ostream& stream,
+    std::string const& name,
+    Taxonomy const& tax,
+    size_t const base_tax_level,
+    AssignOptions const& options
+) {
+    // get total LWR as sum of all top level aLWR
+    double sum = 0.0;
+    for( auto const& ct : tax ) {
+        sum += ct.data<AssignTaxonData>().aLWR;
+    }
+
+    if ( options.best_hit ) {
+        Taxon const * most_supported = get_most_supported( tax );
+        print_weighted_taxopath(stream, name, *most_supported, sum);
+    } else {
+        preorder_for_each( tax, [&]( Taxon const& taxon ){
+            // Only print if there is some weight.
+            if ( taxon.data<AssignTaxonData>().aLWR == 0 ) {
+                return;
+            }
+
+            // Only print if the level of the taxon is within the max level
+            // (if specified by the user), taking care of the base level for subtaxonomies.
+            auto const tax_level = taxon_level( taxon ) - base_tax_level;
+            if( options.max_tax_level > 0 && tax_level >= options.max_tax_level ) {
+                return;
+            }
+
+            print_weighted_taxopath(stream, name, taxon, sum);
+        });
+    }
+}
+
+void print_sativa_string(
+    std::ostream& stream,
+    std::string const& name,
+    Taxonomy const& tax
+) {
+    Taxon const * most_supported = get_most_supported( tax );
 
     // get that path in full, with the per rank confidences
     std::vector<std::string> taxpath;
@@ -378,14 +409,14 @@ void print_sativa_string(
 void print_taxonomy_table(
     AssignOptions const& options,
     size_t const base_tax_level,
-    Taxonomy const& t,
+    Taxonomy const& tax,
     std::string const& path
 ) {
     std::ofstream stream;
     genesis::utils::file_output_stream( path, stream );
 
     stream << "LWR\tfract\taLWR\tafract\ttaxopath\n";
-    print_taxonomy_with_lwr( options, base_tax_level, t, stream );
+    print_taxonomy_with_lwr( stream, "", tax, base_tax_level, options );
 }
 
 using vec_iter = std::vector<std::string>::const_iterator;
@@ -822,11 +853,12 @@ static void assign( Sample const& sample,
 
     if ( intermediate_results ) {
         genesis::utils::file_output_stream( per_pquery_result_file, per_pquery_out_stream );
+        per_pquery_out_stream << "name\tLWR\tfract\taLWR\tafract\ttaxopath\n";
     }
 
     std::ofstream sativa_out_stream;
     if ( options.sativa ) {
-        genesis::utils::file_output_stream( options.output_dir.out_dir() + "per_query_sativa", sativa_out_stream );
+        genesis::utils::file_output_stream( options.output_dir.out_dir() + "sativa.tsv", sativa_out_stream );
     }
 
     for ( auto const& pq : sample.pqueries() ) {
@@ -904,8 +936,11 @@ static void assign( Sample const& sample,
                 }
                 composite_name += name;
             }
-            per_pquery_out_stream << composite_name << "\n";
-            print_taxonomy_with_lwr( options, 0, per_pq_assignments, per_pquery_out_stream );
+            print_taxonomy_with_lwr(per_pquery_out_stream,
+                                    composite_name,
+                                    per_pq_assignments,
+                                    0,
+                                    options );
 
             if ( options.sativa ) {
                 print_sativa_string( sativa_out_stream, composite_name, per_pq_assignments );
@@ -923,7 +958,7 @@ static void assign( Sample const& sample,
     std::string out_dir = options.output_dir.out_dir();
 
     // return diversity profile
-    print_taxonomy_table( options, 0, diversity, out_dir + "profile.csv" );
+    print_taxonomy_table( options, 0, diversity, out_dir + "profile.tsv" );
 
     // print result in CAMI format if desired
     if ( options.cami ) {
@@ -944,7 +979,7 @@ static void assign( Sample const& sample,
         auto const base_level = taxon_level( subtaxonomy );
 
         // and print to file
-        print_taxonomy_table( options, base_level, subtaxonomy, out_dir + "profile_filtered.csv" );
+        print_taxonomy_table( options, base_level, subtaxonomy, out_dir + "profile_filtered.tsv" );
     }
 }
 
@@ -1030,10 +1065,10 @@ void run_assign( AssignOptions const& options )
     postorder_label( tree, node_labels );
 
     // print taxonomically labelled tree as intermediate result
-    print_labelled( tree, node_labels, out_dir + "labelled_tree" );
+    print_labelled( tree, node_labels, out_dir + "labelled_tree.newick" );
 
     // per rank LWR score eval
-    assign( sample, node_labels, options, out_dir + "per_pquery_assign" );
+    assign( sample, node_labels, options, out_dir + "per_query.tsv" );
 
     if( global_options.verbosity() >= 1 ) {
         std::cout << "Finished.\n";

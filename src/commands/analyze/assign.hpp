@@ -57,6 +57,7 @@ public:
     bool                cami    = false;
     bool                krona   = false;
     bool                sativa  = false;
+    bool                best_hit= false;
 
     std::string         sample_id = "";
 };

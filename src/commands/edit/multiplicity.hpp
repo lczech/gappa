@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_EDIT_MULTIPLICITY_H_
+#define GAPPA_COMMANDS_EDIT_MULTIPLICITY_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
@@ -23,47 +26,35 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze.hpp"
-#include "commands/edit.hpp"
-#include "commands/prepare.hpp"
+#include "options/jplace_input.hpp"
+#include "options/sequence_input.hpp"
+#include "options/file_output.hpp"
 
-#include "options/global.hpp"
-#include "tools/help.hpp"
-#include "tools/version.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Options
 // =================================================================================================
 
-int main( int argc, char** argv )
+class MultiplicityOptions
 {
-    // Activate logging.
-    // utils::Logging::log_to_stdout();
-    // utils::Logging::details.time = true;
-    //
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+public:
 
-    CLI::App app{ gappa_header() };
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
-    app.set_name( "gappa" );
+    JplaceInputOptions   jplace_input;
 
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_to_app( app );
+    std::string          multiplicity_file;
+    SequenceInputOptions sequence_input;
 
-    // Set up all subcommands.
-    setup_prepare( app );
-    setup_edit( app );
-    setup_analyze( app );
-    setup_wiki( app );
+    FileOutputOptions    jplace_output;
+};
 
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
+// =================================================================================================
+//      Functions
+// =================================================================================================
 
-    return 0;
-}
+void setup_multiplicity( CLI::App& app );
+void run_multiplicity( MultiplicityOptions const& options );
+
+#endif // include guard

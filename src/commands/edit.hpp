@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_EDIT_H_
+#define GAPPA_COMMANDS_EDIT_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
@@ -23,47 +26,28 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze.hpp"
-#include "commands/edit.hpp"
-#include "commands/prepare.hpp"
+// #include "commands/edit/sanitize.hpp"
+#include "commands/edit/multiplicity.hpp"
 
-#include "options/global.hpp"
-#include "tools/help.hpp"
-#include "tools/version.hpp"
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Functions
 // =================================================================================================
 
-int main( int argc, char** argv )
+void setup_edit( CLI::App& app )
 {
-    // Activate logging.
-    // utils::Logging::log_to_stdout();
-    // utils::Logging::details.time = true;
-    //
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "edit",
+        "Commands for editing and manipulating files like jplace, fasta or newick."
+    );
+    sub->require_subcommand( 1 );
 
-    CLI::App app{ gappa_header() };
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
-    app.set_name( "gappa" );
-
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_to_app( app );
-
-    // Set up all subcommands.
-    setup_prepare( app );
-    setup_edit( app );
-    setup_analyze( app );
-    setup_wiki( app );
-
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
-
-    return 0;
+    // Add module subcommands.
+    // setup_sanitize( *sub );
+    setup_multiplicity( *sub );
 }
+
+#endif // include guard

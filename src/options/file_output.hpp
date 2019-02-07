@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,27 +57,23 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add an output dir with an option named "--out-dir".
-     */
-    CLI::Option* add_output_dir_opt_to_app( CLI::App* sub );
-
-    /**
-     * @brief Add a named output dir "--name-out-dir".
+     * @brief Add a named output dir "--name-out-dir", or "--out-dir" if name is empty.
      */
     CLI::Option* add_output_dir_opt_to_app(
         CLI::App* sub,
-        std::string const& name,
+        std::string const& name = "",
         std::string const& initial_value = ".",
         std::string const& group = "Output"
     );
 
     /**
-     * @brief Add a command to set the file prefix for this file name, using "--name-file-prefix".
+     * @brief Add a command to set the file prefix for this file name, using "--name-file-prefix",
+     * or "--file-prefix" if name is empty.
      */
     CLI::Option* add_file_prefix_opt_to_app(
         CLI::App* sub,
-        std::string const& name,
-        std::string const& initial_value,
+        std::string const& name = "",
+        std::string const& initial_value = "",
         std::string const& group = "Output"
     );
 

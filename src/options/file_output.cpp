@@ -32,11 +32,6 @@
 //      Setup Functions
 // =================================================================================================
 
-CLI::Option* FileOutputOptions::add_output_dir_opt_to_app( CLI::App* sub )
-{
-    return add_output_dir_opt_to_app( sub, "" );
-}
-
 CLI::Option* FileOutputOptions::add_output_dir_opt_to_app(
     CLI::App* sub,
     std::string const& name,

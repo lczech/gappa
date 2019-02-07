@@ -30,6 +30,10 @@ If the `--min-abundance` option is used with a value greater than 1 for files th
 
 The abundance information in sequence labels can be specified in two ways:
 
-  * Using the format `[;]size=123[;]`, appearing anywhere in the label. The semicola are optional.
+  * Using the format `;size=123;`, appearing anywhere in the label. The semicola are mandatory,
+    except for the second one if it is the last character of the label.
+    Other attributes in the format `;key=value;` can be present as well; in that case,
+    they are filtered out and only the part prior to the first semicolon is used as the actual
+    sequence label.
   * Appended via underscore: `name_123`. In this case, the number has to be the last in
     the label, that is, no other text may follow.

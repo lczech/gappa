@@ -88,7 +88,7 @@ By default, the pquery name is assumed to be just the first part of the `fasta` 
 that is, the above annotations (and, if present, other semicolon-separated attributes) are removed.
 However, typical placement programs do not remove this information, but rather name the pquery
 using the full `fasta` label. Hence, the pquery name in a `jplace` file might be
-`FUM0LCO01BV7G2;size=24;`. In order to use this full label for finden pqueries,
+`FUM0LCO01BV7G2;size=24;`. In order to use this full label for finding pqueries,
 set the `--keep-full-label` flag.
 
 ## See Also

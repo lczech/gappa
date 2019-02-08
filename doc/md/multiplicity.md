@@ -69,20 +69,27 @@ in its `fasta` file like this:
     ...
 
 This information can be used here to set multiplicities. The command expects the base name of the
-fasta files (that is, without the `.fasta` extension) to be identical to the base name of the
+`fasta` files (that is, without the `.fasta` extension) to be identical to the base name of the
 corresponding `jplace` file, in order to know which multiplicities to use for which sample.
 
 The following annotation formats are supported:
 
- * Via the `>abc;size=123;` annotation.
- * Via the `>abc;weight=3.14;` annotation.
- * Via underscore at the end of the label: `>abc_123`
+ * Via the `>name;size=123;` annotation.
+ * Via the `>name;weight=3.14;` annotation.
+ * Via underscore at the end of the label: `>name_123`
 
 The first and the last option are common annotations, see [swarm](https://github.com/torognes/swarm)
 for a popular OTU clustering tool that supports both of them. They expect integer numbers.
 In order to also support floating point numbers, we additionally allow to use the `weight` annotation,
 as shown above. Note that if both `size` and `weight` are provided, they are multiplied to get
 the final multiplicity for the pquery.
+
+By default, the pquery name is assumed to be just the first part of the `fasta` label,
+that is, the above annotations (and, if present, other semicolon-separated attributes) are removed.
+However, typical placement programs do not remove this information, but rather name the pquery
+using the full `fasta` label. Hence, the pquery name in a `jplace` file might be
+`FUM0LCO01BV7G2;size=24;`. In order to use this full label for finden pqueries,
+set the `--keep-full-label` flag.
 
 ## See Also
 

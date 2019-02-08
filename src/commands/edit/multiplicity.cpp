@@ -91,6 +91,15 @@ void setup_multiplicity( CLI::App& app )
     multiplicity_file_opt->excludes( fasta_file_opt );
     fasta_file_opt->excludes( multiplicity_file_opt );
 
+    auto keep_full_label_opt = sub->add_flag(
+        "--keep-full-label",
+        options->keep_full_label,
+        "If fasta files are used, keep their whole label as the name for jplace pqueries, "
+        "instead of removing the abundance annotation."
+    );
+    keep_full_label_opt->group( "Input" );
+    keep_full_label_opt->needs( fasta_file_opt );
+
     // -----------------------------------------------------------
     //     Output options
     // -----------------------------------------------------------
@@ -237,6 +246,11 @@ std::pair<MultiplicityMap, std::vector<std::string>> get_multiplicities_fasta_fi
                 // Reset to previous values.
                 pquery = abun.first;
                 value = abun.second;
+            }
+
+            // If we keep the full label, reset it.
+            if( options.keep_full_label ) {
+                pquery = label;
             }
 
             // Set the value in the result.

@@ -46,6 +46,7 @@ public:
 
     std::string          multiplicity_file;
     SequenceInputOptions sequence_input;
+    bool                 keep_full_label = false;
 
     FileOutputOptions    jplace_output;
 };

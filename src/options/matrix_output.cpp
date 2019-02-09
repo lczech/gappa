@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app(
 
 std::string MatrixOutputOptions::output_filename() const
 {
-    return file_prefix() + "krd.csv";
+    return file_prefix() + ( name_.empty() ? "matrix" : name_ ) + ".csv";
 }
 
 void MatrixOutputOptions::check_nonexistent_output_files() const

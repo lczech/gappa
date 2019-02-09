@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ void setup_nhd( CLI::App& app )
     // Add common options.
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
     opt->jplace_input.add_point_mass_opt_to_app( sub );
-    opt->matrix_output.add_matrix_output_opts_to_app( sub, "distance" );
+    opt->matrix_output.add_matrix_output_opts_to_app( sub, "nhd" );
 
     // Add custom options.
     sub->add_option(

@@ -9,6 +9,8 @@ multiplicities:
  * `--fasta-path`: A set of `fasta` files, from which the header information is used.
 
 See below for the expected format for each.
+A file that can be used for the first way can be produced with the `--write-multiplicity-file`
+flag, as explained below.
 
 ## Details
 
@@ -90,6 +92,15 @@ However, typical placement programs do not remove this information, but rather n
 using the full `fasta` label. Hence, the pquery name in a `jplace` file might be
 `FUM0LCO01BV7G2;size=24;`. In order to use this full label for finding pqueries,
 set the `--keep-full-label` flag.
+
+### `--write-multiplicity-file`
+
+If set, a file listing the current multiplicities of the pqueries in the input `jplace` files
+is written. That is, no new `jplace` files are produced.
+The values in the file can then be changed as needed, and the file can be used as input to
+`--multiplicity-file` for actually changing the multiplicities in the `jplace` files.
+The file always uses the three columns format as explained above;
+the file is named `multiplicities.csv`, potentially prefixed by `--file-prefix`.
 
 ## See Also
 

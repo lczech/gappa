@@ -32,10 +32,12 @@
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/functions/labels.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <map>
 #include <unordered_map>
 #include <utility>
 
@@ -54,6 +56,11 @@
  * provided a list of abundances per pquery name, with no specified sample name.
  */
 using MultiplicityMap = std::unordered_map<std::string, std::unordered_map<std::string, double>>;
+
+/**
+ * @brief Same as the MultiplicityMap, but keeps its keys sorted.
+ */
+using SortedMultiplicityMap = std::map<std::string, std::map<std::string, double>>;
 
 // =================================================================================================
 //      Setup
@@ -104,8 +111,17 @@ void setup_multiplicity( CLI::App& app )
     //     Output options
     // -----------------------------------------------------------
 
-    options->jplace_output.add_output_dir_opt_to_app( sub );
-    options->jplace_output.add_file_prefix_opt_to_app( sub );
+    auto write_multiplicity_file_opt = sub->add_flag(
+        "--write-multiplicity-file",
+        options->write_multiplicity_file,
+        "Do not change the existing multiplicities, but instead produce a file that lists them. "
+    );
+    write_multiplicity_file_opt->group( "Output" );
+    write_multiplicity_file_opt->excludes( fasta_file_opt );
+    write_multiplicity_file_opt->excludes( multiplicity_file_opt );
+
+    options->file_output.add_output_dir_opt_to_app( sub );
+    options->file_output.add_file_prefix_opt_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -134,6 +150,8 @@ std::pair<MultiplicityMap, std::vector<std::string>> get_multiplicities_csv_file
     // Store the results.
     MultiplicityMap result;
     std::vector<std::string> duplicates;
+
+    // TODO allow to customize the separator char here (and later in the writing as well)!
 
     // Read the file line by line, that is, pquery by pquery.
     size_t line_size = 0;
@@ -323,23 +341,18 @@ MultiplicityMap get_multiplicities( MultiplicityOptions const& options )
 }
 
 // =================================================================================================
-//      Run
+//      Change Multiplicities
 // =================================================================================================
 
-void run_multiplicity( MultiplicityOptions const& options )
+void change_multiplicities( MultiplicityOptions const& options )
 {
-    using namespace genesis;
-
     // Check if any of the files we are going to produce already exists. If so, fail early.
     auto const bfns = options.jplace_input.base_file_names();
     std::vector<std::string> check_files;
     for( auto const& bfn : bfns ) {
-        check_files.push_back( options.jplace_output.file_prefix() + bfn + "\\.jplace" );
+        check_files.push_back( options.file_output.file_prefix() + bfn + "\\.jplace" );
     }
-    options.jplace_output.check_nonexistent_output_files( check_files );
-
-    // Print some user output.
-    options.jplace_input.print();
+    options.file_output.check_nonexistent_output_files( check_files );
 
     // Get all multiplicites. That might need some memory, but for now, easier that way.
     auto multips = get_multiplicities( options );
@@ -387,8 +400,8 @@ void run_multiplicity( MultiplicityOptions const& options )
                     if( global_options.verbosity() >= 2 ) {
                         #pragma omp critical(GAPPA_MULTIPLICITY_PRINT)
                         {
-                            std::cout << "No multilicity value found for pquery " << pqn.name;
-                            std::cout << " in sample " << basename << " (";
+                            std::cout << "No multilicity value found for pquery '" << pqn.name;
+                            std::cout << "' in sample " << basename << " (";
                             std::cout << options.jplace_input.file_path( fi ) <<  ").\n";
                         }
                     }
@@ -397,11 +410,121 @@ void run_multiplicity( MultiplicityOptions const& options )
         }
 
         // Write sample back to file.
-        auto const ofn = options.jplace_output.file_prefix() + basename + ".jplace";
-        placement::JplaceWriter().to_file( sample, options.jplace_output.out_dir() + ofn );
+        auto const ofn = options.file_output.file_prefix() + basename + ".jplace";
+        genesis::placement::JplaceWriter().to_file( sample, options.file_output.out_dir() + ofn );
     }
 
-    if( global_options.verbosity() <= 1 ) {
+    if( global_options.verbosity() <= 1 && not_found > 0 ) {
         std::cout << "Warning: Could not find " << not_found << " pquery names.\n";
+    }
+}
+
+// =================================================================================================
+//      Write Multiplicities
+// =================================================================================================
+
+void write_multiplicities( MultiplicityOptions const& options )
+{
+    // Check if the produced file already exists. If so, fail early.
+    options.file_output.check_nonexistent_output_files({
+        options.file_output.file_prefix() + "multiplicities\\.csv"
+    });
+
+    // Store the multiplicites.
+    SortedMultiplicityMap multips;
+
+    // Preparations.
+    size_t file_count = 0;
+    auto const set_size = options.jplace_input.file_count();
+    size_t duplicate_sample_cnt = 0;
+    size_t duplicate_pquery_cnt = 0;
+
+    // Run the loop for each jplace sample.
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t fi = 0; fi < set_size; ++fi ) {
+
+        // User output.
+        if( global_options.verbosity() >= 2 ) {
+            #pragma omp critical(GAPPA_MULTIPLICITY_ADD_MULTIPLICITY)
+            {
+                ++file_count;
+                std::cout << "Processing file " << file_count << " of " << set_size;
+                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
+            }
+        }
+
+        // Read the sample (multithreaded).
+        auto const sample = options.jplace_input.sample( fi );
+        auto const basename = options.jplace_input.base_file_name( fi );
+
+        // Get and store the multiplicity for each pquery name. Single threaded.
+        #pragma omp critical(GAPPA_MULTIPLICITY_ADD_MULTIPLICITY)
+        {
+            if( multips.count( basename ) > 0 ) {
+                std::cout << "Warning: Duplicate sample name '" + basename + "'. ";
+                std::cout << "This will lead to misleading results if not fixed!\n";
+            }
+
+            for( auto& pquery : sample ) {
+                for( auto& pqn : pquery.names() ) {
+
+                    if( multips[ basename ].count( pqn.name ) > 0 ) {
+                        ++duplicate_pquery_cnt;
+
+                        std::cout << "Duplicate pquery name '" << pqn.name;
+                        std::cout << "' in sample " << basename << " (";
+                        std::cout << options.jplace_input.file_path( fi ) <<  ").\n";
+                    }
+                    multips[ basename ][ pqn.name ] = pqn.multiplicity;
+                }
+            }
+        }
+    }
+
+    // User warnings
+    if( duplicate_pquery_cnt > 0 ) {
+        std::cout << "Warning: There were " << duplicate_pquery_cnt << " duplicate pquery names.\n";
+    }
+    if( duplicate_sample_cnt > 0 ) {
+        std::cout << "Warning: There were " << duplicate_sample_cnt << " duplicate sample names.\n";
+    }
+
+    // Prepare file.
+    auto const filename
+        = options.file_output.out_dir()
+        + options.file_output.file_prefix()
+        + "multiplicities.csv"
+    ;
+
+    // User output
+    std::cout << "Writing multiplicity file: " << filename << "\n";
+
+    // TODO proper escaping! use csv writer class, if we add one to genesis.
+    // TODO use the separator char here as well!
+
+    // Write the multiplicity file.
+    std::ofstream ofs;
+    genesis::utils::file_output_stream( filename, ofs );
+    for( auto const& sample : multips ) {
+        for( auto const& pquery : sample.second ) {
+            ofs << sample.first << "\t" << pquery.first << "\t" << pquery.second << "\n";
+        }
+    }
+    ofs.close();
+}
+
+// =================================================================================================
+//      Run
+// =================================================================================================
+
+void run_multiplicity( MultiplicityOptions const& options )
+{
+    // Print some user output.
+    options.jplace_input.print();
+
+    if( options.write_multiplicity_file ) {
+        write_multiplicities( options );
+    } else {
+        change_multiplicities( options );
     }
 }

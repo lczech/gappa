@@ -48,7 +48,8 @@ public:
     SequenceInputOptions sequence_input;
     bool                 keep_full_label = false;
 
-    FileOutputOptions    jplace_output;
+    bool                 write_multiplicity_file = false;
+    FileOutputOptions    file_output;
 };
 
 // =================================================================================================

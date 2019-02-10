@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_EDIT_H_
-#define GAPPA_COMMANDS_EDIT_H_
+#ifndef GAPPA_COMMANDS_EDIT_SPLIT_H_
+#define GAPPA_COMMANDS_EDIT_SPLIT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,30 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/edit/multiplicity.hpp"
-// #include "commands/edit/sanitize.hpp"
-#include "commands/edit/split.hpp"
+#include "options/jplace_input.hpp"
+#include "options/file_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class SplitOptions
+{
+public:
+
+    JplaceInputOptions   jplace_input;
+
+    std::string          split_file;
+    std::string          otu_table_file;
+
+    FileOutputOptions    jplace_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_edit( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "edit",
-        "Commands for editing and manipulating files like jplace, fasta or newick."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_multiplicity( *sub );
-    // setup_sanitize( *sub );
-    setup_split( *sub );
-}
+void setup_split( CLI::App& app );
+void run_split( SplitOptions const& options );
 
 #endif // include guard

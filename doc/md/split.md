@@ -22,11 +22,11 @@ for example by removing duplicates across samples, and creating one large `fasta
 unique sequences in a study. This saves computational effort, as identical sequences are
 placed identically. Later on, one might then however wish to create per-sample `jplace` files,
 as if those had been produced by individual per-sample placement in the first place.
-This can be achieved with this commend. The resulting `jplace` files can then for example
-be used for our per-sample analysis methods.
+This can be achieved with this command. The resulting `jplace` files can then for example
+be used for our per-sample analysis methods, see [here](../wiki).
 
 Note however that we introduced a dedicated pipeline for the above use case,
-that takes care of the whole bookkeeping of which sequences belong to which sample.
+that already takes care of the whole bookkeeping of which sequences belong to which sample.
 See the [chunkify](../wiki/Subcommand:-chunkify) and [unchunkify](../wiki/Subcommand:-unchunkify)
 commands for details.
 
@@ -43,8 +43,8 @@ It expects a comma-separated list of which pquery/read should be put in which ou
     ...
 
 This will produce two files, `smpl_a.jplace` and `smpl_b.jplace`, each containing one
-read from the original input file(s). The names of these reads need to correspond to pquery names
-in the input `jplace` files.
+read from the original input file(s). The names of these reads ("read_1" and "read_2")
+need to correspond to pquery names in the input `jplace` files.
 
 Our split command also supports an optional third column containing the new multiplicity
 for the read as a (floating point) number. By default, a multiplicity of 1.0 is used.

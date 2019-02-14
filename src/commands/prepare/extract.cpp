@@ -556,7 +556,7 @@ PqueryNamesPerCladeList get_pqueries_per_clade(
     }
 
     if( duplicate_names > 0 ) {
-        std::cout << "Found " << duplicate_names << " pqueries that have the same name. ";
+        std::cout << "Found " << duplicate_names << " pquerie(s) that have the same name. ";
         std::cout << "This will cause the extraction of sequences with that name to be ";
         std::cout << "randomly assigned to one of the clades that have a pquery with that name. ";
         std::cout << "Thus, this should better be fixed first!\n";

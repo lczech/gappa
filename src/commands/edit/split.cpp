@@ -127,6 +127,9 @@ void setup_split( CLI::App& app )
     split_file_opt->excludes( otu_table_file_opt );
     otu_table_file_opt->excludes( split_file_opt );
 
+    // TODO make an option to select the columns, instead of having to prune the table
+    // if it contains unwanted columns (which most otu tables do...)
+
     // -----------------------------------------------------------
     //     Output options
     // -----------------------------------------------------------

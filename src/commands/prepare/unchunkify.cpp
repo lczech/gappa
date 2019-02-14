@@ -330,7 +330,8 @@ std::vector<std::string> get_chunk_list_file(
     }
 
     if( global_options.verbosity() >= 1 ) {
-        std::cout << "Found " << list.size() << " jplace files in chunk file list.\n";
+        std::cout << "Found " << list.size() << " jplace file";
+        std::cout << ( list.size() > 1 ? "s" : "" ) << " in chunk file list.\n";
     }
 
     return list;

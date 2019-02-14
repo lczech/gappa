@@ -172,9 +172,11 @@ void FileInputOptions::print() const
     if( global_options.verbosity() == 0 ) {
         return;
     } else if( global_options.verbosity() == 1 ) {
-        std::cout << "Found " << files.size() << type << " files.\n";
+        std::cout << "Found " << files.size() << type << " file";
+        std::cout << ( files.size() > 1 ? "s" : "" ) << ".\n";
     } else if( global_options.verbosity() == 2 ) {
-        std::cout << "Found " << files.size() << type << " files: ";
+        std::cout << "Found " << files.size() << type << " file";
+        std::cout << ( files.size() > 1 ? "s" : "" ) << ": ";
         for( auto const& file : files ) {
             if( &file != &files[0] ) {
                 std::cout << ", ";
@@ -183,7 +185,8 @@ void FileInputOptions::print() const
         }
         std::cout << "\n";
     } else {
-        std::cout << "Found " << files.size() << type << " files:\n";
+        std::cout << "Found " << files.size() << type << " file";
+        std::cout << ( files.size() > 1 ? "s" : "" ) << ":\n";
 
         for( auto const& file : files ) {
             std::string rp;

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -199,7 +199,7 @@ void run_visualize_color( VisualizeColorOptions const& options )
             std::cout << "Warning: Some branches have mass 0, which cannot be shown using --log-scaling. ";
             std::cout << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n";
             std::cout << "This will lead to those branches being shown in the color specified by ";
-            std::cout << "--mask-color. Use --clip-under and --min-value to change this.";
+            std::cout << "--mask-color. Use --clip-under and --min-value to change this.\n";
         } else {
 
             // The log color norm yields -inf for 0 values.

@@ -1,6 +1,6 @@
 ## Description
 
-The command takes a taxonomy as input, and converts it into a tree in `Newick format`,
+The command takes a taxonomy as input, and converts it into a tree in `Newick` format,
 which can for example be used as a (taxonomic) constraint for tree inference.
 This is particularly useful for a set of sequences that each have a taxonomic assignment.
 
@@ -11,6 +11,9 @@ The required taxonomy can be given in two ways:
 
 Both of them can be given at the same time, in which case the taxonomic information is combined.
 See below for details on the expected formats.
+
+The output of the command is a tree in Newick format, written to a file named `taxonomy-tree.newick`
+(additionally using the `--file-prefix` if provided).
 
 ## Details
 
@@ -32,7 +35,7 @@ Example:
     JQ031957	Eukaryota;Amoebozoa;Myxogastria;Brefeldia;Brefeldia_maxima
     ...
 
-This will create a tree with tips labeled "AY842031", "JQ031957", etc, and a topology that reflects
+This will create a tree with tips labeled `AY842031`, `JQ031957`, etc, and a topology that reflects
 the taxonmic paths.
 
 ### `--taxonomy-file`
@@ -64,8 +67,8 @@ do not furcate at all. Many downstream programs might have problems with such tr
 Hence, by default, such nodes are collapsed. Use `--keep-singleton-inner-nodes` to include these
 inner nodes in the tree.
 
-Furthermore, a taxonomy contains names at every level, while a Tree usually does not contain
-inner node names. Thus, by default, inner nodes are not named. Use `--keep-inner-node-name`
+Furthermore, a taxonomy contains names at every level, while a tree usually does not contain
+inner node names. Thus, by default, inner nodes are not named. Use `--keep-inner-node-names`
 to also name the inner nodes of the tree.
 
 Lastly, `--max-level` can be used to only use the first few levels (starting at 0) of the taxonomy

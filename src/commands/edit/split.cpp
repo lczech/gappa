@@ -95,7 +95,8 @@ void setup_split( CLI::App& app )
     auto options = std::make_shared<SplitOptions>();
     auto sub = app.add_subcommand(
         "split",
-        "Split the queries in jplace files into multiple files."
+        "Split the queries in jplace files into multiple files, "
+        "for example, according to an OTU table."
     );
 
     // -----------------------------------------------------------

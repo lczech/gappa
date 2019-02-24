@@ -358,6 +358,7 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
             if( global_options.verbosity() >= 3 ) {
                 std::cout << "Sequence " << it->label() << " not found in the taxonomy!\n";
             }
+            ++it;
             continue;
         }
 
@@ -370,6 +371,7 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
             if( global_options.verbosity() >= 3 ) {
                 std::cout << "Sequence " << it->label() << " not part of the subtaxonomy.\n";
             }
+            ++it;
             continue;
         }
 

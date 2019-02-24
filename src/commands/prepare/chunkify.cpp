@@ -306,6 +306,7 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
             // Check for min abundance.
             auto const abundance = guess_sequence_abundance( *it );
             if( abundance.second < options.min_abundance ) {
+                ++it;
                 continue;
             }
             #pragma omp atomic

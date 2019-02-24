@@ -641,6 +641,8 @@ void extract_sequences(
             if( clade_it == list.end() ) {
                 #pragma omp atomic
                 ++missing_seqs_count;
+
+                ++it;
                 continue;
             }
 

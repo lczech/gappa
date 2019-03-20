@@ -105,8 +105,8 @@ void setup_correlation( CLI::App& app )
     options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Metadata table input.
-    auto meta_opt = options->metadata_input.add_metadata_input_opt_to_app( sub );
-    meta_opt->required();
+    options->metadata_input.add_table_input_opt_to_app( sub, true );
+    options->metadata_input.add_column_selection_opts_to_app( sub );
 
     // Edge value representation
     sub->add_set_ignore_case(
@@ -187,8 +187,8 @@ std::vector<CorrelationVariant> get_variants( CorrelationOptions const& options 
 genesis::utils::Dataframe get_metadata( CorrelationOptions const& options )
 {
     // Get the metadata.
-    options.metadata_input.print();
-    auto const df = options.metadata_input.read_metadata();
+    // options.metadata_input.print();
+    auto const df = options.metadata_input.read_double_dataframe();
 
     // Check if the sorting actually fits.
     if( ! options.metadata_input.check_row_names( df, options.jplace_input.base_file_names() )) {

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 #include "options/color/color_norm.hpp"
 #include "options/file_output.hpp"
 #include "options/jplace_input.hpp"
-#include "options/metadata_input.hpp"
+#include "options/table_input.hpp"
 #include "options/tree_output.hpp"
 
 #include <string>
@@ -48,7 +48,7 @@ public:
     std::string method      = "all";
 
     JplaceInputOptions   jplace_input;
-    MetadataInputOptions metadata_input;
+    TableInputOptions    metadata_input{ "metadata", "Metadata Table Input" };
     ColorMapOptions      color_map;
     FileOutputOptions    file_output;
     TreeOutputOptions    tree_output;

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -121,7 +121,7 @@ public:
      * This is useful for commands that do not work on Samples directly, but only need their
      * mass tree representation.
      */
-    std::vector<genesis::tree::MassTree> mass_tree_set() const;
+    std::vector<genesis::tree::MassTree> mass_tree_set( bool normalize = true ) const;
 
     /**
      * @brief Read in all jplace files given by the user and merge all their pqueries them into a sample.

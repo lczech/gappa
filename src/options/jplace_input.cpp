@@ -289,7 +289,7 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
     return result;
 }
 
-std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set() const
+std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set( bool normalize ) const
 {
     using namespace genesis;
     using namespace genesis::placement;
@@ -320,7 +320,7 @@ std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set() const
         auto const smpl = sample( fi );
 
         // Turn it into a mass tree.
-        mass_trees[fi] = convert_sample_to_mass_tree( smpl, true ).first;
+        mass_trees[fi] = convert_sample_to_mass_tree( smpl, normalize ).first;
     }
 
     // Check for compatibility.

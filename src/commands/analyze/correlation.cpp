@@ -106,6 +106,7 @@ void setup_correlation( CLI::App& app )
 
     // Metadata table input.
     options->metadata_input.add_table_input_opt_to_app( sub, true );
+    options->metadata_input.add_separator_char_opt_to_app( sub );
     options->metadata_input.add_column_selection_opts_to_app( sub );
 
     // Edge value representation

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "commands/analyze/krd.hpp"
 #include "commands/analyze/lwr.hpp"
 #include "commands/analyze/nhd.hpp"
+#include "commands/analyze/placement_factorization.hpp"
 #include "commands/analyze/squash.hpp"
 #include "commands/analyze/visualize_color.hpp"
 
@@ -66,10 +67,12 @@ void setup_analyze( CLI::App& app )
     setup_ikmeans( *sub );
     setup_krd( *sub );
     setup_lwr( *sub );
-    // setup_nhd( *sub );
     setup_pkmeans( *sub );
+    setup_placement_factorization( *sub );
     setup_squash( *sub );
     setup_visualize_color( *sub );
+
+    // setup_nhd( *sub );
 }
 
 #endif // include guard

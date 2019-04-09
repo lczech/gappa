@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -113,6 +113,7 @@ void run_edpl( EdplOptions const& options )
     using namespace genesis::tree;
     using namespace genesis::utils;
 
+    // TODO does also fail if the list is not written.
     // Prepare output file names and check if any of them already exists. If so, fail early.
     std::vector<std::string> files_to_check;
     files_to_check.push_back( options.file_output.file_prefix() + "list\\.csv" );
@@ -133,8 +134,8 @@ void run_edpl( EdplOptions const& options )
     struct NameEdpl
     {
         std::string name;
+        double      mult;
         double      edpl;
-        double      weight;
     };
 
     // Prepare result. The outer vector is indexed by samples, the inner lists the pquery names
@@ -184,13 +185,15 @@ void run_edpl( EdplOptions const& options )
             throw std::runtime_error( "Internal Error: Distance matrix disagrees with tree." );
         }
 
-        // Calculate the edpl for the sample and store it per oquery name.
+        // Calculate the edpl for the sample and store it per pquery name.
         // We reserve entries for each pquery. If there are pqueries with multiple names,
         // this will lead to reallocation, but in the standard case, this is faster.
         // Also, we later copy the entries to the result, to make sure we do not store more data
         // than necessary.
         assert( fi < edpl_values.size() && edpl_values[fi].empty() );
-        auto temp = std::vector<NameEdpl>( sample.size() );
+        auto temp = std::vector<NameEdpl>();
+        temp.reserve( sample.size() );
+
         for( auto const& pquery : sample ) {
             auto const edplv = edpl( pquery, node_distances );
             max_edpl = std::max( max_edpl, edplv );
@@ -200,10 +203,10 @@ void run_edpl( EdplOptions const& options )
             // Good enough for now.
             if( options.no_list_file ) {
                 auto const mult = total_multiplicity( pquery );
-                temp.push_back({ "", edplv, mult });
+                temp.push_back({ "", mult, edplv });
             } else {
                 for( auto const& name : pquery.names() ) {
-                    temp.push_back({ name.name, edplv, name.multiplicity });
+                    temp.push_back({ name.name, name.multiplicity, edplv });
                 }
             }
         }
@@ -222,13 +225,13 @@ void run_edpl( EdplOptions const& options )
         file_output_stream( list_file_name, list_ofs );
 
         // Write list file.
-        list_ofs << "Sample,Pquery,EDPL,Weight\n";
+        list_ofs << "Sample,Pquery,Multiplicity,EDPL\n";
         for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
             auto const file_name = options.jplace_input.base_file_name( fi );
 
             for( auto const& entry : edpl_values[fi] ) {
-                list_ofs << file_name << "," << entry.name << "," << entry.edpl;
-                list_ofs << "," << entry.weight << "\n";
+                list_ofs << file_name << "," << entry.name << "," << entry.mult;
+                list_ofs << "," << entry.edpl << "\n";
             }
         }
         list_ofs.close();
@@ -253,7 +256,7 @@ void run_edpl( EdplOptions const& options )
     auto hist = Histogram( options.histogram_bins, 0.0, hist_max );
     for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
         for( auto const& entry : edpl_values[fi] ) {
-            hist.accumulate( entry.edpl, entry.weight );
+            hist.accumulate( entry.edpl, entry.mult );
         }
     }
 

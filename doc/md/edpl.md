@@ -1,8 +1,8 @@
 ## Description
 
-Calculates the expected distance between placement locations (EDPL) for all pqueries in the given
-samples.
-The command is a re-implementation of [`guppy edpl`](http://matsen.github.io/pplacer/generated_rst/guppy_edpl.html), see there for more details.
+Calculates the expected distance between placement locations (EDPL) for all pqueries in the given samples.
+The command is a re-implementation of [`guppy edpl`](http://matsen.github.io/pplacer/generated_rst/guppy_edpl.html),
+see there for more details.
 
 ## Details
 
@@ -30,8 +30,9 @@ The command produces two tables:
 
  * `list.csv`: A list of the EDPL for each pquery of each sample. The list contains four columns:
    Sample name (using the input file name), pquery name (one line for each name for pqueries with
-   multiple names), the EDPL value of that pquery, and the weight (multiplicity) of the pquery.
-   As this list needs quite some memory, it can also be deactivated with `--no-list-file`.
+   multiple names), the weight (multiplicity) of the pquery, and the EDPL value of that pquery.
+   As this list needs quite some memory (about as much as the input jplace files),
+   it can also be deactivated with `--no-list-file`.
  * `histogram.csv`: A summary histogram of the EDPL values. This can be used in spreadsheet
    tools to produce a graph that allows an overview of the values for easy assessment.
    Using the settings `--histogram-bins` and `--histogram-max`, the histogram output can be refined.

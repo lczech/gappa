@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,8 @@ class LwrOptions
 public:
 
     size_t histogram_bins = 25;
-    size_t num_lwrs   = 5;
+    size_t num_lwrs       = 5;
+    bool   no_list_file   = false;
 
     JplaceInputOptions jplace_input;
     FileOutputOptions  file_output;

@@ -171,6 +171,8 @@ genesis::utils::Matrix<double> read_meta_data( PlacementFactorizationOptions con
         std::cout << report << "\n";
     }
 
+    // TODO use glm_convert_dataframe instead?!
+
     // Copy the meta data in the correct sample order.
     auto const jplace_count = options.jplace_input.file_count();
     auto result = genesis::utils::Matrix<double>( jplace_count, meta.cols() );

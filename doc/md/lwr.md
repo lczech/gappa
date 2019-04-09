@@ -1,10 +1,13 @@
 ## Description
 
-Print histograms of the likelihood weight ratios (LWRs) of all pqueries.
+The command is a very simply tool to extract the likelihood weight ratios (LWRs)
+of all pqueries in a set of `jplace` samples.
+Basically, it turns the input into simple table formats to be used for further analysis:
+It prints histograms and lists of the LWRs.
 
 ## Details
 
-The command produces a histogram table that contains histograms of the `--num-lwrs` most likely
+The command produces a histogram table and a list that contain the `--num-lwrs` most likely
 likelihood weight ratios (LWRs) of the pqueries (query sequences) in the input `jplace` files.
 This can be used in spreadsheet tools to produce a graph that allows an overview of the LWRs
 for easy assessment. The histograms can for example be visualized as follows:
@@ -14,7 +17,8 @@ for easy assessment. The histograms can for example be visualized as follows:
 The histogram shows the percentage of the first, second, and third most likely placement.
 The x-axis are likelihood weight ratios (always in the range 0.0 to 1.0), the y-axis shows how
 many of the query sequences have their first, second and third most likely placement
-at that LWR value.
+at that LWR value. (More exactly, it shows the summed *multiplicities* of the pqueries - but those
+are 1.0 by default.)
 For example, the highest bin indicates that almost 50% of the query sequences have a first
 (most likely) placement position at or above an LWR of 0.96. That is, these placements have a high
 LWR and are hence placed with high certainty at their respective branches.
@@ -24,6 +28,22 @@ Note that the second most likely placement can never have a probability of more 
 
 These histograms can also be interpreted as the distributions of the LWRs.
 See Supplementary Figure 14 of [1] for an example of these histograms in practice.
+
+In particular, the command produces two tables:
+
+ * `list.csv`: A list of the LWRs for each pquery of each sample. The list contains several columns:
+   Sample name (using the input file name), pquery name (one line for each name for pqueries with
+   multiple names), the weight (multiplicity) of the pquery, and the first LWR values of that pquery.
+   The number of values/columns being printed is controlled via `--num-lwrs`.
+   As this list needs quite some memory (about as much as the input jplace files),
+   it can also be deactivated with `--no-list-file` for very large inputs.
+   In that case, only histograms are produced:
+ * `histogram.csv`: A summary histogram of the LWR values. This can be used in spreadsheet
+   tools to produce a graph that allows an overview of the values for easy assessment.
+   Using the settings `--histogram-bins` and `--num-lwrs`, the histogram output can be refined.
+   The output contains columns for the absolute values (summed multiplicities of all pqueries at
+   the particular bin), relative values (as percentages), as well as accumulated absolute and relative
+   values.
 
 > [1] F. Mahé, C. de Vargas, D. Bass, L. Czech, A. Stamatakis, *et.al.*,
 > **"Parasites dominate hyperdiverse soil protist communities in Neotropical rainforests,"**

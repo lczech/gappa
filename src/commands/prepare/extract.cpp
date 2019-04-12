@@ -424,7 +424,8 @@ void write_sample_set(
     // User output.
     if( global_options.verbosity() >= 1 ) {
         for( size_t si = 0; si < sample_set.size(); ++si ) {
-            std::cout << "Collected " << sample_set.at( si ).size() << " pqueries in clade ";
+            std::cout << "Collected " << sample_set.at( si ).size() << " pqueries (representing ";
+            std::cout << total_name_count( sample_set.at( si ) ) << " names) in clade ";
             std::cout << sample_set.name_at( si ) << "\n";
         }
 

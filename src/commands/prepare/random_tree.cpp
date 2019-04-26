@@ -56,7 +56,7 @@ void setup_random_tree( CLI::App& app )
     //     Input Data
     // -----------------------------------------------------------
 
-    // Taxon list file
+    // Leaf count
     auto leaf_count_opt = sub->add_option(
         "--leaf-count",
         opt->num_leaves,
@@ -91,6 +91,9 @@ void run_random_tree( RandomTreeOptions const& options )
 {
     using namespace ::genesis;
     using namespace ::genesis::tree;
+
+    // Init randomness.
+    std::srand( std::time( nullptr ));
 
     // Check that at least one of the options is set.
     if( options.num_leaves < 3 ) {
@@ -146,6 +149,6 @@ void run_random_tree( RandomTreeOptions const& options )
 
     // Create a newick tree from it.
     auto nw = CommonTreeNewickWriter();
-    auto const fn = options.output.file_prefix() + "random-tree.newick";
+    auto const fn = options.output.out_dir() + options.output.file_prefix() + "random-tree.newick";
     nw.to_file( tree, options.output.out_dir() + fn );
 }

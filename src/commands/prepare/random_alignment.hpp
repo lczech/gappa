@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PREPARE_H_
-#define GAPPA_COMMANDS_PREPARE_H_
+#ifndef GAPPA_COMMANDS_PREPARE_RANDOM_ALIGNMENT_H_
+#define GAPPA_COMMANDS_PREPARE_RANDOM_ALIGNMENT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,38 +26,37 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/prepare/chunkify.hpp"
-#include "commands/prepare/extract.hpp"
-#include "commands/prepare/phat.hpp"
-#include "commands/prepare/random_alignment.hpp"
-#include "commands/prepare/random_tree.hpp"
-#include "commands/prepare/taxonomy_tree.hpp"
-#include "commands/prepare/unchunkify.hpp"
+#include "options/file_input.hpp"
+#include "options/file_output.hpp"
+#include "options/tree_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class RandomAlignmentOptions
+{
+public:
+
+    // Input data.
+    size_t num_sequences;
+    size_t len_sequences;
+    std::string characters = "-ACGT";
+
+    // Output options.
+    FileOutputOptions output;
+    bool write_fasta = false;
+    bool write_phylip = false;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_prepare( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "prepare",
-        "Commands for preparing and preprocessing of phylogenetic and placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_chunkify( *sub );
-    setup_extract( *sub );
-    setup_phat( *sub );
-    setup_random_alignment( *sub );
-    setup_random_tree( *sub );
-    setup_taxonomy_tree( *sub );
-    setup_unchunkify( *sub );
-}
+void setup_random_alignment( CLI::App& app );
+void run_random_alignment( RandomAlignmentOptions const& options );
 
 #endif // include guard

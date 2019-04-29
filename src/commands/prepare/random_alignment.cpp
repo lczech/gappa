@@ -78,7 +78,8 @@ void setup_random_alignment( CLI::App& app )
     auto characters_opt = sub->add_option(
         "--characters",
         opt->characters,
-        "Set of characters to use for the sequences."
+        "Set of characters to use for the sequences.",
+        true
     );
     characters_opt->group( "Input" );
     // characters_opt->required();

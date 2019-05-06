@@ -38,9 +38,9 @@
 int main( int argc, char** argv )
 {
     // Activate logging.
-    // utils::Logging::log_to_stdout();
-    // utils::Logging::details.time = true;
-    //
+    genesis::utils::Logging::log_to_stdout();
+    genesis::utils::Logging::details.level = false;
+
     // utils::Options::get().number_of_threads( 4 );
     // LOG_BOLD << utils::Options::get().info();
 

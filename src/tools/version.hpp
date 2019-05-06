@@ -32,7 +32,7 @@
 
 inline std::string gappa_version()
 {
-    return "v0.2.0"; // #GAPPA_VERSION#
+    return "v0.3.0"; // #GAPPA_VERSION#
 }
 
 inline std::string gappa_header()

@@ -103,10 +103,10 @@ message( STATUS "Static linking of system libraries: ${GAPPA_BUILD_STATIC}")
 # --------------------------------------------------------------------------------------------------
 
 # Downloads dependencies if they are not there. We use a special script for this.
-include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/DownloadDependency.cmake" )
 
 # Store the commit hashes of our dependencies.
-# These are replaced by libs/cmake/update_dependencies.sh to the hashes that are currently checked out.
+# These are replaced by tools/cmake/update_dependencies.sh to the hashes that are currently checked out.
 # Thus, do not replace the hashes manually!
 SET( CLI11_COMMIT_HASH "bd890e24a1f081d6db1a59a0cc372eccc64e9e52" ) #CLI11_COMMIT_HASH#
 SET( genesis_COMMIT_HASH "be8ddd9bd70924490db89cebb6b2bbf85558de4e" ) #genesis_COMMIT_HASH#

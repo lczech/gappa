@@ -1,5 +1,5 @@
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+# Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,21 +47,29 @@ cmake_minimum_required( VERSION 2.8.2 )
 project( @DEPENDENCY_NAME@-download NONE )
 include(ExternalProject)
 
-# The download progress is ugly and not needed. Since CMake 3.1, we can disable it.
-IF( ${CMAKE_VERSION} VERSION_GREATER 3.1 )
-    SET( CMAKE_DOWNLOAD_PROGRESS "DOWNLOAD_NO_PROGRESS 1" )
-ENDIF()
-
 # message (STATUS "Downloading @DEPENDENCY_NAME@ from @DEPENDENCY_URL@")
 
 # Download a fixed commit instead of the current master, so that we know that it works for us.
-ExternalProject_Add( @DEPENDENCY_NAME@
-    URL @DEPENDENCY_URL@
-    SOURCE_DIR        "@DEPENDENCY_PATH@/@DEPENDENCY_NAME@"
-    BINARY_DIR        "@DEPENDENCY_PATH@/@DEPENDENCY_NAME@"
-    ${CMAKE_DOWNLOAD_PROGRESS}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND     ""
-    INSTALL_COMMAND   ""
-    TEST_COMMAND      ""
-)
+# The download progress is ugly and not needed. Since CMake 3.1, we can disable it.
+IF( ${CMAKE_VERSION} VERSION_GREATER 3.1 )
+    ExternalProject_Add( @DEPENDENCY_NAME@
+        URL @DEPENDENCY_URL@
+        SOURCE_DIR        "@DEPENDENCY_PATH@/@DEPENDENCY_NAME@"
+        BINARY_DIR        "@DEPENDENCY_PATH@/@DEPENDENCY_NAME@"
+        DOWNLOAD_NO_PROGRESS 1
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+        TEST_COMMAND      ""
+    )
+ELSE()
+    ExternalProject_Add( @DEPENDENCY_NAME@
+        URL @DEPENDENCY_URL@
+        SOURCE_DIR        "@DEPENDENCY_PATH@/@DEPENDENCY_NAME@"
+        BINARY_DIR        "@DEPENDENCY_PATH@/@DEPENDENCY_NAME@"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+        TEST_COMMAND      ""
+    )
+ENDIF()

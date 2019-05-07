@@ -48,7 +48,8 @@ public:
     // Output options.
     FileOutputOptions output;
     bool write_fasta = false;
-    bool write_phylip = false;
+    bool write_strict_phylip = false;
+    bool write_relaxed_phylip = false;
 };
 
 // =================================================================================================

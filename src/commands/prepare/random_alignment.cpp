@@ -100,12 +100,20 @@ void setup_random_alignment( CLI::App& app )
     write_fasta_opt->group( "Output" );
 
     // File type phylip.
-    auto write_phylip_opt = sub->add_flag(
-        "--write-phylip",
-        opt->write_phylip,
-        "Write sequences to a phylip file."
+    auto write_strict_phylip_opt = sub->add_flag(
+        "--write-strict-phylip",
+        opt->write_strict_phylip,
+        "Write sequences to a strict phylip file."
     );
-    write_phylip_opt->group( "Output" );
+    write_strict_phylip_opt->group( "Output" );
+    auto write_relaxed_phylip_opt = sub->add_flag(
+        "--write-relaxed-phylip",
+        opt->write_relaxed_phylip,
+        "Write sequences to a relaxed phylip file."
+    );
+    write_relaxed_phylip_opt->group( "Output" );
+    write_relaxed_phylip_opt->excludes( write_strict_phylip_opt );
+    write_strict_phylip_opt->excludes( write_relaxed_phylip_opt );
 
     // -----------------------------------------------------------
     //     Callback
@@ -130,9 +138,9 @@ void run_random_alignment( RandomAlignmentOptions const& options )
     std::srand( std::time( nullptr ));
 
     // Check that at least one of the options is set.
-    if( ! options.write_fasta && ! options.write_phylip ) {
+    if( ! options.write_fasta && ! options.write_strict_phylip && ! options.write_relaxed_phylip ) {
         throw CLI::ValidationError(
-            "--write-fasta, --write-phylip",
+            "--write-fasta, --write-strict-phylip, --write-relaxed-phylip",
             "At least one output format has to be specified."
         );
     }
@@ -156,7 +164,7 @@ void run_random_alignment( RandomAlignmentOptions const& options )
         genesis::utils::file_output_stream( fn, fasta_os );
     }
     std::ofstream phylip_os;
-    if( options.write_phylip ) {
+    if( options.write_strict_phylip || options.write_relaxed_phylip ) {
         auto const fn = options.output.out_dir() + options.output.file_prefix() + "random-alignment.phylip";
         genesis::utils::file_output_stream( fn, phylip_os );
 
@@ -173,19 +181,29 @@ void run_random_alignment( RandomAlignmentOptions const& options )
         if( options.write_fasta ) {
             fasta_os << ">" << name << "\n";
         }
-        if( options.write_phylip ) {
+        if( options.write_strict_phylip ) {
+            if( name.size() > 10 ) {
+                // Should never happen. This would be equlivalent to 26^10 sequences.
+                // Still, let's check.
+                throw std::runtime_error(
+                    "Cannot handle this many sequences in strict phylip format."
+                );
+            }
+            phylip_os << name << std::string( 10 - name.size(), ' ' );
+        }
+        if( options.write_relaxed_phylip ) {
             phylip_os << name << " ";
         }
 
         // Write content.
         for( size_t l = 0; l < options.len_sequences; ++l ) {
 
-            // Write new line ever so often.
+            // Write new line ever so often, except for the stupid strict phylip format.
             if( l > 0 && l % 80 == 0 ) {
                 if( options.write_fasta ) {
                     fasta_os << "\n";
                 }
-                if( options.write_phylip ) {
+                if( options.write_relaxed_phylip ) {
                     phylip_os << "\n";
                 }
             }
@@ -195,7 +213,7 @@ void run_random_alignment( RandomAlignmentOptions const& options )
             if( options.write_fasta ) {
                 fasta_os << c;
             }
-            if( options.write_phylip ) {
+            if( options.write_strict_phylip || options.write_relaxed_phylip ) {
                 phylip_os << c;
             }
         }
@@ -204,7 +222,7 @@ void run_random_alignment( RandomAlignmentOptions const& options )
         if( options.write_fasta ) {
             fasta_os << "\n";
         }
-        if( options.write_phylip ) {
+        if( options.write_strict_phylip || options.write_relaxed_phylip ) {
             phylip_os << "\n";
         }
     }

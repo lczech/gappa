@@ -188,6 +188,8 @@ void run_taxonomy_tree( TaxonomyTreeOptions const& options )
             assert( line.size() == 2 );
             auto const path = TaxopathParser().parse( line[1] );
             taxa_list[ line[0] ] = path;
+
+            csv_it.increment();
         }
     }
 

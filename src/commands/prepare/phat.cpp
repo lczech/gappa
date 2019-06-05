@@ -172,13 +172,15 @@ void setup_phat( CLI::App& app )
     // -----------------------------------------------------------
 
     // Consensus Method
-    auto cons_meth_opt = sub->add_set_ignore_case(
+    auto cons_meth_opt = sub->add_option(
         "--consensus-method",
         opt->consensus_method,
-        { "majorities", "cavener", "threshold" },
         "Consensus method to use for combining sequences.",
         true
-    )->group( "Consensus Method" );
+    )->group( "Consensus Method" )
+    ->transform(
+        CLI::IsMember({ "majorities", "cavener", "threshold" }, CLI::ignore_case )
+    );
 
     // Consensus Treshold
     auto cons_thresh_opt = sub->add_option(
@@ -211,7 +213,7 @@ void setup_phat( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ opt ]() {
+    sub->callback( [ opt ]() {
         run_phat( *opt );
     });
 }

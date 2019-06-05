@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,12 +74,12 @@ void GlobalOptions::add_to_app( CLI::App& app )
     // then, init is no longer needed
 
     // Run the app wide callback
-    app.set_callback([ this, &app ](){
+    app.callback([ this, &app ](){
         run_global( app );
     });
 
     // Footer
-    app.set_footer( gappa_title() );
+    app.footer( gappa_title() );
 }
 
 void GlobalOptions::set_command_line_args( int const argc, char const* const* argv )

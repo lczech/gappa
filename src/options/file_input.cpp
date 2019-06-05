@@ -67,12 +67,7 @@ CLI::Option* FileInputOptions::add_multi_file_input_opt_to_app(
     }
 
     // Check if it is a path.
-    option_->check([]( std::string const& path ){
-        if( ! genesis::utils::path_exists( path ) ) {
-            return std::string( "Path is neither a file nor a directory: " + path );
-        }
-        return std::string();
-    });
+    option_->check( CLI::ExistingPath );
     option_->group( group );
 
     return option_;

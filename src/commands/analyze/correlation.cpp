@@ -110,22 +110,26 @@ void setup_correlation( CLI::App& app )
     options->metadata_input.add_column_selection_opts_to_app( sub );
 
     // Edge value representation
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--edge-values",
         options->edge_values,
-        { "both", "imbalances", "masses" },
         "Values per edge used to calculate the correlation.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "both", "imbalances", "masses" }, CLI::ignore_case )
+    );
 
     // Correlation method
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--method",
         options->method,
-        { "all", "pearson", "spearman" },
         "Method of correlation.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "all", "pearson", "spearman" }, CLI::ignore_case )
+    );
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "spectral" );
@@ -138,7 +142,7 @@ void setup_correlation( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ options ]() {
+    sub->callback( [ options ]() {
         run_correlation( *options );
     });
 }

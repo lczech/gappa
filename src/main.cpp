@@ -47,7 +47,7 @@ int main( int argc, char** argv )
     CLI::App app{ gappa_header() };
     app.require_subcommand( 1 );
     app.fallthrough( true );
-    app.set_name( "gappa" );
+    app.name( "gappa" );
 
     // Add app-wide global options.
     global_options.set_command_line_args( argc, argv );

@@ -99,14 +99,14 @@ CLI::Option* JplaceInputOptions::add_mass_norm_opt_to_app( CLI::App* sub, bool r
         throw std::domain_error( "Cannot set up --absolute-mass option multiple times." );
     }
 
-    mass_norm_option = sub->add_set_ignore_case(
+    mass_norm_option = sub->add_option(
         "--mass-norm",
         mass_norm_,
-        { "absolute", "relative" },
         "Set the per-sample normalization method. 'absolute' does not change the masses, "
         "while 'relative' normalizes them to a total mass of 1 per input jplace sample.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(CLI::IsMember({ "absolute", "relative" }, CLI::ignore_case));
 
     if( required ) {
         mass_norm_option->required();

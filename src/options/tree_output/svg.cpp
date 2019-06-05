@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,23 +32,27 @@
 
 void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub )
 {
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--svg-tree-shape",
         shape_,
-        { "circular", "rectangular" },
         "Shape of the tree.",
         // "Shape of the tree, 'circular' or 'rectangular'.",
         true
-    )->group( "Svg Tree Output" );
+    )->group( "Svg Tree Output" )
+    ->transform(
+        CLI::IsMember({ "circular", "rectangular" }, CLI::ignore_case )
+    );
 
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--svg-tree-type",
         type_,
-        { "cladogram", "phylogram" },
         "Type of the tree.",
         // "Type of the tree, 'cladogram' or 'phylogram'.",
         true
-    )->group( "Svg Tree Output" );
+    )->group( "Svg Tree Output" )
+    ->transform(
+        CLI::IsMember({ "cladogram", "phylogram" }, CLI::ignore_case )
+    );
 
     sub->add_option(
         "--svg-tree-stroke-width",

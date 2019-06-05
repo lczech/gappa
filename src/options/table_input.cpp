@@ -61,12 +61,13 @@ void TableInputOptions::add_table_input_opt_to_app(
 void TableInputOptions::add_separator_char_opt_to_app(
     CLI::App* sub
 ) {
-    separator_char_opt.option = sub->add_set_ignore_case(
+    separator_char_opt.option = sub->add_option(
         "--" + name + ( name.empty() ? "" : "-" ) + "separator-char",
         separator_char_opt.value,
-        { "comma", "tab", "space", "semicolon" },
         "Separator char for tabular data.",
         true
+    )->transform(
+        CLI::IsMember({ "comma", "tab", "space", "semicolon" }, CLI::ignore_case )
     );
     separator_char_opt.option->group( group );
 }

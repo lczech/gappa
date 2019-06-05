@@ -50,13 +50,15 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app(
     if( offer_triangular_mode ) {
         formats.insert( "triangular" );
     }
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--" + name + ( name.empty() ? "" : "-" ) + "matrix-format",
         format_,
-        formats,
         "Format of the output matrix file.",
         true
-    )->group( "Matrix Output" );
+    )->group( "Matrix Output" )
+    ->transform(
+        CLI::IsMember( formats, CLI::ignore_case )
+    );
 
     // Add label setting
     if( offer_omit_labels ) {

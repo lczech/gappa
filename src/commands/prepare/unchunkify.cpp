@@ -156,13 +156,15 @@ void setup_unchunkify( CLI::App& app )
     )->group( "Settings" );
 
     // Hash Function
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--hash-function",
         opt->hash_function,
-        { "SHA1", "SHA256", "MD5" },
         "Hash function that was used for re-naming and identifying sequences in the chunkify command.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "SHA1", "SHA256", "MD5" }, CLI::ignore_case )
+    );
 
     // Make the three input modes mutually exclusive.
     chunk_list_file_opt->excludes( opt->jplace_input.option() );
@@ -184,7 +186,7 @@ void setup_unchunkify( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ opt ]() {
+    sub->callback( [ opt ]() {
         run_unchunkify( *opt );
     });
 }

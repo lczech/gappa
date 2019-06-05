@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "tools/help.hpp"
 
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -76,7 +77,7 @@ void setup_wiki( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ options ]() {
+    sub->callback( [ options ]() {
         run_wiki( *options );
     });
 }
@@ -88,12 +89,12 @@ void setup_wiki( CLI::App& app )
 /**
  * @brief Get the immediate subcommands of an App, sorted by name.
  */
-std::vector<CLI::App*> get_sorted_subcommands( CLI::App const* app )
+std::vector<CLI::App const*> get_sorted_subcommands( CLI::App const* app )
 {
-    auto subcomms = app->get_subcommands( false );
+    auto subcomms = app->get_subcommands({});
     std::sort(
         subcomms.begin(), subcomms.end(),
-        []( CLI::App* lhs, CLI::App* rhs ){
+        []( CLI::App const* lhs, CLI::App const* rhs ){
             return lhs->get_name() < rhs->get_name();
         }
     );
@@ -143,8 +144,11 @@ void add_markdown_content( WikiOptions const& options, std::string const& md_fil
 //     Make Options Table
 // -------------------------------------------------------------------------
 
-void make_options_table( std::vector<CLI::Option*> options, std::ostream& os )
+void make_options_table( CLI::App const& command, std::ostream& os )
 {
+    // Get the options that are part of this command.
+    auto const options = command.get_options();
+
     // map from group name to table contents.
     // we use a vec to keep order.
     // std::map<std::string, std::string> opt_helps;
@@ -154,7 +158,7 @@ void make_options_table( std::vector<CLI::Option*> options, std::ostream& os )
     for( auto const& opt : options ) {
 
         // Do not add help option.
-        if( opt->get_name() == "-h,--help" ) {
+        if( opt->get_name() == "-h,--help" || opt->get_name() == "--help" ) {
             continue;
         }
 
@@ -183,15 +187,14 @@ void make_options_table( std::vector<CLI::Option*> options, std::ostream& os )
         if( opt->get_required() ) {
             tmp_os << "<strong>Required.</strong>";
         }
-        if( ! opt->help_aftername().empty() ) {
-            // print stuff without leading space.
-            auto han = opt->help_aftername().substr( 1 );
-            auto const rp = han.find( " (REQUIRED)" );
-            if( rp != std::string::npos ) {
-                han.erase( rp,  11 );
-            }
-
-            tmp_os << " <code>" << han << "</code><br>";
+        auto opt_str = dynamic_cast<CLI::Formatter const*>( command.get_formatter().get() )->make_option_opts( opt );
+        if( ! opt_str.empty() ) {
+            opt_str = genesis::utils::replace_all(
+                opt_str,
+                command.get_formatter()->get_label("REQUIRED"),
+                ""
+            );
+            tmp_os << " <code>" << genesis::utils::trim( opt_str ) << "</code><br>";
         }
         auto descr = opt->get_description();
         if( descr.substr( 0, 10 ) == "Required. " ) {
@@ -246,7 +249,7 @@ void make_options_table( std::vector<CLI::Option*> options, std::ostream& os )
 //     Make Subcommands Table
 // -------------------------------------------------------------------------
 
-void make_subcommands_table( std::vector<CLI::App*> subcomms, std::ostream& os )
+void make_subcommands_table( std::vector<CLI::App const*> subcomms, std::ostream& os )
 {
     os << "| Subcommand  | Description |\n";
     os << "| ----------- | ----------- |\n";
@@ -270,8 +273,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
     std::cout << "Subcommand: " << command.get_name() << "\n";
 
     // Get stuff of this command.
-    auto const subcomms = command.get_subcommands( false );
-    auto const opts = command.get_options();
+    auto const subcomms = command.get_subcommands({});
 
     // Open out file stream.
     std::string const out_file
@@ -293,7 +295,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
 
     // We do not count the help option, so we need to manually check if there are any others.
     bool has_options = false;
-    for( auto const& opt : opts ) {
+    for( auto const& opt : command.get_options() ) {
         if( opt->get_name() != "-h,--help" ) {
             has_options = true;
             break;
@@ -318,7 +320,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
     // Print the options of thus command.
     if( has_options ) {
         os << "## Options\n\n";
-        make_options_table( opts, os );
+        make_options_table( command, os );
     }
 
     // Print the subcommands of this command.

@@ -118,13 +118,15 @@ void setup_chunkify( CLI::App& app )
     )->group( "Settings" );
 
     // Hash Function
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--hash-function",
         opt->hash_function,
-        { "SHA1", "SHA256", "MD5" },
         "Hash function for re-naming and identifying sequences.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "SHA1", "SHA256", "MD5" }, CLI::ignore_case )
+    );
 
     // -----------------------------------------------------------
     //     Output options
@@ -142,7 +144,7 @@ void setup_chunkify( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ opt ]() {
+    sub->callback( [ opt ]() {
         run_chunkify( *opt );
     });
 }

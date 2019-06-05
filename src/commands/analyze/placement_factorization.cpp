@@ -86,20 +86,24 @@ void setup_placement_factorization( CLI::App& app )
     )->group( "Settings" );
 
     // Taxon weights
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--taxon-weight-tendency",
         opt->taxon_weight_tendency.value,
-        { "geometric-mean", "arithmetic-mean", "median", "none" },
         "Tendency term to use for calculating taxon weights.",
         true
-    )->group( "Settings" );
-    sub->add_set_ignore_case(
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "geometric-mean", "arithmetic-mean", "median", "none" }, CLI::ignore_case )
+    );
+    sub->add_option(
         "--taxon-weight-norm",
         opt->taxon_weight_norm.value,
-        { "manhattan", "euclidean", "maximum", "aitchison", "none" },
         "Norm term to use for calculating taxon weights.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "manhattan", "euclidean", "maximum", "aitchison", "none" }, CLI::ignore_case )
+    );
 
     // Pseudo counts
     sub->add_option(
@@ -140,7 +144,7 @@ void setup_placement_factorization( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ opt ]() {
+    sub->callback( [ opt ]() {
         run_placement_factorization( *opt );
     });
 }

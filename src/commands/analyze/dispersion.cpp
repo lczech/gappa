@@ -101,19 +101,20 @@ void setup_dispersion( CLI::App& app )
     options->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Edge value representation
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--edge-values",
         options->edge_values,
-        { "both", "imbalances", "masses" },
         "Values per edge used to calculate the dispersion.",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember({ "both", "imbalances", "masses" }, CLI::ignore_case )
+    );
 
     // Dispersion method
-    sub->add_set_ignore_case(
+    sub->add_option(
         "--method",
         options->method,
-        { "all", "cv", "cv-log", "sd", "sd-log", "var", "var-log", "vmr", "vmr-log" },
         "Method of dispersion. Either all (as far as they are applicable), or any of: "
         "coefficient of variation (cv, standard deviation divided by mean), "
         "coefficient of variation log-scaled (cv-log), "
@@ -122,7 +123,13 @@ void setup_dispersion( CLI::App& app )
         "variance to mean ratio (vmr, also called Index of Dispersion), "
         "variance to mean ratio log-scaled (vmr-log).",
         true
-    )->group( "Settings" );
+    )->group( "Settings" )
+    ->transform(
+        CLI::IsMember(
+            { "all", "cv", "cv-log", "sd", "sd-log", "var", "var-log", "vmr", "vmr-log" },
+            CLI::ignore_case
+        )
+    );
 
     // Color.
     options->color_map.add_color_list_opt_to_app( sub, "viridis" );
@@ -135,7 +142,7 @@ void setup_dispersion( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->set_callback( [ options ]() {
+    sub->callback( [ options ]() {
         run_dispersion( *options );
     });
 }

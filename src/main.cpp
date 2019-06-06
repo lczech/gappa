@@ -28,6 +28,7 @@
 #include "commands/prepare.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_formatter.hpp"
 #include "tools/help.hpp"
 #include "tools/version.hpp"
 
@@ -48,6 +49,7 @@ int main( int argc, char** argv )
     app.require_subcommand( 1 );
     app.fallthrough( true );
     app.name( "gappa" );
+    app.formatter( std::make_shared<GappaFormatter>() );
 
     // Add app-wide global options.
     global_options.set_command_line_args( argc, argv );

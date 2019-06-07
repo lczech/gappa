@@ -47,15 +47,15 @@ After building, the executable is stored in the `bin` directory, and used as fol
 Command Line Interface
 -------------------
 
-gappa is used via its command line interface, with subcommands for each task.
-The subcommands have the general structure:
+gappa is used via its command line interface, with commands for each task.
+The commands have the general structure:
 
-    gappa <module> <subcommand> <options>
+    gappa <module> <command> <options>
 
-<!-- The modules are simply a way of organizing the subcommands,
+<!-- The modules are simply a way of organizing the commands,
 and have no [deeper meaning](https://en.wikipedia.org/wiki/42_%28answer%29). -->
 
-For a list of all subcommands and their documentation,
+For a list of all commands and their documentation,
 see [the Wiki pages](https://github.com/lczech/gappa/wiki).
 
 Behind the scenes

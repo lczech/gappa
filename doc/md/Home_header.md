@@ -10,9 +10,16 @@ However, being written in C++, our gappa is much faster and needs less memory fo
 
 ## Command Line Interface
 
-gappa is used via its command line interface, with subcommands for each task.
-The subcommands have the general structure:
+gappa is used via its command line interface, with commands for each task.
+The commands have the general structure:
 
-    gappa <module> <subcommand> <options>
+    gappa <module> <command> <options>
 
-The modules are simply a way of organizing the subcommands.
+The modules are simply a way of organizing the commands.
+
+## Modules
+
+ * Module `analyze`: Analyze and compare different `jplace` files, that is, find differences and patterns between different samples.
+ * Module `edit`: Edit, manipulate, and transform files in different formats.
+ * Module `examine`: Examine, visualize, and tabulate information about files.
+ * Module `prepare`: Prepare and generate data and files needed to run typical pipelines and analyses.

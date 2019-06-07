@@ -374,6 +374,44 @@ void make_wiki_home_page( WikiOptions const& options )
 }
 
 // -------------------------------------------------------------------------
+//     Side Bar
+// -------------------------------------------------------------------------
+
+void make_wiki_sidebar( WikiOptions const& options )
+{
+    using namespace genesis::utils;
+
+    // Make Sidebar page.
+    std::cout << "Sidebar\n";
+
+    // Open stream
+    std::string const out_file = dir_normalize_path( options.out_dir ) + "_Sidebar.md";
+    if( ! file_exists( out_file )) {
+        std::cout << " - No existing wiki file!\n";
+    }
+    std::ofstream os( out_file );
+
+    // Add standard entries
+    os << "[Home](../wiki)\n\n";
+
+    // Add submodule lists.
+    auto subcomms = get_sorted_subcommands( options.app );
+    for( auto const& sc : subcomms ) {
+        if( sc->get_group() == "" ) {
+            continue;
+        }
+
+        os << "Module `" << sc->get_name() << "`\n\n";
+        for( auto const& subcomm : get_sorted_subcommands( sc ) ) {
+            os << " * [" << subcomm->get_name() << "](../wiki/Subcommand:-" << subcomm->get_name() << ")\n";
+        }
+        os << "\n";
+    }
+
+    os.close();
+}
+
+// -------------------------------------------------------------------------
 //     Run Function
 // -------------------------------------------------------------------------
 
@@ -387,6 +425,7 @@ void run_wiki( WikiOptions const& options )
 
     // Home page.
     make_wiki_home_page( options );
+    make_wiki_sidebar( options );
 
     // Now, make pages for the commands of the modules.
     auto subcomms = get_sorted_subcommands( options.app );

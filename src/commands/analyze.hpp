@@ -26,20 +26,17 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze/assign.hpp"
 #include "commands/analyze/correlation.hpp"
 #include "commands/analyze/dispersion.hpp"
 #include "commands/analyze/edgepca.hpp"
-#include "commands/analyze/edpl.hpp"
-#include "commands/analyze/graft.hpp"
 #include "commands/analyze/kmeans_imbalance.hpp"
 #include "commands/analyze/kmeans_phylogenetic.hpp"
 #include "commands/analyze/krd.hpp"
-#include "commands/analyze/lwr.hpp"
 #include "commands/analyze/nhd.hpp"
 #include "commands/analyze/placement_factorization.hpp"
 #include "commands/analyze/squash.hpp"
-#include "commands/analyze/visualize_color.hpp"
+
+#include "tools/misc.hpp"
 
 #include <string>
 #include <vector>
@@ -53,26 +50,28 @@ void setup_analyze( CLI::App& app )
     // Create the module subcommand objects.
     auto sub = app.add_subcommand(
         "analyze",
-        "Commands for analyzing and visualizing placement data."
+        "Commands for analyzing and comparing placement data, that is, finding differences and patterns."
     );
     sub->require_subcommand( 1 );
 
     // Add module subcommands.
-    setup_assign( *sub );
     setup_correlation( *sub );
     setup_dispersion( *sub );
     setup_edgepca( *sub );
-    setup_edpl( *sub );
-    setup_graft( *sub );
     setup_ikmeans( *sub );
     setup_krd( *sub );
-    setup_lwr( *sub );
     setup_pkmeans( *sub );
     setup_placement_factorization( *sub );
     setup_squash( *sub );
-    setup_visualize_color( *sub );
 
     // setup_nhd( *sub );
+
+    // Add legacy commands.
+    add_legacy_command( *sub, "assign", "examine assign" );
+    add_legacy_command( *sub, "edpl", "examine edpl" );
+    add_legacy_command( *sub, "graft", "examine graft" );
+    add_legacy_command( *sub, "lwr", "examine lwr" );
+    add_legacy_command( *sub, "visualize-color", "examine heat-tree" );
 }
 
 #endif // include guard

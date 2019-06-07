@@ -1,9 +1,9 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_GRAFT_H_
-#define GAPPA_COMMANDS_ANALYZE_GRAFT_H_
+#ifndef GAPPA_COMMANDS_EXAMINE_H_
+#define GAPPA_COMMANDS_EXAMINE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,33 +26,34 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/jplace_input.hpp"
-#include "options/file_output.hpp"
+#include "commands/examine/assign.hpp"
+#include "commands/examine/edpl.hpp"
+#include "commands/examine/graft.hpp"
+#include "commands/examine/heat_tree.hpp"
+#include "commands/examine/lwr.hpp"
 
-#include <memory>
 #include <string>
 #include <vector>
-
-// =================================================================================================
-//      Options
-// =================================================================================================
-
-class GraftOptions
-{
-public:
-
-    std::string name_prefix = "";
-    bool fully_resolve = false;
-
-    JplaceInputOptions jplace_input;
-    FileOutputOptions  file_output;
-};
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_graft( CLI::App& app );
-void run_graft( GraftOptions const& options );
+void setup_examine( CLI::App& app )
+{
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "examine",
+        "Commands for examining, visualizing, and tabulating information in placement data."
+    );
+    sub->require_subcommand( 1 );
+
+    // Add module subcommands.
+    setup_assign( *sub );
+    setup_edpl( *sub );
+    setup_graft( *sub );
+    setup_heat_tree( *sub );
+    setup_lwr( *sub );
+}
 
 #endif // include guard

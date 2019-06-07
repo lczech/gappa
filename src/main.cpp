@@ -25,6 +25,7 @@
 
 #include "commands/analyze.hpp"
 #include "commands/edit.hpp"
+#include "commands/examine.hpp"
 #include "commands/prepare.hpp"
 
 #include "options/global.hpp"
@@ -56,9 +57,10 @@ int main( int argc, char** argv )
     global_options.add_to_app( app );
 
     // Set up all subcommands.
-    setup_prepare( app );
-    setup_edit( app );
     setup_analyze( app );
+    setup_edit( app );
+    setup_examine( app );
+    setup_prepare( app );
     setup_wiki( app );
 
     try {

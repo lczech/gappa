@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/analyze/edpl.hpp"
+#include "commands/examine/edpl.hpp"
 
 #include "options/global.hpp"
 

@@ -31,6 +31,18 @@
 //      Misc Helper Functions
 // =================================================================================================
 
+void add_legacy_command(
+    CLI::App& app,
+    std::string const& old_name,
+    std::string const& new_path
+) {
+    auto sub = app.add_subcommand( old_name );
+    sub->group("");
+    sub->callback( [ new_path ]() {
+        throw RenamedCommandError( "Command has been renamed to `gappa " + new_path + "`" );
+    });
+}
+
 std::string random_indexed_name( size_t index, size_t max )
 {
     // Some safety. Just in case.

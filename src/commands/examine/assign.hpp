@@ -1,9 +1,9 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_ASSIGN_H_
-#define GAPPA_COMMANDS_ANALYZE_ASSIGN_H_
+#ifndef GAPPA_COMMANDS_EXAMINE_ASSIGN_H_
+#define GAPPA_COMMANDS_EXAMINE_ASSIGN_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Pierre Barbera, Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Pierre Barbera, Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

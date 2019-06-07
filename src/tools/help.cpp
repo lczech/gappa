@@ -91,7 +91,13 @@ void setup_wiki( CLI::App& app )
  */
 std::vector<CLI::App const*> get_sorted_subcommands( CLI::App const* app )
 {
-    auto subcomms = app->get_subcommands({});
+    std::vector<CLI::App const*> subcomms;
+    for( auto const& subcom : app->get_subcommands({}) ) {
+        if( subcom->get_group() != "" ) {
+            subcomms.push_back( subcom );
+        }
+    }
+
     std::sort(
         subcomms.begin(), subcomms.end(),
         []( CLI::App const* lhs, CLI::App const* rhs ){

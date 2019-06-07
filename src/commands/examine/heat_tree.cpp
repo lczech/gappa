@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/analyze/visualize_color.hpp"
+#include "commands/examine/heat_tree.hpp"
 
 #include "options/global.hpp"
 
@@ -46,12 +46,12 @@
 //      Setup
 // =================================================================================================
 
-void setup_visualize_color( CLI::App& app )
+void setup_heat_tree( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto options = std::make_shared<VisualizeColorOptions>();
+    auto options = std::make_shared<HeatTreeOptions>();
     auto sub = app.add_subcommand(
-        "visualize-color",
+        "heat-tree",
         "Make a tree with edges colored according to the placement mass of the samples."
     );
 
@@ -79,7 +79,7 @@ void setup_visualize_color( CLI::App& app )
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
     sub->callback( [options]() {
-        run_visualize_color( *options );
+        run_heat_tree( *options );
     });
 }
 
@@ -87,7 +87,7 @@ void setup_visualize_color( CLI::App& app )
 //      Run
 // =================================================================================================
 
-void run_visualize_color( VisualizeColorOptions const& options )
+void run_heat_tree( HeatTreeOptions const& options )
 {
     using namespace genesis;
     using namespace genesis::placement;

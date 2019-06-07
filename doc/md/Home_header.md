@@ -21,5 +21,5 @@ The modules are simply a way of organizing the commands.
 
  * Module `analyze`: Analyze and compare different `jplace` files, that is, find differences and patterns between different samples.
  * Module `edit`: Edit, manipulate, and transform files in different formats.
- * Module `examine`: Examine, visualize, and tabulate information about files.
+ * Module `examine`: Examine, visualize, and tabulate information in files.
  * Module `prepare`: Prepare and generate data and files needed to run typical pipelines and analyses.

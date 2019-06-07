@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_ANALYZE_LWR_H_
-#define GAPPA_COMMANDS_ANALYZE_LWR_H_
+#ifndef GAPPA_COMMANDS_EXAMINE_GRAFT_H_
+#define GAPPA_COMMANDS_EXAMINE_GRAFT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -29,6 +29,7 @@
 #include "options/jplace_input.hpp"
 #include "options/file_output.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,13 +37,12 @@
 //      Options
 // =================================================================================================
 
-class LwrOptions
+class GraftOptions
 {
 public:
 
-    size_t histogram_bins = 25;
-    size_t num_lwrs       = 5;
-    bool   no_list_file   = false;
+    std::string name_prefix = "";
+    bool fully_resolve = false;
 
     JplaceInputOptions jplace_input;
     FileOutputOptions  file_output;
@@ -52,7 +52,7 @@ public:
 //      Functions
 // =================================================================================================
 
-void setup_lwr( CLI::App& app );
-void run_lwr( LwrOptions const& options );
+void setup_graft( CLI::App& app );
+void run_graft( GraftOptions const& options );
 
 #endif // include guard

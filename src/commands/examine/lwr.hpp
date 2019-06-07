@@ -1,5 +1,5 @@
-#ifndef GAPPA_TOOLS_MISC_H_
-#define GAPPA_TOOLS_MISC_H_
+#ifndef GAPPA_COMMANDS_EXAMINE_LWR_H_
+#define GAPPA_COMMANDS_EXAMINE_LWR_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,28 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
+#include "options/jplace_input.hpp"
+#include "options/file_output.hpp"
+
 #include <string>
-#include <stdexcept>
+#include <vector>
 
 // =================================================================================================
-//      Misc Helper Functions
+//      Options
 // =================================================================================================
 
-class RenamedCommandError : public std::runtime_error {
-
+class LwrOptions
+{
 public:
 
-    RenamedCommandError( std::string message )
-        : std::runtime_error( message )
-    {}
+    size_t histogram_bins = 25;
+    size_t num_lwrs       = 5;
+    bool   no_list_file   = false;
+
+    JplaceInputOptions jplace_input;
+    FileOutputOptions  file_output;
 };
 
-void add_legacy_command(
-    CLI::App& app,
-    std::string const& old_name,
-    std::string const& new_path
-);
+// =================================================================================================
+//      Functions
+// =================================================================================================
 
-std::string random_indexed_name( size_t index, size_t max );
+void setup_lwr( CLI::App& app );
+void run_lwr( LwrOptions const& options );
 
 #endif // include guard

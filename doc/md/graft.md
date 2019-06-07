@@ -13,7 +13,7 @@ They are named like the input files, but replace the file extension by `.newick`
 
 If `--fully-resolve` is not provided (default), all placements at one edge are collected as children of one central base edge:
 
-![Multifurcating grafted tree.](https://github.com/lczech/genesis/blob/master/doc/img/placement/labelled_tree_multifurcating.png?raw=true)
+![Multifurcating grafted tree.](https://github.com/lczech/genesis/blob/master/doc/png/placement/labelled_tree_multifurcating.png?raw=true)
 
 This method is similar to the way [RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html) produces a grafted tree, which is there called "labelled tree".
 
@@ -27,7 +27,7 @@ Using this method, the new nodes of the resulting tree are easier to distinguish
 
 If `--fully-resolve` is provided, all placements per branch are turned into single leaf nodes:
 
-![Fully resolved grafted tree.](https://github.com/lczech/genesis/blob/master/doc/img/placement/labelled_tree_fully_resolved.png?raw=true)
+![Fully resolved grafted tree.](https://github.com/lczech/genesis/blob/master/doc/png/placement/labelled_tree_fully_resolved.png?raw=true)
 
 This method is similar to the way [`guppy tog`]((http://matsen.github.io/pplacer/generated_rst/guppy_tog.html#guppy-tog)) produces a grafted tree.
 

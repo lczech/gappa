@@ -302,7 +302,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
     // We do not count the help option, so we need to manually check if there are any others.
     bool has_options = false;
     for( auto const& opt : command.get_options() ) {
-        if( opt->get_name() != "-h,--help" ) {
+        if( opt->get_name() != "-h,--help" && opt->get_name() != "--help" ) {
             has_options = true;
             break;
         }
@@ -331,7 +331,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
 
     // Print the subcommands of this command.
     if( ! subcomms.empty() ) {
-        os << "## Subcommands\n\n";
+        os << "## Subommands\n\n";
         make_subcommands_table( subcomms, os );
     }
 
@@ -399,6 +399,8 @@ void make_wiki_sidebar( WikiOptions const& options )
 
     // Add standard entries
     os << "[Home](../wiki)\n\n";
+    os << "[General Usage](../wiki/General-Usage)\n\n";
+    os << "[Phylogenetic Placement](../wiki/Phylogenetic-Placement)\n\n";
 
     // Add submodule lists.
     auto subcomms = get_sorted_subcommands( options.app );

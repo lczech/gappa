@@ -1,5 +1,5 @@
-#ifndef GAPPA_TOOLS_WIKI_H_
-#define GAPPA_TOOLS_WIKI_H_
+#ifndef GAPPA_TOOLS_CITE_H_
+#define GAPPA_TOOLS_CITE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -27,22 +27,22 @@
 #include "CLI/CLI.hpp"
 
 #include <string>
+#include <vector>
 
 // =================================================================================================
-//      Wiki Pages
+//      Citations
 // =================================================================================================
 
-class WikiOptions
-{
-public:
+void check_all_citations();
+void check_citations( std::vector<std::string> const& keys );
+void check_citation( std::string const& key );
 
-    std::string md_dir  = "doc/md/";
-    std::string out_dir = "../gappa.wiki/";
-    CLI::App*   app;
+std::vector<std::string> get_all_citation_keys();
 
-};
+std::string cite_bibtex( std::string const& key );
+std::string cite_bibtex( std::vector<std::string> const& keys );
 
-void setup_wiki( CLI::App& app );
-void run_wiki( WikiOptions const& options );
+std::string cite_markdown( std::string const& key, bool with_quote_block = true );
+std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote_block = true );
 
 #endif // include guard

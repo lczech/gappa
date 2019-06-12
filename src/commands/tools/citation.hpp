@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_TOOLS_CITATION_H_
+#define GAPPA_COMMANDS_TOOLS_CITATION_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
@@ -23,52 +26,30 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze.hpp"
-#include "commands/edit.hpp"
-#include "commands/examine.hpp"
-#include "commands/prepare.hpp"
-#include "commands/tools.hpp"
-
-#include "options/global.hpp"
-
-#include "tools/cli_formatter.hpp"
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Options
 // =================================================================================================
 
-int main( int argc, char** argv )
+class CitationOptions
 {
-    // Activate logging.
-    genesis::utils::Logging::log_to_stdout();
-    genesis::utils::Logging::details.level = false;
+public:
 
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+    bool                     all = false;
+    bool                     list = false;
 
-    // Set up the main CLI app.
-    CLI::App app{ gappa_header() };
-    app.name( "gappa" );
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
-    app.formatter( std::make_shared<GappaFormatter>() );
+    std::vector<std::string> keys;
+    std::string              format  = "bibtex";
 
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_to_app( app );
+};
 
-    // Set up all subcommands.
-    setup_analyze( app );
-    setup_edit( app );
-    setup_examine( app );
-    setup_prepare( app );
-    setup_tools( app );
+// =================================================================================================
+//      Functions
+// =================================================================================================
 
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
+void setup_citation( CLI::App& app );
+void run_citation( CitationOptions const& options );
 
-    return 0;
-}
+#endif // include guard

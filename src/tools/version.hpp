@@ -56,34 +56,4 @@ inline std::string gappa_title()
     return "gappa - Genesis Applications for Phylogenetic Placement Analysis";
 }
 
-inline std::string gappa_license()
-{
-    return "\
-    gappa - Genesis Applications for Phylogenetic Placement Analysis.\n\
-    Copyright (C) 2017-2019 Lucas Czech, Pierre Barbera and HITS gGmbH\n\
-    \n\
-    This program is free software: you can redistribute it and/or modify\n\
-    it under the terms of the GNU General Public License as published by\n\
-    the Free Software Foundation, either version 3 of the License, or\n\
-    (at your option) any later version.\n\
-    \n\
-    This program is distributed in the hope that it will be useful,\n\
-    but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-    GNU General Public License for more details.\n\
-    \n\
-    You should have received a copy of the GNU General Public License\n\
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\
-    \n\
-    Contact:\n\
-    Lucas Czech <lucas.czech@h-its.org>\n\
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies\n\
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany\n";
-}
-
-inline std::string gappa_citation()
-{
-    return "n/a";
-}
-
 #endif // include guard

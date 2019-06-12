@@ -1,3 +1,6 @@
+#ifndef GAPPA_COMMANDS_TOOLS_H_
+#define GAPPA_COMMANDS_TOOLS_H_
+
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
     Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
@@ -23,52 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/analyze.hpp"
-#include "commands/edit.hpp"
-#include "commands/examine.hpp"
-#include "commands/prepare.hpp"
-#include "commands/tools.hpp"
+#include "commands/tools/citation.hpp"
+#include "commands/tools/license.hpp"
+#include "commands/tools/version.hpp"
+#include "commands/tools/wiki.hpp"
+#include "tools/version.hpp"
 
-#include "options/global.hpp"
-
-#include "tools/cli_formatter.hpp"
+#include <string>
+#include <vector>
 
 // =================================================================================================
-//      Main Program
+//      Functions
 // =================================================================================================
 
-int main( int argc, char** argv )
+void setup_tools( CLI::App& app )
 {
-    // Activate logging.
-    genesis::utils::Logging::log_to_stdout();
-    genesis::utils::Logging::details.level = false;
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "tools",
+        "Auxiliary commands of gappa."
+    );
+    sub->require_subcommand( 1 );
 
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
-
-    // Set up the main CLI app.
-    CLI::App app{ gappa_header() };
-    app.name( "gappa" );
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
-    app.formatter( std::make_shared<GappaFormatter>() );
-
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_to_app( app );
-
-    // Set up all subcommands.
-    setup_analyze( app );
-    setup_edit( app );
-    setup_examine( app );
-    setup_prepare( app );
-    setup_tools( app );
-
-    try {
-        app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
-    }
-
-    return 0;
+    // Add module subcommands.
+    setup_citation( *sub );
+    setup_license( *sub );
+    setup_version( *sub );
+    setup_wiki( *sub );
 }
+
+#endif // include guard

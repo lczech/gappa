@@ -24,7 +24,6 @@
 #include "options/global.hpp"
 
 #include "tools/version.hpp"
-#include "tools/wiki.hpp"
 
 #include "genesis/utils/core/options.hpp"
 
@@ -67,6 +66,17 @@ void GlobalOptions::add_to_app( CLI::App& app )
         "Number of threads to use for calculations"
     );
 
+    // Version. We use the callback to immediately process the flag if set,
+    // similar to how --help works.
+    app.add_flag_callback(
+        "--version",
+        [] () {
+            std::cout << gappa_version() << "\n";
+            throw CLI::Success{};
+        },
+        "Print the gappa version and exit"
+    );
+
     // TODO add random seed option
     // TODO add global file overwrite option.
     // TODO in order to run callbacks for certain options, use ther full functional form!
@@ -79,7 +89,7 @@ void GlobalOptions::add_to_app( CLI::App& app )
     });
 
     // Footer
-    app.footer( gappa_title() );
+    app.footer( "\n" + gappa_title() );
 }
 
 void GlobalOptions::set_command_line_args( int const argc, char const* const* argv )
@@ -125,7 +135,7 @@ void GlobalOptions::print( CLI::App const& app ) const
     }
 
     // Print our nice header.
-    std::cout << gappa_header() << "\n";
+    // std::cout << gappa_header() << "\n";
     if( verbosity() == 1 ) {
         return;
     }

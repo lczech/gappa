@@ -26,11 +26,12 @@
 
 #include "CLI/CLI.hpp"
 
+#include <iosfwd>
 #include <string>
 #include <stdexcept>
 
 // =================================================================================================
-//      Misc Helper Functions
+//      Legacy Commands
 // =================================================================================================
 
 class RenamedCommandError : public std::runtime_error {
@@ -47,6 +48,28 @@ void add_legacy_command(
     std::string const& old_name,
     std::string const& new_path
 );
+
+// =================================================================================================
+//      Formatting
+// =================================================================================================
+
+std::string format_columns(
+    std::string const& left,
+    std::string const& right,
+    size_t left_w
+);
+
+void write_columns(
+    std::ostream& out,
+    std::string const& left,
+    std::string const& right,
+    size_t left_w,
+    size_t right_w
+);
+
+// =================================================================================================
+//      Misc
+// =================================================================================================
 
 std::string random_indexed_name( size_t index, size_t max );
 

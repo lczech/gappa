@@ -26,6 +26,9 @@
 
 #include "CLI/CLI.hpp"
 
+#include "tools/misc.hpp"
+
+#include <iostream>
 #include <string>
 
 // =================================================================================================
@@ -87,5 +90,23 @@ struct CliOption<std::string>
     std::string  value  = {};
     CLI::Option* option = nullptr;
 };
+
+// =================================================================================================
+//      CLI11 Option Print
+// =================================================================================================
+
+template<typename T>
+std::ostream& operator << ( std::ostream& out, CliOption<T> const& option )
+{
+    if( ! option.option ) {
+        return out;
+    }
+
+    std::stringstream value;
+    value << option.value;
+
+    out << format_columns( option.option.name, value, 30 );
+    return out;
+}
 
 #endif // include guard

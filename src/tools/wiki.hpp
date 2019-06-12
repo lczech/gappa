@@ -1,9 +1,9 @@
-#ifndef GAPPA_TOOLS_HELP_H_
-#define GAPPA_TOOLS_HELP_H_
+#ifndef GAPPA_TOOLS_WIKI_H_
+#define GAPPA_TOOLS_WIKI_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

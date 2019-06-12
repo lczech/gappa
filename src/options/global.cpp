@@ -24,7 +24,7 @@
 #include "options/global.hpp"
 
 #include "tools/version.hpp"
-#include "tools/help.hpp"
+#include "tools/wiki.hpp"
 
 #include "genesis/utils/core/options.hpp"
 

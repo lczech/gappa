@@ -29,9 +29,11 @@
 #include "commands/prepare.hpp"
 
 #include "options/global.hpp"
+
+// #include "tools/cite.hpp"
 #include "tools/cli_formatter.hpp"
-#include "tools/help.hpp"
 #include "tools/version.hpp"
+#include "tools/wiki.hpp"
 
 // =================================================================================================
 //      Main Program
@@ -61,6 +63,9 @@ int main( int argc, char** argv )
     setup_edit( app );
     setup_examine( app );
     setup_prepare( app );
+
+    // Set up special commands.
+    // setup_cite( app );
     setup_wiki( app );
 
     try {

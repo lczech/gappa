@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "tools/help.hpp"
+#include "tools/wiki.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -37,7 +37,7 @@
 // =================================================================================================
 
 // -------------------------------------------------------------------------
-//     Setup
+//     Setup the command
 // -------------------------------------------------------------------------
 
 void setup_wiki( CLI::App& app )
@@ -420,7 +420,7 @@ void make_wiki_sidebar( WikiOptions const& options )
 }
 
 // -------------------------------------------------------------------------
-//     Run Function
+//     Run Function for the Command
 // -------------------------------------------------------------------------
 
 void run_wiki( WikiOptions const& options )

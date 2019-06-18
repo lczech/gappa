@@ -24,6 +24,7 @@
 #include "commands/prepare/extract.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 
 #include "CLI/CLI.hpp"
 
@@ -145,9 +146,15 @@ void setup_extract( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->callback( [options]() {
-        run_extract( *options );
-    });
+    sub->callback( gappa_cli_callback(
+        sub,
+        {
+            "Czech2018-phat-and-multilevel-placement"
+        },
+        [ options ]() {
+            run_extract( *options );
+        }
+    ));
 }
 
 // =================================================================================================

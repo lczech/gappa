@@ -32,6 +32,8 @@
 #include "commands/examine/heat_tree.hpp"
 #include "commands/examine/lwr.hpp"
 
+#include "options/global.hpp"
+
 #include <string>
 #include <vector>
 
@@ -39,7 +41,7 @@
 //      Functions
 // =================================================================================================
 
-void setup_examine( CLI::App& app )
+inline void setup_examine( CLI::App& app )
 {
     // Create the module subcommand objects.
     auto sub = app.add_subcommand(
@@ -54,6 +56,9 @@ void setup_examine( CLI::App& app )
     setup_graft( *sub );
     setup_heat_tree( *sub );
     setup_lwr( *sub );
+
+    // Add the global options to each of the above subcommands.
+    global_options.add_to_module( *sub );
 }
 
 #endif // include guard

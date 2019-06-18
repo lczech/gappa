@@ -24,6 +24,7 @@
 #include "commands/analyze/placement_factorization.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 
 #include "CLI/CLI.hpp"
 
@@ -144,9 +145,16 @@ void setup_placement_factorization( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->callback( [ opt ]() {
-        run_placement_factorization( *opt );
-    });
+    sub->callback( gappa_cli_callback(
+        sub,
+        {
+            "Czech2019-analyzing-and-visualizing-samples",
+            "Washburne2017-phylofactorization"
+        },
+        [ opt ]() {
+            run_placement_factorization( *opt );
+        }
+    ));
 }
 
 // =================================================================================================

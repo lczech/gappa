@@ -24,6 +24,7 @@
 #include "commands/prepare/random_tree.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 #include "tools/misc.hpp"
 
 #include "CLI/CLI.hpp"
@@ -78,9 +79,13 @@ void setup_random_tree( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->callback( [opt]() {
-        run_random_tree( *opt );
-    });
+    sub->callback( gappa_cli_callback(
+        sub,
+        {},
+        [ opt ]() {
+            run_random_tree( *opt );
+        }
+    ));
 }
 
 // =================================================================================================

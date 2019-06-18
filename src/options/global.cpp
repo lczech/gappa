@@ -25,6 +25,7 @@
 
 #include "tools/version.hpp"
 
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 
 #include <thread>
@@ -33,67 +34,23 @@
 //      Setup Functions
 // =================================================================================================
 
-void GlobalOptions::add_to_app( CLI::App& app )
+void GlobalOptions::initialize( int const argc, char const* const* argv )
 {
-    // Verbosity
-    auto opt_verb_l = app.add_option(
-        "--verbosity",
-        verbosity_,
-        "Verbosity level [0-3]",
-        true
-    );
-    auto opt_verb_s = app.add_flag(
-        "-v",
-        verbosity_cnt_,
-        "Verbosity; add multiple times for more (-vvv)"
-    );
-    auto opt_verb_q = app.add_flag(
-        "--quiet",
-        verbosity_quiet_,
-        "Set verbosity to 0, that is, only report errors and warnings"
-    );
-    opt_verb_l->excludes( opt_verb_s );
-    opt_verb_l->excludes( opt_verb_q );
-    opt_verb_s->excludes( opt_verb_l );
-    opt_verb_s->excludes( opt_verb_q );
-    opt_verb_q->excludes( opt_verb_l );
-    opt_verb_q->excludes( opt_verb_s );
+    // By default, use the hardware threads.
+    threads_ = std::thread::hardware_concurrency();
 
-    // Threads
-    app.add_option(
-        "--threads",
-        threads_,
-        "Number of threads to use for calculations"
-    );
+    // If hardware value is not available, just use 1 thread.
+    // This is executed if the call to hardware_concurrency fails.
+    if( threads_ == 0 ) {
+        threads_ = 1;
+    }
 
-    // Version. We use the callback to immediately process the flag if set,
-    // similar to how --help works.
-    app.add_flag_callback(
-        "--version",
-        [] () {
-            std::cout << gappa_version() << "\n";
-            throw CLI::Success{};
-        },
-        "Print the gappa version and exit"
-    );
+    // Set number of threads for genesis.
+    genesis::utils::Options::get().number_of_threads( threads_ );
 
-    // TODO add random seed option
-    // TODO add global file overwrite option.
-    // TODO in order to run callbacks for certain options, use ther full functional form!
-    // for example, the allow overwrite option (yet to do), or threads or the like can use this.
-    // then, init is no longer needed
+    // Set verbosity to max, just in case.
+    genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kDebug4 );
 
-    // Run the app wide callback
-    app.callback([ this, &app ](){
-        run_global( app );
-    });
-
-    // Footer
-    app.footer( "\n" + gappa_title() );
-}
-
-void GlobalOptions::set_command_line_args( int const argc, char const* const* argv )
-{
     // Store all arguments in the array.
     command_line_.clear();
     for (int i = 0; i < argc; i++) {
@@ -101,17 +58,44 @@ void GlobalOptions::set_command_line_args( int const argc, char const* const* ar
     }
 }
 
+void GlobalOptions::add_to_module( CLI::App& module )
+{
+    for( auto subcomm : module.get_subcommands({}) ) {
+        add_to_subcommand( *subcomm );
+    }
+}
+
+void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
+{
+    // Threads
+    auto opt_threads = subcommand.add_option(
+        "--threads",
+        threads_,
+        "Number of threads to use for calculations."
+    );
+    opt_threads->group( "Global Options" );
+
+    // Verbosity
+    auto opt_verbose = subcommand.add_flag(
+        "--verbose",
+        verbose_,
+        "Produce more verbose output."
+    );
+    opt_verbose->group( "Global Options" );
+
+    // TODO add random seed option
+    // TODO add global file overwrite option.
+
+    // TODO in order to run callbacks for certain options, use ther full functional form!
+    // for example, the allow overwrite option (yet to do), or threads or the like can use this.
+    // then, init is no longer needed
+}
+
 // =================================================================================================
 //      Run Functions
 // =================================================================================================
 
-void GlobalOptions::run_global( CLI::App const& app )
-{
-    init();
-    print( app );
-}
-
-void GlobalOptions::init()
+void GlobalOptions::run_global()
 {
     // If user did not provide number, use hardware value.
     if( threads_ == 0 ) {
@@ -126,29 +110,18 @@ void GlobalOptions::init()
 
     // Set number of threads for genesis.
     genesis::utils::Options::get().number_of_threads( threads_ );
+
+    // Set verobisity level for logging output.
+    if( verbose_ ) {
+        // genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage2 );
+    } else {
+        // genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage1 );
+    }
 }
 
-void GlobalOptions::print( CLI::App const& app ) const
-{
-    if( verbosity() == 0 ) {
-        return;
-    }
-
-    // Print our nice header.
-    // std::cout << gappa_header() << "\n";
-    if( verbosity() == 1 ) {
-        return;
-    }
-
-    // TODO sub sub commands are not printed here:
-    // More verbose output.
-    std::cout << "Invocation:        " << command_line() << "\n";
-    for( auto const& sub : app.get_subcommands() ) {
-        std::cout << "Subcommand:        " << sub->get_name() << "\n";
-    }
-    std::cout << "Threads:           " << threads() << "\n";
-    std::cout << "\n";
-}
+// =================================================================================================
+//      Getters
+// =================================================================================================
 
 std::string GlobalOptions::command_line() const
 {
@@ -161,7 +134,12 @@ std::string GlobalOptions::command_line() const
 
 size_t GlobalOptions::verbosity() const
 {
-    return ( verbosity_quiet_ == true ) ? 0 : (( verbosity_cnt_ > 0 ) ? verbosity_cnt_ + 1 : verbosity_ );
+    return ( verbose_ ? 2 : 1 );
+}
+
+bool GlobalOptions::verbose() const
+{
+    return verbose_;
 }
 
 size_t GlobalOptions::threads() const
@@ -173,4 +151,7 @@ size_t GlobalOptions::threads() const
 //      Global Instance
 // =================================================================================================
 
+/**
+ * @brief Instanciation of the global options object. This is alive during the whole program run.
+ */
 GlobalOptions global_options;

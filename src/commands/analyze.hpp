@@ -36,6 +36,7 @@
 #include "commands/analyze/placement_factorization.hpp"
 #include "commands/analyze/squash.hpp"
 
+#include "options/global.hpp"
 #include "tools/misc.hpp"
 
 #include <string>
@@ -45,7 +46,7 @@
 //      Functions
 // =================================================================================================
 
-void setup_analyze( CLI::App& app )
+inline void setup_analyze( CLI::App& app )
 {
     // Create the module subcommand objects.
     auto sub = app.add_subcommand(
@@ -63,8 +64,12 @@ void setup_analyze( CLI::App& app )
     setup_pkmeans( *sub );
     setup_placement_factorization( *sub );
     setup_squash( *sub );
-
     // setup_nhd( *sub );
+
+    // Add the global options to each of the above subcommands.
+    // This has to be run here, so that these options are added to all above commands,
+    // but not to the legacy commands that come next.
+    global_options.add_to_module( *sub );
 
     // Add legacy commands.
     add_legacy_command( *sub, "assign", "examine assign" );

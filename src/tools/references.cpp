@@ -113,6 +113,15 @@ static std::unordered_map<std::string, Citation> citations_ = {
 //     Helper Functions
 // -------------------------------------------------------------------------
 
+void check_citation_duplicates( std::vector<std::string> keys )
+{
+    std::sort( keys.begin(), keys.end() );
+    auto uniq = std::unique( keys.begin(), keys.end() );
+    if( uniq != keys.end() ) {
+        throw std::runtime_error( "Duplicate citation keys: " + (*uniq) );
+    }
+}
+
 Citation const& get_citation( std::string const& key )
 {
     if( citations_.count(key) == 0 ) {
@@ -168,6 +177,8 @@ void check_citations( std::vector<std::string> const& keys )
     for( auto const& entry : keys ) {
         (void) get_citation( entry );
     }
+
+    check_citation_duplicates( keys );
 }
 
 std::vector<std::string> get_all_citation_keys()
@@ -228,6 +239,8 @@ std::string cite_markdown( std::string const& key, bool with_quote_block )
 
 std::string cite_bibtex( std::vector<std::string> const& keys )
 {
+    check_citation_duplicates( keys );
+
     std::string result;
     for( auto const& key : keys ) {
         if( &key != &keys[0] ) {
@@ -240,6 +253,8 @@ std::string cite_bibtex( std::vector<std::string> const& keys )
 
 std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote_block )
 {
+    check_citation_duplicates( keys );
+
     std::string result;
     for( auto const& key : keys ) {
         if( &key != &keys[0] ) {

@@ -32,30 +32,73 @@
 #include "options/global.hpp"
 
 #include "tools/cli_formatter.hpp"
+#include "tools/cli_setup.hpp"
+#include "tools/references.hpp"
+#include "tools/version.hpp"
 
 // =================================================================================================
 //      Main Program
 // =================================================================================================
 
+void setup_main_app_options( CLI::App& app )
+{
+    // Version. We use the callback to immediately process the flag if set,
+    // similar to how --help works. This way, no subcommand is required when this option is used.
+    app.add_flag_callback(
+        "--version",
+        [] () {
+            std::cout << gappa_version() << "\n";
+            throw CLI::Success{};
+        },
+        "Print the gappa version and exit."
+    );
+}
+
 int main( int argc, char** argv )
 {
+    // -------------------------------------------------------------------------
+    //     Logging
+    // -------------------------------------------------------------------------
+
     // Activate logging.
     genesis::utils::Logging::log_to_stdout();
     genesis::utils::Logging::details.level = false;
+    genesis::utils::Logging::details.time = true;
 
-    // utils::Options::get().number_of_threads( 4 );
-    // LOG_BOLD << utils::Options::get().info();
+    // -------------------------------------------------------------------------
+    //     App Setup
+    // -------------------------------------------------------------------------
 
     // Set up the main CLI app.
     CLI::App app{ gappa_header() };
     app.name( "gappa" );
-    app.require_subcommand( 1 );
-    app.fallthrough( true );
+    app.footer( "\n" + gappa_title() );
+
+    // We use a custom formatter for the help messages that looks nicer.
     app.formatter( std::make_shared<GappaFormatter>() );
 
-    // Add app-wide global options.
-    global_options.set_command_line_args( argc, argv );
-    global_options.add_to_app( app );
+    // We don't like short options in gappa. Reset the help option.
+    // This is inherited by subcommands automatically.
+    app.set_help_flag( "--help", "Print this help message and exit." );
+    // app.get_help_ptr()->group( "Global Options" );
+
+    // We want all options to capture their default values, so that we see them in the help.
+    // No idea why CLI does not do that all the time. Hopefully, this is the correct way to solve this.
+    app.option_defaults()->always_capture_default( true );
+
+    // Gappa expects exactly one subcommand.
+    app.require_subcommand( 1 );
+
+    // The main app offers a few options as well.
+    setup_main_app_options( app );
+
+    // -------------------------------------------------------------------------
+    //     Subcommand Setup
+    // -------------------------------------------------------------------------
+
+    // Init global options. This ensures that all subcommands that need the global options
+    // have them initialized to proper values that they can use (eg for the help output).
+    global_options.initialize( argc, argv );
 
     // Set up all subcommands.
     setup_analyze( app );
@@ -63,6 +106,25 @@ int main( int argc, char** argv )
     setup_examine( app );
     setup_prepare( app );
     setup_tools( app );
+
+    // -------------------------------------------------------------------------
+    //     Final Checks and Steps
+    // -------------------------------------------------------------------------
+
+    // General checks before running.
+    // These are mainly to support the development, to avoid bugs and mistakes.
+    check_all_citations();
+    check_unique_command_names( app );
+    check_subcommand_names( app );
+
+    // Final steps before we can run.
+    // Make sure that we have all defaults captured,
+    // so that they can be used in the header print of each command.
+    fix_cli_default_values( app );
+
+    // -------------------------------------------------------------------------
+    //     Go Go Go
+    // -------------------------------------------------------------------------
 
     try {
         app.parse( argc, argv );

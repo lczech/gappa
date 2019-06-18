@@ -35,6 +35,8 @@
 #include "commands/prepare/taxonomy_tree.hpp"
 #include "commands/prepare/unchunkify.hpp"
 
+#include "options/global.hpp"
+
 #include <string>
 #include <vector>
 
@@ -42,7 +44,7 @@
 //      Functions
 // =================================================================================================
 
-void setup_prepare( CLI::App& app )
+inline void setup_prepare( CLI::App& app )
 {
     // Create the module subcommand objects.
     auto sub = app.add_subcommand(
@@ -60,6 +62,9 @@ void setup_prepare( CLI::App& app )
     setup_random_tree( *sub );
     setup_taxonomy_tree( *sub );
     setup_unchunkify( *sub );
+
+    // Add the global options to each of the above subcommands.
+    global_options.add_to_module( *sub );
 }
 
 #endif // include guard

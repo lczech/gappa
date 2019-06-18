@@ -30,6 +30,7 @@
 #include "commands/tools/license.hpp"
 #include "commands/tools/version.hpp"
 #include "commands/tools/wiki.hpp"
+
 #include "tools/version.hpp"
 
 #include <string>
@@ -39,7 +40,7 @@
 //      Functions
 // =================================================================================================
 
-void setup_tools( CLI::App& app )
+inline void setup_tools( CLI::App& app )
 {
     // Create the module subcommand objects.
     auto sub = app.add_subcommand(

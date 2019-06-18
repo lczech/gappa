@@ -39,7 +39,11 @@ void add_legacy_command(
     std::string const& old_name,
     std::string const& new_path
 ) {
-    auto sub = app.add_subcommand( old_name );
+    auto sub = app.add_subcommand(
+        old_name,
+        "Command has been renamed to `gappa " + new_path + "`"
+    );
+
     sub->group("");
     sub->callback( [ new_path ]() {
         throw RenamedCommandError( "Command has been renamed to `gappa " + new_path + "`" );

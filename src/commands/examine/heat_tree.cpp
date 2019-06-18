@@ -24,6 +24,7 @@
 #include "commands/examine/heat_tree.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 
 #include "CLI/CLI.hpp"
 
@@ -78,9 +79,13 @@ void setup_heat_tree( CLI::App& app )
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
-    sub->callback( [options]() {
-        run_heat_tree( *options );
-    });
+    sub->callback( gappa_cli_callback(
+        sub,
+        {},
+        [ options ]() {
+            run_heat_tree( *options );
+        }
+    ));
 }
 
 // =================================================================================================

@@ -28,8 +28,9 @@
 
 #include "commands/edit/accumulate.hpp"
 #include "commands/edit/multiplicity.hpp"
-// #include "commands/edit/sanitize.hpp"
 #include "commands/edit/split.hpp"
+
+#include "options/global.hpp"
 
 #include <string>
 #include <vector>
@@ -38,7 +39,7 @@
 //      Functions
 // =================================================================================================
 
-void setup_edit( CLI::App& app )
+inline void setup_edit( CLI::App& app )
 {
     // Create the module subcommand objects.
     auto sub = app.add_subcommand(
@@ -50,8 +51,10 @@ void setup_edit( CLI::App& app )
     // Add module subcommands.
     setup_accumulate( *sub );
     setup_multiplicity( *sub );
-    // setup_sanitize( *sub );
     setup_split( *sub );
+
+    // Add the global options to each of the above subcommands.
+    global_options.add_to_module( *sub );
 }
 
 #endif // include guard

@@ -41,6 +41,7 @@
 #include <cassert>
 #include <fstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #ifdef GENESIS_OPENMP
@@ -314,6 +315,7 @@ OtuTable read_otu_table_file( SplitOptions const& options )
     }
 
     // Read the table and fill the rest of our result.
+    std::unordered_set<std::string> unique_check;
     while( otu_is ) {
         auto const line = reader.parse_line( otu_is );
         if( line.size() != header.size() ) {
@@ -323,9 +325,10 @@ OtuTable read_otu_table_file( SplitOptions const& options )
 
         // Get the pquery name (first column), and check for duplicates.
         auto const& pquery_name = line[0];
-        if( utils::contains( result.pquery_names, pquery_name ) ) {
+        if( unique_check.count( pquery_name ) > 0 ) {
             throw std::runtime_error( "Duplicate pquery name '" + pquery_name + "' in OTU table." );
         }
+        unique_check.insert( pquery_name );
 
         // Add pquery name.
         auto const pquery_idx = result.pquery_names.size();
@@ -471,6 +474,11 @@ void run_split( SplitOptions const& options )
             auto& new_pqry = target.add( *( name_map.at( pquery_name )));
             new_pqry.clear_names();
             new_pqry.add_name( pquery_name, multip );
+        }
+
+        if( target.size() == 0 ) {
+            std::cout << "Warning: Sample '" << sample_entry.name << "' does not contain any pqueries. ";
+            std::cout << "This leads to an empty file being written.\n";
         }
 
         // Write the new sample to a file.

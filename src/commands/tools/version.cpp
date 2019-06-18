@@ -25,6 +25,8 @@
 #include "tools/references.hpp"
 #include "tools/version.hpp"
 
+#include "genesis/utils/core/options.hpp"
+
 // =================================================================================================
 //      Setup
 // =================================================================================================
@@ -58,6 +60,10 @@ void run_version( VersionOptions const& options )
     (void) options;
 
     std::cout << gappa_header();
+    std::cout << "\n";
+    std::cout << "gappa version: " << gappa_version() << "\n";
+    std::cout << "\n";
+    std::cout << genesis::utils::Options::get().info_compile_time();
     std::cout << "\n";
     std::cout << "For citation information, call  `gappa tools citation`\n";
     std::cout << "For license information, call  `gappa tools license`\n";

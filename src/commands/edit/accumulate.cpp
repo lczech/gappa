@@ -35,6 +35,7 @@
 #include "genesis/tree/function/functions.hpp"
 
 #include <cassert>
+#include <utility>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -69,7 +70,7 @@ void setup_accumulate( CLI::App& app )
         true
     );
     threshold_opt->group( "Settings" );
-    threshold_opt->check( CLI::Range( 0.0, 1.0 ));
+    threshold_opt->check( CLI::Range( 0.5, 1.0 ));
 
     // -----------------------------------------------------------
     //     Output options
@@ -133,24 +134,39 @@ void run_accumulate( AccumulateOptions const& options )
 
         // We need the masses per edge of the pquery.
         auto masses = std::vector<double>( tree.edge_count(), 0.0 );
+
+        // Furthermore, store the weighted pendant length of all placements in the subtree.
+        // We want the resulting pendant length to be the weighted average of all pendant lengths
+        // in the accumulated subtree. So, we propagate the weighted sum of pend lengths up the tree,
+        // and divide by the sum of weights in the end to get the average.
+        // This sum of weights happens to be the sum of lwrs that is already stored in masses[].
+        auto pendant = std::vector<double>( tree.edge_count(), 0.0 );
+
+        // Init both with the values from the pquery.
         for( auto const& place : pqry.placements() ) {
-            masses[ place.edge().index() ] += place.like_weight_ratio;
+            assert( masses[ place.edge().index() ] == 0.0 );
+            masses[ place.edge().index() ] = place.like_weight_ratio;
+            pendant[ place.edge().index() ] = place.like_weight_ratio * place.pendant_length;
         }
 
         // Move the masses up the tree until they exceed the threshold.
         bool exceeded_threshold = false;
         size_t result_edge;
         for( auto it : postorder( tree )) {
+
+            // We are interested in edges, so skip the last iteration.
             if( it.is_last_iteration() ) {
                 continue;
             }
 
             auto& cur_mass = masses[ it.edge().index() ];
+            auto& cur_pend = pendant[ it.edge().index() ];
 
-            // Add subtree masses.
+            // Add subtree masses and pendant lengths.
             auto link = &it.link().next();
             while( link != &it.link() ) {
                 cur_mass += masses[ link->edge().index() ];
+                cur_pend += pendant[ link->edge().index() ];
                 link = &link->next();
             }
 
@@ -168,8 +184,22 @@ void run_accumulate( AccumulateOptions const& options )
         if( exceeded_threshold ) {
             pqry.clear_placements();
             auto& place = pqry.add_placement( tree.edge_at( result_edge ));
+
+            // Set a new lwr of 1.0, as we throw away everything else.
             place.like_weight_ratio = 1.0;
-            place.proximal_length = tree.edge_at( result_edge ).data<CommonEdgeData>().branch_length / 2.0;
+
+            // Set the pendant length to the weighted average of the lengths in the subtree.
+            place.pendant_length = pendant[ result_edge ] / masses[ result_edge ];
+
+            // Set the position along the branch. It does not really matter that much,
+            // so do a nice little thing and set it at the position along the branch
+            // that corresponds to the accumulated mass. So, if the placement represents 96% of
+            // the mass, it is placed at 0.96 along the branch.
+            // This way, pqueries get distinct prox lengths, which might help in downstream
+            // analyses.
+            auto const bl = tree.edge_at( result_edge ).data<CommonEdgeData>().branch_length;
+            assert( masses[ result_edge] >= options.threshold );
+            place.proximal_length = bl * masses[ result_edge ];
         } else {
             removal_collector.push_back( i );
         }

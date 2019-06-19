@@ -26,7 +26,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="277.99514"
+     inkscape:cx="285.138"
      inkscape:cy="106.2114"
      inkscape:document-units="px"
      inkscape:current-layer="layer14"
@@ -36,11 +36,11 @@
      fit-margin-left="0.6"
      fit-margin-right="0.6"
      fit-margin-bottom="0.6"
-     inkscape:window-width="1871"
-     inkscape:window-height="1056"
-     inkscape:window-x="49"
+     inkscape:window-width="1694"
+     inkscape:window-height="1387"
+     inkscape:window-x="1744"
      inkscape:window-y="24"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-paths="true"
      inkscape:bbox-nodes="true"
@@ -322,7 +322,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -473,7 +473,7 @@
            width="65.659912"
            id="rect5729" /></flowRegion><flowPara
          id="flowPara5731"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.52572918px;line-height:1.25;font-family:Sans;-inkscape-font-specification:Sans">0.24</flowPara></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.52572918px;line-height:1.25;font-family:Sans;-inkscape-font-specification:Sans">0.80</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot5737"
        style="color:#000000;line-height:0.01%;letter-spacing:0px;word-spacing:0px;display:inline;overflow:visible;visibility:visible;fill:#008bff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;enable-background:accumulate"
@@ -486,7 +486,7 @@
            y="153.25842"
            style="font-size:10.52572918px;fill:#008bff;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara5743"
-         style="font-size:10.52572918px;line-height:1.25">0.24</flowPara></flowRoot>    <flowRoot
+         style="font-size:10.52572918px;line-height:1.25">0.03</flowPara></flowRoot>    <flowRoot
        transform="matrix(1.9623559,0,0,1.9623559,547.96137,-102.91497)"
        style="color:#000000;line-height:0.01%;letter-spacing:0px;word-spacing:0px;display:inline;overflow:visible;visibility:visible;fill:#008bff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;enable-background:accumulate"
        id="flowRoot5749"
@@ -499,7 +499,7 @@
            width="65.659912"
            id="rect5753" /></flowRegion><flowPara
          id="flowPara5755"
-         style="font-weight:normal;font-size:10.52572918px;line-height:1.25;-inkscape-font-specification:Sans">0.24</flowPara></flowRoot>    <flowRoot
+         style="font-weight:normal;font-size:10.52572918px;line-height:1.25;-inkscape-font-specification:Sans">0.03</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot5761"
        style="color:#000000;line-height:0.01%;letter-spacing:0px;word-spacing:0px;display:inline;overflow:visible;visibility:visible;fill:#008bff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;enable-background:accumulate"
@@ -512,7 +512,7 @@
            y="153.25842"
            style="font-size:10.52572918px;fill:#008bff;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara5767"
-         style="font-size:10.52572918px;line-height:1.25">0.24</flowPara></flowRoot>    <circle
+         style="font-size:10.52572918px;line-height:1.25">0.10</flowPara></flowRoot>    <circle
        inkscape:export-ydpi="600"
        inkscape:export-xdpi="600"
        inkscape:export-filename="/home/lucas/Dropbox/HITS/tree_vis/images/base_tree.png"

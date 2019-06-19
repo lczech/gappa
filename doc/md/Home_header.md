@@ -10,10 +10,10 @@ However, being written in C++, our gappa is much faster and needs less memory fo
 
 ## Command Line Interface
 
-gappa is used via its command line interface, with commands for each task.
+gappa is used via its command line interface, with subcommands for each task.
 The commands have the general structure:
 
-    gappa <module> <command> <options>
+    gappa <module> <subcommand> <options>
 
 The modules are simply a way of organizing the commands.
 

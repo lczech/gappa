@@ -9,6 +9,8 @@ Similar trees are produced by [RAxML-EPA](http://sco.h-its.org/exelixis/web/soft
 The provided `jplace` files are processed individually, producing a `newick` tree for each of them.
 They are named like the input files, but replace the file extension by `.newick`.
 
+Important remark: Note that the grafting simply attaches the pqueries to the tree at their most likely placement position. The phylogeny of the pquries itself however is not resolved at all.
+
 ### Without `--fully-resolve`
 
 If `--fully-resolve` is not provided (default), all placements at one edge are collected as children of one central base edge:

@@ -9,3 +9,5 @@ That is, each pquery is treated separately. Its mass is first normalized to a to
 It can happen that a pquery contains placement mass across different sides of the root. If no side contains more than the given `--threshold` mass, there is no basal branch or clade that satisfies the above description. In that case, the whole pquery is removed from the output, and its name(s) are printed in order to inform about this. This can for example happen with chimeric sequences that fit in multiple places of the tree, and hence should be treated as a warning sign. Another reason can be that the root of reference tree is not chosen properly. In that case, it can help to reroot the tree first.
 
 The output of the command is a file called `accumulated.jplace`, potentially using the `--file-prefix`.
+The file can then be visualized, for example via the [heat-tree](../wiki/Subcommand:-heat-tree) command,
+or examined in even greater detail with the [graft](../wiki/Subcommand:-graft) command.

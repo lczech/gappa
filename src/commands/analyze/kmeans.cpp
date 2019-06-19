@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -234,9 +234,9 @@ KmeansClusterOverview print_cluster_info(
         }
         cavg_dst /= static_cast<double>( cavg_cnt );
 
-        std::cout << "Cluster " << ik << ": " << cluster_info.counts[ik] << " samples,";
-        std::cout << " with a variance of " << cluster_info.variances[ik];
-        std::cout << " and average distance " << cavg_dst << "\n";
+        LOG_MSG1 << "Cluster " << ik << ": " << cluster_info.counts[ik] << " samples,"
+                 << " with a variance of " << cluster_info.variances[ik]
+                 << " and average distance " << cavg_dst;
     }
     avg_dst /= static_cast<double>( assignments.size() );
     avg_var /= static_cast<double>( assignments.size() );
@@ -252,8 +252,8 @@ KmeansClusterOverview print_cluster_info(
     // avg_dst2 /= static_cast<double>( cluster_info.distances.size() );
     // avg_var2  /= static_cast<double>( cluster_info.distances.size() );
 
-    std::cout << "Total average distance: " << avg_dst << "\n";
-    std::cout << "Total average variance: " << avg_var << "\n";
+    LOG_MSG1 << "Total average distance: " << avg_dst;
+    LOG_MSG1 << "Total average variance: " << avg_var;
 
     return { k, avg_dst, avg_var };
 }

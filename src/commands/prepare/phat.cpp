@@ -236,9 +236,7 @@ genesis::taxonomy::Taxonomy read_taxonomy( PhatOptions const& options )
     using namespace genesis::utils;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading taxonomy and preparing entropy calculations.\n";
-    }
+    LOG_MSG1 << "Reading taxonomy and preparing entropy calculations";
 
     // Get alignment length.
     auto it = FastaInputIterator( from_file( options.sequence_file ) );
@@ -282,16 +280,14 @@ genesis::taxonomy::Taxonomy read_taxonomy( PhatOptions const& options )
     preorder_for_each( *subtax, add_sequence_counts_to_taxonomy );
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Taxonomy contains a total of " << total_taxa_count( tax ) << " taxa, ";
-        std::cout << "with " << taxa_count_lowest_levels( tax ) << " taxa at the lowest level.\n";
+    LOG_MSG1 << "Taxonomy contains a total of " << total_taxa_count( tax ) << " taxa, "
+             << "with " << taxa_count_lowest_levels( tax ) << " taxa at the lowest level.";
 
-        if( ! options.sub_taxopath.empty() ) {
-            std::cout << "The selected Subtaxonomy contains a total of " ;
-            std::cout << total_taxa_count( *subtax ) << " taxa, ";
-            std::cout << "with " << taxa_count_lowest_levels( *subtax );
-            std::cout << " taxa at the lowest level.\n";
-        }
+    if( ! options.sub_taxopath.empty() ) {
+        LOG_MSG1 << "The selected Subtaxonomy contains a total of "
+                 << total_taxa_count( *subtax ) << " taxa, "
+                 << "with " << taxa_count_lowest_levels( *subtax )
+                 << " taxa at the lowest level.";
     }
 
     return tax;
@@ -308,9 +304,7 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
     using namespace genesis::utils;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading sequences.\n";
-    }
+    LOG_MSG1 << "Reading sequences";
 
     // User output prep. We count how often each char occurs in the sequences,
     // how many sequences weree processed in total, how many of those were not found at all in the
@@ -331,15 +325,12 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
 
         // User output.
         // If we have verbose output, count characters.
-        if( global_options.verbosity() >= 2 ) {
-            for( auto const& s : *it ) {
-                ++char_counts[s];
-            }
-
-            // Also, output a progress. Could be done nicer in the future.
-            if( total_seqs_count % 100000 == 0 ) {
-                std::cout << "At sequence " << total_seqs_count << "\n";
-            }
+        for( auto const& s : *it ) {
+            ++char_counts[s];
+        }
+        // Also, output a progress. Could be done nicer in the future.
+        if( total_seqs_count % 100000 == 0 ) {
+            LOG_MSG2 << "At sequence " << total_seqs_count;
         }
         ++total_seqs_count;
 
@@ -363,10 +354,8 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
             taxp = find_taxon_by_taxopath( tax, taxopath );
         }
         if( taxp == nullptr ) {
+            LOG_MSG3 << "Sequence " << it->label() << " not found in the taxonomy!";
             ++no_tax_seqs_count;
-            if( global_options.verbosity() >= 3 ) {
-                std::cout << "Sequence " << it->label() << " not found in the taxonomy!\n";
-            }
             ++it;
             continue;
         }
@@ -376,10 +365,8 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
         // We do this by testing whether the taxon has data, because read_taxonomy() only sets
         // data entries for the subtaxonomy.
         if( ! taxp->has_data() ) {
+            LOG_MSG3 << "Sequence " << it->label() << " not part of the subtaxonomy.";
             ++not_subtax_seqs_count;
-            if( global_options.verbosity() >= 3 ) {
-                std::cout << "Sequence " << it->label() << " not part of the subtaxonomy.\n";
-            }
             ++it;
             continue;
         }
@@ -398,44 +385,37 @@ void fill_site_counts( PhatOptions const& options, genesis::taxonomy::Taxonomy& 
     }
 
     // User output.
-    if( global_options.verbosity() >= 1 || no_tax_seqs_count > 0 ) {
-        std::cout << "Processed " << total_seqs_count << " sequences.\n";
-        if( no_tax_seqs_count > 0 ) {
-            std::cout << "Thereof, " << no_tax_seqs_count << " sequences were not found in the taxonomy.\n";
-        }
-        if( not_subtax_seqs_count > 0 ) {
-            if( no_tax_seqs_count == 0 ) {
-                std::cout << "Thereof, ";
-            } else {
-                std::cout << "Furthermore, ";
-            }
-
-            std::cout << not_subtax_seqs_count << " sequences were skipped because they are ";
-            std::cout << "not part of the specified subtaxonomy.\n";
-        }
+    LOG_MSG1 << "Processed " << total_seqs_count << " sequences.";
+    if( no_tax_seqs_count > 0 ) {
+        LOG_MSG1 << "Thereof, " << no_tax_seqs_count << " sequences were not found in the taxonomy.";
     }
-    if( global_options.verbosity() >= 2 ) {
-        std::cout << "Character counts in the sequences:\n";
-        size_t sum = 0;
-        for( auto const& count : char_counts ) {
-            std::cout << "    " << count.first << ": " << count.second << "\n";
-            sum += count.second;
-        }
-
-        auto amb = sum - char_counts['-'];
-        amb -= char_counts['A'] + char_counts['C'];
-        amb -= char_counts['G'] + char_counts['T'] + char_counts['U'];
-        auto const amb_per = 100.0 * static_cast<double>( amb ) / static_cast<double>( sum );
-        if( amb > 0 ) {
-            std::cout << "There were " << amb << " (" << amb_per << "%) ambiguous sites, ";
-            std::cout << "which were counted as gaps.\n";
-        }
+    if( not_subtax_seqs_count > 0 ) {
+        LOG_MSG1 << ( no_tax_seqs_count == 0 ? "Thereof, " : "Furthermore, " )
+                 << not_subtax_seqs_count << " sequences were skipped because they are "
+                 << "not part of the specified subtaxonomy.";
     }
+
+    LOG_MSG2 << "Character counts in the sequences:";
+    size_t sum = 0;
+    for( auto const& count : char_counts ) {
+        LOG_MSG2 << "    " << count.first << ": " << count.second;
+        sum += count.second;
+    }
+
+    auto amb = sum - char_counts['-'];
+    amb -= char_counts['A'] + char_counts['C'];
+    amb -= char_counts['G'] + char_counts['T'] + char_counts['U'];
+    auto const amb_per = 100.0 * static_cast<double>( amb ) / static_cast<double>( sum );
+    if( amb > 0 ) {
+        LOG_MSG2 << "There were " << amb << " (" << amb_per << "%) ambiguous sites, "
+                 << "which were counted as gaps.";
+    }
+
     if( char_counts['U'] > char_counts['T'] ) {
         // The above condition might add U or T to the char counts map.
         // We don't use it any more afterwards, so that's okay.
-        std::cout << "Warning: There are more 'U' sites in the sequences than 'T' sites. ";
-        std::cout << "Are you sure that the sites are properly converted to 'T'?\n";
+        LOG_WARN << "Warning: There are more 'U' sites in the sequences than 'T' sites. "
+                 << "Are you sure that the sites are properly converted to 'T'?";
     }
 }
 
@@ -449,14 +429,12 @@ void calculate_entropy( PhatOptions const& options, genesis::taxonomy::Taxonomy&
     using namespace genesis::taxonomy;
 
     if( options.no_taxa_selection ) {
-        std::cout << "Skipping entropy calculation due to --no-taxa-selection being set.\n";
+        LOG_MSG1 << "Skipping entropy calculation due to --no-taxa-selection being set.";
         return;
     }
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Calculating entropy.\n";
-    }
+    LOG_MSG1 << "Calculating entropy.";
 
     // Set the default options.
     // auto opt = SiteEntropyOptions::kWeighted;
@@ -485,9 +463,7 @@ void select_taxa( PhatOptions const& options, genesis::taxonomy::Taxonomy& tax )
     using namespace genesis::taxonomy;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Selecting taxa based on entropy.\n";
-    }
+    LOG_MSG1 << "Selecting taxa based on entropy.";
 
     // Init a pointer to the whole taxonomy.
     Taxonomy* subtax = &tax;
@@ -533,12 +509,10 @@ void select_taxa( PhatOptions const& options, genesis::taxonomy::Taxonomy& tax )
     }
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        auto const border_cnt = count_taxa_with_prune_status(
-            *subtax, EntropyTaxonData::PruneStatus::kBorder
-        );
-        std::cout << "Selected " << border_cnt << " taxa for which to build consensus sequences.\n";
-    }
+    auto const border_cnt = count_taxa_with_prune_status(
+        *subtax, EntropyTaxonData::PruneStatus::kBorder
+    );
+    LOG_MSG1 << "Selected " << border_cnt << " taxa for which to build consensus sequences.";
 }
 
 // =================================================================================================
@@ -551,9 +525,7 @@ void generate_consensus_sequences( PhatOptions const& options, genesis::taxonomy
     using namespace genesis::taxonomy;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Generating consensus sequences.\n";
-    }
+    LOG_MSG1 << "Generating consensus sequences.";
 
     // Helper function.
     auto write_fasta_sequence = [] ( std::ofstream& out, std::string const& name, std::string const& sites ) {
@@ -614,11 +586,11 @@ void generate_consensus_sequences( PhatOptions const& options, genesis::taxonomy
 
     // User warning for empty taxa
     if( ! no_data_taxa.empty() ) {
-        std::cout << "Warning: Some taxa did not have any sequences in the database, ";
-        std::cout << "and thus generate empty consensus sequences, ";
-        std::cout << "which will be an issue for the tree inference:\n";
+        LOG_WARN << "Warning: Some taxa did not have any sequences in the database, "
+                 << "and thus generate empty consensus sequences, "
+                 << "which will be an issue for the tree inference:";
         for( auto const& sn : no_data_taxa ) {
-            std::cout << " - " << sn << "\n";
+            LOG_WARN << " - " << sn;
         }
     }
 }
@@ -711,37 +683,6 @@ void run_phat( PhatOptions const& options )
 {
     using namespace genesis::utils;
 
-    // User output.
-    if( global_options.verbosity() >= 2 ) {
-        std::cout << "Taxonomy file: " << options.taxonomy_file << "\n";
-        std::cout << "Sequence file: " << options.sequence_file << "\n";
-
-        std::cout << "Target taxonomy size: " << options.target_taxonomy_size << "\n";
-        std::cout << "Consensus method: " << options.consensus_method;
-        if( options.consensus_method == "threshold" ) {
-            std::cout << " (" << options.consensus_threshold << ")";
-        }
-        std::cout << "\n";
-
-        if( options.min_subclade_size > 0 ) {
-            std::cout << "Min subclade size: " << options.min_subclade_size << "\n";
-        }
-        if( options.max_subclade_size > 0 ) {
-            std::cout << "Max subclade size: " << options.max_subclade_size << "\n";
-        }
-        if( options.min_tax_level > 0 ) {
-            std::cout << "Min taxonomic level: " << options.min_tax_level << "\n";
-        }
-        if( options.allow_approximation ) {
-            std::cout << "Allowing approximation.\n";
-        }
-        if( ! options.sub_taxopath.empty() ) {
-            std::cout << "Subtaxonomy: " << options.sub_taxopath << "\n";
-        }
-
-        std::cout << "\n";
-    }
-
     // Check output files
     options.output.check_nonexistent_output_files({ options.consensus_sequence_file });
     if( options.write_info_files ) {
@@ -758,9 +699,4 @@ void run_phat( PhatOptions const& options )
     select_taxa( options, taxonomy );
     generate_consensus_sequences( options, taxonomy );
     write_info_files( options, taxonomy );
-
-    // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Finished.\n";
-    }
 }

@@ -154,9 +154,7 @@ void run_pkmeans( PkmeansOptions const& options )
     // Check for existing files.
     check_kmeans_output_files( options );
 
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading samples.\n";
-    }
+    LOG_MSG1 << "Reading samples.";
 
     // Read in the trees and immediately convert them to mass trees to save storage.
     auto mass_trees = options.jplace_input.mass_tree_set();
@@ -171,9 +169,7 @@ void run_pkmeans( PkmeansOptions const& options )
     // Set up kmeans.
     auto mkmeans = MassTreeKmeans();
     mkmeans.report_iteration = [&]( size_t iteration ){
-        if( global_options.verbosity() >= 2 ) {
-            std::cout << " - Iteration " << iteration << "\n";
-        }
+        LOG_MSG2 << " - Iteration " << iteration;
     };
     if( options.bins > 0 ) {
         mkmeans.accumulate_centroid_masses( options.bins );
@@ -184,10 +180,11 @@ void run_pkmeans( PkmeansOptions const& options )
     for( auto const& k : ks ) {
 
         // Run it.
-        std::cout << "\nRunning Phylogenetic Kmeans with k=" << k << "\n";
+        LOG_BOLD;
+        LOG_MSG1 << "Running Phylogenetic Kmeans with k=" << k;
         auto const iterations = mkmeans.run( mass_trees, k );
         auto const clust_info = mkmeans.cluster_info( mass_trees );
-        std::cout << "Finished after " << iterations << " iterations\n";
+        LOG_MSG1 << "Finished after " << iterations << " iterations";
 
         // Write output.
         write_assignment_file( options, mkmeans.assignments(), clust_info, k );

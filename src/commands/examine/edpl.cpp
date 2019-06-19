@@ -157,14 +157,8 @@ void run_edpl( EdplOptions const& options )
     for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
 
         // User output
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_EDPL_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << options.jplace_input.file_count();
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << options.jplace_input.file_count()
+                 << ": " << options.jplace_input.file_path( fi );
 
         // Read in file.
         auto const sample = options.jplace_input.sample( fi );
@@ -221,9 +215,7 @@ void run_edpl( EdplOptions const& options )
     }
 
     // User output
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Writing output files.\n";
-    }
+    LOG_MSG1 << "Writing output files.";
 
     if( ! options.no_list_file ) {
         // Prepare list file
@@ -246,16 +238,16 @@ void run_edpl( EdplOptions const& options )
 
     // Get the max value to use for the histogram. Use a warning if needed.
     if( options.histogram_max > 0.0 && options.histogram_max < 0.75 * max_edpl ) {
-        std::cout << "Warning: The maximum value for the histogram is set to less than 75% of ";
-        std::cout << "the maximal value actually found in the samples. Hence, all values in ";
-        std::cout << "between will be collected in the highest bin of the histogram. If this is ";
-        std::cout << "intentional, you can ignore this warning.\n";
+        LOG_WARN << "Warning: The maximum value for the histogram is set to less than 75% of "
+                 << "the maximal value actually found in the samples. Hence, all values in "
+                 << "between will be collected in the highest bin of the histogram. If this is "
+                 << "intentional, you can ignore this warning.";
     }
     if( options.histogram_max > 0.0 && options.histogram_max > 1.25 * max_edpl ) {
-        std::cout << "Warning: The maximum value for the histogram is set to more than 125% of ";
-        std::cout << "the maximal value actually found in the samples. Hence, the highest bins ";
-        std::cout << "of the histogram will be empty. If this is intentional, you can ignore this ";
-        std::cout << "warning.\n";
+        LOG_WARN << "Warning: The maximum value for the histogram is set to more than 125% of "
+                 << "the maximal value actually found in the samples. Hence, the highest bins "
+                 << "of the histogram will be empty. If this is intentional, you can ignore this "
+                 << "warning.\n";
     }
     auto const hist_max = options.histogram_max < 0.0 ? max_edpl : options.histogram_max;
 

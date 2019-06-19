@@ -169,9 +169,7 @@ OtuTable read_split_file( SplitOptions const& options )
     OtuTable result;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading split file.\n";
-    }
+    LOG_MSG1 << "Reading split file.";
 
     // TODO allow to customize the separator char here (and later in the OTU table as well)!
 
@@ -253,8 +251,8 @@ OtuTable read_split_file( SplitOptions const& options )
         auto& sample_entry = result.samples.at( sample_to_index.at( sample_name ));
         auto const pquery_idx = pquery_to_index.at( pquery_name );
         if( sample_entry.pqueries.count( pquery_idx ) > 0 ) {
-            std::cout << "Duplicate entry for pquery '" << pquery_name << "' and sample ";
-            std::cout << sample_name << ". Adding up their multiplicities.\n";
+            LOG_WARN << "Duplicate entry for pquery '" << pquery_name << "' and sample "
+                     << sample_name << ". Adding up their multiplicities.";
         }
         sample_entry.pqueries[ pquery_idx ] += multip;
     }
@@ -276,9 +274,7 @@ OtuTable read_otu_table_file( SplitOptions const& options )
     OtuTable result;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading OTU table.\n";
-    }
+    LOG_MSG1 << "Reading OTU table.";
 
     // TODO allow to customize the separator char here (and later in the OTU table as well)!
 
@@ -393,10 +389,7 @@ void run_split( SplitOptions const& options )
     options.jplace_input.print();
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading sample" << ( options.jplace_input.file_count() > 1 ? "s" : "" );
-        std::cout << ".\n";
-    }
+    LOG_MSG1 << "Reading sample" << ( options.jplace_input.file_count() > 1 ? "s" : "" );
 
     // Read all jplace files at once. Typically, this command is run with one file anyway.
     auto const sample_set = options.jplace_input.sample_set();
@@ -420,8 +413,8 @@ void run_split( SplitOptions const& options )
         for( auto const& pquery : sample ) {
             for( auto const& pname : pquery.names() ) {
                 if( name_map.count( pname.name ) > 0 ) {
-                    std::cout << "Duplicate pquery name '" << pname.name;
-                    std::cout << "' in the input jplace file(s).\n";
+                    LOG_WARN << "Duplicate pquery name '" << pname.name
+                             << "' in the input jplace file(s)";
                 }
                 name_map[ pname.name ] = &pquery;
             }
@@ -429,9 +422,7 @@ void run_split( SplitOptions const& options )
     }
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Writing split samples.\n";
-    }
+    LOG_MSG1 << "Writing split samples.";
 
     // Create and write the split target samples.
     size_t file_count = 0;
@@ -441,15 +432,8 @@ void run_split( SplitOptions const& options )
         auto const filename = options.jplace_output.file_prefix() + sample_entry.name + ".jplace";
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_SPLIT_PRINT)
-            {
-                // TODO maybe output the full path including out dir?
-                ++file_count;
-                std::cout << "Writing file " << file_count << " of " << otu_table.samples.size();
-                std::cout << ": " << filename << "\n";
-            }
-        }
+        LOG_MSG2 << "Writing file " << ( ++file_count ) << " of " << otu_table.samples.size()
+                 << ": " << filename;
 
         // Create a new sample and fill it with the needed pqueries.
         auto target = Sample( ref_tree );
@@ -461,8 +445,8 @@ void run_split( SplitOptions const& options )
             if( name_map.count( pquery_name ) == 0 ) {
                 #pragma omp critical(GAPPA_SPLIT_PRINT)
                 {
-                    std::cout << "Warning: No pquery with name '" << pquery_name;
-                    std::cout << "' found in input samples.\n";
+                    LOG_WARN << "Warning: No pquery with name '" << pquery_name
+                             << "' found in input samples.";
                 }
                 continue;
             }
@@ -477,8 +461,8 @@ void run_split( SplitOptions const& options )
         }
 
         if( target.size() == 0 ) {
-            std::cout << "Warning: Sample '" << sample_entry.name << "' does not contain any pqueries. ";
-            std::cout << "This leads to an empty file being written.\n";
+            LOG_WARN << "Warning: Sample '" << sample_entry.name << "' does not contain any pqueries. "
+                     << "This leads to an empty file being written.";
         }
 
         // Write the new sample to a file.

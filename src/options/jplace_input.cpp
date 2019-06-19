@@ -179,7 +179,7 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
     // Result.
     SampleSet set;
     auto const paths = file_paths();
-    size_t fc = 0;
+    size_t file_count = 0;
 
     // Make a vector of default-constructed Samples of the needed size.
     // We do this so that the order of input jplace files is kept.
@@ -190,14 +190,8 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
     for( size_t fi = 0; fi < paths.size(); ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
-            {
-                ++fc;
-                std::cout << "Reading file " << fc << " of " << paths.size();
-                std::cout << ": " << paths[ fi ] << "\n";
-            }
-        }
+        LOG_MSG2 << "Reading file " << ( ++file_count ) << " of " << paths.size()
+                 << ": " << paths[ fi ];
 
         tmp[ fi ] = sample( fi );
     }
@@ -229,14 +223,8 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
     for( size_t fi = 0; fi < file_count(); ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
-            {
-                ++fc;
-                std::cout << "Reading file " << fc << " of " << file_count();
-                std::cout << ": " << file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Reading file " << ( ++fc ) << " of " << file_count()
+                 << ": " << file_path( fi );
 
         // Read in file and get data vectors.
         // This is the part that can trivially be done in parallel.
@@ -298,7 +286,7 @@ std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set( bool nor
     // Prepare storage.
     auto const set_size = file_count();
     auto mass_trees = std::vector<MassTree>( set_size );
-    size_t file_count = 0;
+    size_t fc = 0;
 
     // TODO branch length and compatibility checks!
 
@@ -307,14 +295,8 @@ std::vector<genesis::tree::MassTree> JplaceInputOptions::mass_tree_set( bool nor
     for( size_t fi = 0; fi < set_size; ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Reading file " << file_count << " of " << set_size;
-                std::cout << ": " << file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Reading file " << ( ++fc ) << " of " << set_size
+                 << ": " << file_path( fi );
 
         // Read in file.
         auto const smpl = sample( fi );
@@ -347,14 +329,8 @@ genesis::placement::Sample JplaceInputOptions::merged_samples() const
     for( size_t fi = 0; fi < file_count(); ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
-            {
-                ++fc;
-                std::cout << "Reading file " << fc << " of " << file_count();
-                std::cout << ": " << file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Reading file " << ( ++fc ) << " of " << file_count()
+                 << ": " << file_path( fi );
 
         // Read in file. This is the part that can trivially be done in parallel.
         auto smpl = sample( fi );
@@ -398,27 +374,4 @@ bool JplaceInputOptions::mass_norm_absolute() const
 bool JplaceInputOptions::mass_norm_relative() const
 {
     return ! mass_norm_absolute();
-}
-
-void JplaceInputOptions::print() const
-{
-    // Info about normalization and stuff.
-    if( global_options.verbosity() >= 2 ) {
-        std::vector<std::string> usings;
-        if( point_mass_option && point_mass_ ) {
-            usings.push_back( "--point-mass" );
-        }
-        if( ignore_multiplicities_option && ignore_multiplicities_ ) {
-            usings.push_back( "--ignore-multiplicities" );
-        }
-        if( mass_norm_option ) {
-            usings.push_back( "--mass-norm " + mass_norm_ );
-        }
-        if( ! usings.empty() ) {
-            std::cout << "Using " << genesis::utils::join( usings, ", " ) << "\n";
-        }
-    }
-
-    // Print the file list.
-    FileInputOptions::print();
 }

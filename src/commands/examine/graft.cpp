@@ -106,19 +106,13 @@ void run_graft( GraftOptions const& options )
     // (edges or nodes). or, if only newick is used, not, because we do not reroot,
     // so the assignment does not change.
 
-    size_t fc = 0;
+    size_t file_counter = 0;
     #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < options.jplace_input.file_count(); ++i ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_JPLACE_INPUT_PROGRESS)
-            {
-                ++fc;
-                std::cout << "Reading file " << fc << " of " << options.jplace_input.file_count();
-                std::cout << ": " << options.jplace_input.file_path( i ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Reading file " << ( ++file_counter ) << " of " << options.jplace_input.file_count()
+                 << ": " << options.jplace_input.file_path( i );
 
         // Read the sample and make the tree.
         auto const sample = options.jplace_input.sample( i );

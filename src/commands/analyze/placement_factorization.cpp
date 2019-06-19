@@ -179,9 +179,7 @@ genesis::utils::Matrix<double> read_meta_data( PlacementFactorizationOptions con
     // Convert as needed for phylo factorization.
     std::string report;
     auto meta = glm_prepare_dataframe( df, report );
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << report << "\n";
-    }
+    LOG_MSG1 << report;
 
     // TODO use glm_convert_dataframe instead?!
 
@@ -456,7 +454,7 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
         },
         options.factors.value,
         []( size_t iteration, size_t max_iterations ){
-            std::cout << "Iteration " << iteration << " of " << max_iterations << "\n";
+            LOG_MSG1 << "Iteration " << iteration << " of " << max_iterations;
         }
     );
 

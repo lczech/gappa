@@ -122,18 +122,17 @@ void run_squash( SquashOptions const& options )
     auto sc = tree::SquashClustering();
     sc.p( options.exponent );
     sc.report_initialization = [&](){
-        if( global_options.verbosity() >= 2 ) {
-            std::cout << " - Initializing Squash Clustering\n";
-        }
+        LOG_MSG2 << " - Initializing";
     };
     sc.report_step = [&]( size_t i, size_t total ){
-        if( global_options.verbosity() >= 2 ) {
-            std::cout << " - Step " << i << " of " << total << "\n";
-        }
+        LOG_MSG2 << " - Step " << i << " of " << total;
     };
 
     // Run, Forrest, run!
+    LOG_MSG1 << "Running Squash Clustering";
     sc.run( std::move( mass_trees ) );
+
+    LOG_MSG1 << "Writing output files";
 
     // Write output cluster tree to newick.
     std::ofstream file_clust_tree;

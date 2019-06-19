@@ -32,6 +32,7 @@
 
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/date_time.hpp"
 
 #include <stdexcept>
 #include <unordered_set>
@@ -48,7 +49,8 @@ static const size_t left_column_width_ = 35;
 void print_header( CLI::App const* sub )
 {
     // Print the nice gappa header.
-    std::cout << gappa_header() << "\n";
+    LOG_BOLD << gappa_header();
+    LOG_BOLD;
 
     // Get the command usage line.
     std::string usage = sub->get_name();
@@ -59,12 +61,9 @@ void print_header( CLI::App const* sub )
     }
 
     // Print basic command information.
-    std::cout << format_columns( "Invocation:", global_options.command_line(), left_column_width_ );
-    std::cout << format_columns( "Command:", usage, left_column_width_ );
-    std::cout << "\n";
-
-    // std::cout << "Invocation: " << global_options.command_line() << "\n";
-    // std::cout << "Command:    " << usage << "\n\n";
+    LOG_BOLD << format_columns( "Invocation:", global_options.command_line(), left_column_width_ );
+    LOG_BOLD << format_columns( "Command:", usage, left_column_width_ );
+    LOG_BOLD;
 }
 
 std::string get_option_value( CLI::Option const* option )
@@ -140,16 +139,17 @@ void print_option_values( CLI::App const* subcommand )
     // Now we have a nicely sorted list of all options in their groups.
     // Print them!
     for( auto const& group : group_output ) {
-        std::cout << group.first << ":\n";
-        std::cout << group.second;
-        std::cout << "\n";
+        LOG_BOLD << group.first << ":";
+        LOG_BOLD << group.second;
+        LOG_BOLD;
     }
 }
 
 void print_citations( std::vector<std::string> const& citations )
 {
-    std::cout << "Run the following command to get the references that need to be cited:\n";
-    std::cout << "`gappa tools citation " << genesis::utils::join( citations, " " ) << "`\n\n";
+    LOG_BOLD << "Run the following command to get the references that need to be cited:";
+    LOG_BOLD << "`gappa tools citation " << genesis::utils::join( citations, " " ) << "`";
+    LOG_BOLD;
 }
 
 // =================================================================================================
@@ -184,10 +184,14 @@ std::function<void()> gappa_cli_callback(
         print_option_values( subcommand );
         print_citations( citations );
 
+        LOG_MSG << "Started " << genesis::utils::current_date() << " " << genesis::utils::current_time();
+        LOG_BOLD;
+
         // Run the actual command callback function.
-        // LOG << start time;
         run_function();
-        // LOG << end time;
+
+        LOG_BOLD;
+        LOG_MSG << "Finished " << genesis::utils::current_date() << " " << genesis::utils::current_time();
     };
 }
 

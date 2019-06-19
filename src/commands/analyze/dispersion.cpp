@@ -408,9 +408,7 @@ void run_dispersion( DispersionOptions const& options )
     // Get the data. Read all samples and calcualte the matrices.
     auto const profile = options.jplace_input.placement_profile();
 
-    if( global_options.verbosity() >= 2 ) {
-        std::cout << "Calculating dispersions and writing files.\n";
-    }
+    LOG_MSG2 << "Calculating dispersions and writing files.";
 
     // Calculate things as needed.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {

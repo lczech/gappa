@@ -151,14 +151,8 @@ void run_lwr( LwrOptions const& options )
     for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
 
         // User output
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_LWR_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << options.jplace_input.file_count();
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << options.jplace_input.file_count()
+                 << ": " << options.jplace_input.file_path( fi );
 
         // Read in file.
         auto sample = options.jplace_input.sample( fi );
@@ -221,9 +215,7 @@ void run_lwr( LwrOptions const& options )
     }
 
     // User output
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Writing output files.\n";
-    }
+    LOG_MSG1 << "Writing output files.";
 
     if( ! options.no_list_file ) {
         // Prepare list file

@@ -22,6 +22,7 @@
 */
 
 #include "commands/tools/version.hpp"
+#include "options/global.hpp"
 #include "tools/references.hpp"
 #include "tools/version.hpp"
 
@@ -59,14 +60,14 @@ void run_version( VersionOptions const& options )
 {
     (void) options;
 
-    std::cout << gappa_header();
-    std::cout << "\n";
-    std::cout << "gappa version: " << gappa_version() << "\n";
-    std::cout << "\n";
-    std::cout << genesis::utils::Options::get().info_compile_time();
-    std::cout << "\n";
-    std::cout << "For citation information, call  `gappa tools citation`\n";
-    std::cout << "For license information, call  `gappa tools license`\n";
-    std::cout << "\n";
-    std::cout << gappa_title() << "\n";
+    LOG_BOLD << gappa_header();
+    LOG_BOLD;
+    LOG_BOLD << "gappa version: " << gappa_version();
+    LOG_BOLD;
+    LOG_BOLD << genesis::utils::Options::get().info_compile_time();
+    LOG_BOLD;
+    LOG_BOLD << "For citation information, call  `gappa tools citation`";
+    LOG_BOLD << "For license information, call  `gappa tools license`";
+    LOG_BOLD;
+    LOG_BOLD << gappa_title();
 }

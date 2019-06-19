@@ -128,9 +128,7 @@ void run_krd( KrdOptions const& options )
     auto const mass_trees = options.jplace_input.mass_tree_set();
 
     // Calculate result matrix.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Calculating pairwise KR distances.\n";
-    }
+    LOG_MSG1 << "Calculating pairwise KR distances.";
     auto krd_matrix = earth_movers_distance( mass_trees, options.exponent );
 
     // Normalize by tree length if necessary.
@@ -143,9 +141,7 @@ void run_krd( KrdOptions const& options )
     }
 
     // Write output matrix in the specified format
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Writing distance matrix.\n";
-    }
+    LOG_MSG1 << "Writing distance matrix.";
     auto const names = options.jplace_input.base_file_names();
     options.matrix_output.write_matrix( krd_matrix, names, names, "Sample" );
 }

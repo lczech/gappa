@@ -149,10 +149,10 @@ void setup_unchunkify( CLI::App& app )
         "--jplace-cache-size",
         opt->jplace_cache_size,
         "Cache size to determine how many jplace files are kept in memory. Default (0) means all. "
-        "Use this if the command runs out of memory. It however comes at the cost of longer runtime. "
-        "In order to check how large the cache size can be, you can run the command with more verbosity "
-        "(-vv), which will report the used cache size until it crashes. Then, set the cache size to "
-        "something below that.",
+        "Use this if the command runs out of memory. It however comes at the cost of longer runtime.",
+        // "In order to check how large the cache size can be, you can run the command with more verbosity "
+        // "(-vv), which will report the used cache size until it crashes. Then, set the cache size to "
+        // "something below that.",
         true
     )->group( "Settings" );
 
@@ -214,25 +214,19 @@ UnchunkifyMode get_unchunkify_mode( UnchunkifyOptions const& options )
         mode = UnchunkifyMode::kJplaceInput;
         ++mode_cnt;
 
-        if( global_options.verbosity() >= 1 ) {
-            std::cout << "Selected mode: Jplace Input.\n";
-        }
+        LOG_MSG1 << "Selected mode: Jplace Input.";
     }
     if( ! options.chunk_list_file.empty() ) {
         mode = UnchunkifyMode::kChunkListFile;
         ++mode_cnt;
 
-        if( global_options.verbosity() >= 1 ) {
-            std::cout << "Selected mode: Chunk List File.\n";
-        }
+        LOG_MSG1 << "Selected mode: Chunk List File.";
     }
     if( ! options.chunk_file_expression.empty() ) {
         mode = UnchunkifyMode::kChunkFileExpression;
         ++mode_cnt;
 
-        if( global_options.verbosity() >= 1 ) {
-            std::cout << "Selected mode: Chunk File Expression.\n";
-        }
+        LOG_MSG1 << "Selected mode: Chunk File Expression.";
     }
     if( mode_cnt != 1 ) {
         throw CLI::ValidationError(
@@ -263,9 +257,7 @@ HashToIndexMap<HashFunction> get_hash_to_indices_map(
     options.jplace_input.print();
 
     // Print user output.
-    if( global_options.verbosity() >= 2 ) {
-        std::cout << "Preparing chunk hash list.\n";
-    }
+    LOG_MSG2 << "Preparing chunk hash list.";
 
     // Load all (!) chunk files once (possibly removing the earlier ones from the cache while
     // doing so), and for each pquery, store its names and indices for later lookup.
@@ -301,9 +293,7 @@ HashToIndexMap<HashFunction> get_hash_to_indices_map(
     }
 
     // Print user output.
-    if( global_options.verbosity() >= 2 ) {
-        std::cout << "Prepared chunk hash list.\n";
-    }
+    LOG_MSG2 << "Prepared chunk hash list.";
 
     return hash_map;
 }
@@ -338,10 +328,8 @@ std::vector<std::string> get_chunk_list_file(
         }
     }
 
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Found " << list.size() << " jplace file";
-        std::cout << ( list.size() > 1 ? "s" : "" ) << " in chunk file list.\n";
-    }
+    LOG_MSG1 << "Found " << list.size() << " jplace file"
+             << ( list.size() > 1 ? "s" : "" ) << " in chunk file list.";
 
     return list;
 }
@@ -356,12 +344,7 @@ std::shared_ptr<MappedSample<HashFunction>> load_sample(
     std::string const&              file_path
 ) {
     // Report cache size on every load, that is, whenever the cache actually changes.
-    if( global_options.verbosity() >= 3 ) {
-        #pragma omp critical(GAPPA_UNCHUNKIFY_PRINT)
-        {
-            std::cout << "Current jplace cache size: " << chunk_cache.size() << "\n";
-        }
-    }
+    LOG_MSG3 << "Current jplace cache size: " << chunk_cache.size();
 
     // Create the result and load the sample.
     auto mapped_sample = std::make_shared<MappedSample<HashFunction>>();
@@ -607,15 +590,9 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
         auto const& map_filename = options.abundance_map_input.file_path( fi );
 
         // User output
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_UNCHUNKIFY_PRINT)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of ";
-                std::cout << options.abundance_map_input.file_count();
-                std::cout << ": " << map_filename << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of "
+                 << options.abundance_map_input.file_count()
+                 << ": " << map_filename;
 
         // Read map file and do some checks.
         auto doc = JsonReader().read( genesis::utils::from_file( map_filename ));
@@ -683,10 +660,8 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
         jplace_writer.to_file( sample, options.file_output.out_dir() + sample_name + ".jplace" );
     }
 
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Wrote " << total_seqs_count << " sequences to sample files.\n";
-        std::cout << "Could not find " << not_found_count << " sequence hashes.\n";
-    }
+    LOG_MSG1 << "Wrote " << total_seqs_count << " sequences to sample files.";
+    LOG_MSG1 << "Could not find " << not_found_count << " sequence hashes.";
 }
 
 // =================================================================================================

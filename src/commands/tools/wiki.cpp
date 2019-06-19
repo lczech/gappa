@@ -22,6 +22,7 @@
 */
 
 #include "commands/tools/wiki.hpp"
+#include "options/global.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -142,7 +143,7 @@ void add_markdown_content( WikiOptions const& options, std::string const& md_fil
         std::ifstream mds( fn );
         os << mds.rdbuf();
     } else {
-        std::cout << " - No documentation markdown found: " << md_file << "\n";
+        LOG_MSG << " - No documentation markdown found: " << md_file;
     }
 }
 
@@ -276,7 +277,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
     using namespace genesis::utils;
 
     // User output.
-    std::cout << "Subcommand: " << command.get_name() << "\n";
+    LOG_MSG << "Subcommand: " << command.get_name();
 
     // Get stuff of this command.
     auto const subcomms = command.get_subcommands({});
@@ -287,7 +288,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
         + "Subcommand:-" + command.get_name() + ".md"
     ;
     if( ! file_exists( out_file )) {
-        std::cout << " - No existing wiki file!\n";
+        LOG_MSG << " - No existing wiki file!";
     }
     std::ofstream os( out_file );
 
@@ -349,12 +350,12 @@ void make_wiki_home_page( WikiOptions const& options )
     using namespace genesis::utils;
 
     // Make Home page.
-    std::cout << "Home\n";
+    LOG_MSG << "Home";
 
     // Open stream
     std::string const out_file = dir_normalize_path( options.out_dir ) + "Home.md";
     if( ! file_exists( out_file )) {
-        std::cout << " - No existing wiki file!\n";
+        LOG_MSG << " - No existing wiki file!";
     }
     std::ofstream os( out_file );
 
@@ -388,12 +389,12 @@ void make_wiki_sidebar( WikiOptions const& options )
     using namespace genesis::utils;
 
     // Make Sidebar page.
-    std::cout << "Sidebar\n";
+    LOG_MSG << "Sidebar";
 
     // Open stream
     std::string const out_file = dir_normalize_path( options.out_dir ) + "_Sidebar.md";
     if( ! file_exists( out_file )) {
-        std::cout << " - No existing wiki file!\n";
+        LOG_MSG << " - No existing wiki file!";
     }
     std::ofstream os( out_file );
 

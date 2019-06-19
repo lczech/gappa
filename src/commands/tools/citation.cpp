@@ -22,6 +22,7 @@
 */
 
 #include "commands/tools/citation.hpp"
+#include "options/global.hpp"
 #include "tools/references.hpp"
 
 // =================================================================================================
@@ -85,9 +86,9 @@ void run_citation( CitationOptions const& options )
 {
     // If the --list flag is given, simply list all citation keys.
     if( options.list ) {
-        std::cout << "Available citation keys:\n";
+        LOG_BOLD << "Available citation keys:";
         for( auto const& key : get_all_citation_keys() ) {
-            std::cout << " - " << key << "\n";
+            LOG_BOLD << " - " << key;
         }
         return;
     }
@@ -108,13 +109,13 @@ void run_citation( CitationOptions const& options )
 
     // Do the printing in all desired formats.
     if( options.format == "bibtex" ) {
-        std::cout << cite_bibtex( list );
+        LOG_BOLD << cite_bibtex( list );
     } else if( options.format == "markdown" ) {
-        std::cout << cite_markdown( list );
+        LOG_BOLD << cite_markdown( list );
     } else if( options.format == "both" ) {
-        std::cout << cite_bibtex( list );
-        std::cout << "\n";
-        std::cout << cite_markdown( list );
+        LOG_BOLD << cite_bibtex( list );
+        LOG_BOLD;
+        LOG_BOLD << cite_markdown( list );
     } else {
         throw CLI::ValidationError( "Invalid citation format: " + options.format );
     }

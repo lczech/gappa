@@ -141,7 +141,10 @@ void run_edgepca( EdgepcaOptions const& options )
     // TODO edge pca technically only needs the imbalance matrix. could refactor this to save mem!
 
     // Run, Forrest, run!
+    LOG_MSG1 << "Running Edge PCA";
     auto const epca_data = epca( sample_set, options.kappa, options.epsilon, options.components );
+
+    LOG_MSG1 << "Writing result files";
 
     // Write out projection
     auto const proj_fn = options.file_output.out_dir() + options.file_output.file_prefix() + "projection.csv";

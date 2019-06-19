@@ -301,9 +301,7 @@ std::pair<MultiplicityMap, std::vector<std::string>> get_multiplicities_fasta_fi
 MultiplicityMap get_multiplicities( MultiplicityOptions const& options )
 {
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading multiplicities.\n";
-    }
+    LOG_MSG1 << "Reading multiplicities.";
 
     // Store the results.
     std::pair<MultiplicityMap, std::vector<std::string>> result;
@@ -326,19 +324,15 @@ MultiplicityMap get_multiplicities( MultiplicityOptions const& options )
 
     // Some user output for duplicates.
     if( ! result.second.empty() ) {
-        std::cout << "Warning: the multiplicity/fasta file(s) contain duplicate entries";
-        if( global_options.verbosity() <= 1 ) {
-            std::cout << ".\n";
-        } else {
-            std::cout << ":\n";
-            std::sort( result.second.begin(),  result.second.end() );
-            result.second.erase(
-                std::unique( result.second.begin(), result.second.end() ),
-                result.second.end()
-            );
-            for( auto const& dup : result.second ) {
-                std::cout << " - " << dup << "\n";
-            }
+        std::sort( result.second.begin(),  result.second.end() );
+        result.second.erase(
+            std::unique( result.second.begin(), result.second.end() ),
+            result.second.end()
+        );
+
+        LOG_WARN << "Warning: the multiplicity/fasta file(s) contain duplicate entries:";
+        for( auto const& dup : result.second ) {
+            LOG_WARN << " - " << dup;
         }
     }
 
@@ -372,14 +366,8 @@ void change_multiplicities( MultiplicityOptions const& options )
     for( size_t fi = 0; fi < set_size; ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_MULTIPLICITY_PRINT)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << set_size
+                 << ": " << options.jplace_input.file_path( fi );
 
         // Read the sample.
         auto sample = options.jplace_input.sample( fi );
@@ -402,14 +390,9 @@ void change_multiplicities( MultiplicityOptions const& options )
                     ++not_found;
 
                     // User output.
-                    if( global_options.verbosity() >= 2 ) {
-                        #pragma omp critical(GAPPA_MULTIPLICITY_PRINT)
-                        {
-                            std::cout << "No multilicity value found for pquery '" << pqn.name;
-                            std::cout << "' in sample " << basename << " (";
-                            std::cout << options.jplace_input.file_path( fi ) <<  ").\n";
-                        }
-                    }
+                    LOG_MSG2 << "No multilicity value found for pquery '" << pqn.name
+                             << "' in sample " << basename << " ("
+                             << options.jplace_input.file_path( fi ) <<  ").";
                 }
             }
         }
@@ -419,8 +402,8 @@ void change_multiplicities( MultiplicityOptions const& options )
         genesis::placement::JplaceWriter().to_file( sample, options.file_output.out_dir() + ofn );
     }
 
-    if( global_options.verbosity() <= 1 && not_found > 0 ) {
-        std::cout << "Warning: Could not find " << not_found << " pquery names.\n";
+    if( not_found > 0 ) {
+        LOG_MSG1 << "Warning: Could not find " << not_found << " pquery names.";
     }
 }
 
@@ -449,14 +432,8 @@ void write_multiplicities( MultiplicityOptions const& options )
     for( size_t fi = 0; fi < set_size; ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_MULTIPLICITY_ADD_MULTIPLICITY)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << set_size << ": "
+                 << options.jplace_input.file_path( fi );
 
         // Read the sample (multithreaded).
         auto const sample = options.jplace_input.sample( fi );
@@ -466,8 +443,8 @@ void write_multiplicities( MultiplicityOptions const& options )
         #pragma omp critical(GAPPA_MULTIPLICITY_ADD_MULTIPLICITY)
         {
             if( multips.count( basename ) > 0 ) {
-                std::cout << "Warning: Duplicate sample name '" + basename + "'. ";
-                std::cout << "This will lead to misleading results if not fixed!\n";
+                LOG_WARN << "Warning: Duplicate sample name '" + basename + "'. "
+                         << "This will lead to misleading results if not fixed!";
             }
 
             for( auto& pquery : sample ) {
@@ -476,9 +453,9 @@ void write_multiplicities( MultiplicityOptions const& options )
                     if( multips[ basename ].count( pqn.name ) > 0 ) {
                         ++duplicate_pquery_cnt;
 
-                        std::cout << "Duplicate pquery name '" << pqn.name;
-                        std::cout << "' in sample " << basename << " (";
-                        std::cout << options.jplace_input.file_path( fi ) <<  ").\n";
+                        LOG_MSG1 << "Duplicate pquery name '" << pqn.name
+                                 << "' in sample " << basename << " ("
+                                 << options.jplace_input.file_path( fi ) <<  ").";
                     }
                     multips[ basename ][ pqn.name ] = pqn.multiplicity;
                 }
@@ -488,10 +465,10 @@ void write_multiplicities( MultiplicityOptions const& options )
 
     // User warnings
     if( duplicate_pquery_cnt > 0 ) {
-        std::cout << "Warning: There were " << duplicate_pquery_cnt << " duplicate pquery names.\n";
+        LOG_WARN << "Warning: There were " << duplicate_pquery_cnt << " duplicate pquery names.";
     }
     if( duplicate_sample_cnt > 0 ) {
-        std::cout << "Warning: There were " << duplicate_sample_cnt << " duplicate sample names.\n";
+        LOG_WARN << "Warning: There were " << duplicate_sample_cnt << " duplicate sample names.";
     }
 
     // Prepare file.
@@ -502,7 +479,7 @@ void write_multiplicities( MultiplicityOptions const& options )
     ;
 
     // User output
-    std::cout << "Writing multiplicity file: " << filename << "\n";
+    LOG_MSG1 << "Writing multiplicity file: " << filename;
 
     // TODO proper escaping! use csv writer class, if we add one to genesis.
     // TODO use the separator char here as well!

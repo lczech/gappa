@@ -108,7 +108,7 @@ void setup_assign( CLI::App& app )
         "the CAMI output format. Assignments not adhereing to this constrained will be collapsed to the "
         "last valid mapping\n"
         "EXAMPLE: superkingdom|phylum|class|order|family|genus|species"
-    )->check(CLI::ExistingFile)->group("Input");
+    )->group("Input");
 
     // Add specific options.
     sub->add_option(
@@ -466,9 +466,7 @@ Taxon* insert_between(
     Taxon* running = first;
     if ( not to_insert.empty() ) {
         for ( auto it = to_insert.rbegin(); it != to_insert.rend(); ++it ) {
-            if( global_options.verbosity() >= 3 ) {
-                std::cout << "\tInserting '" << it->name() << "' ('" << it->rank() << "', " << it->id() << ")" << std::endl;
-            }
+            LOG_MSG3 << "Inserting '" << it->name() << "' ('" << it->rank() << "', " << it->id() << ")";
             running = &( running->add_child( *it ) );
         }
 
@@ -523,9 +521,7 @@ Taxon* prune( Taxon* const taxon )
     // if we are at the top.. well fuck, throw for now
     assert( taxon->parent() );
 
-    if( global_options.verbosity() >= 3 ) {
-        std::cout << "\tPruning '" << taxon->name() << "' to '" << parent->name() << "' (" << parent->rank() << ")" << std::endl;
-    }
+    LOG_MSG3 << "Pruning '" << taxon->name() << "' to '" << parent->name() << "' (" << parent->rank() << ")";
 
     // get the index of the taxon to prune
     auto const remove_index = parent->index_of( taxon->name() );
@@ -553,9 +549,7 @@ Taxon const* map_according_to( Taxonomy const& map, Taxon& taxon, std::string co
 {
     // short cuircuit if Taxon already mapped
     if( not taxon.id().empty() ) {
-        if( global_options.verbosity() >= 3 ) {
-            std::cout << "Already Mapped!" << std::endl;
-        }
+        LOG_MSG3 << "Already Mapped!";
         return &taxon;
     }
 
@@ -609,22 +603,19 @@ Taxon const* map_according_to( Taxonomy const& map, Taxon& taxon, std::string co
                 auto found_rank = std::find( rank_iter, rank_end, entry->rank() );
                 if ( found_rank != rank_end ) {
                     // looks like we skipped some, so lets insert some empty Taxon between last success and here
-                    if( global_options.verbosity() >= 3 ) {
-                        std::cout   << "Inserting " << std::distance(rank_iter, found_rank) << " ranks between '"
-                                    << last_success->name() << "' (" << last_success->rank() << ") and '"
-                                    << cur_taxon->name()  << "' (" << cur_taxon->rank()  << ")" << std::endl;
-                    }
+                    LOG_MSG3 << "Inserting " << std::distance(rank_iter, found_rank) << " ranks between '"
+                             << last_success->name() << "' (" << last_success->rank() << ") and '"
+                             << cur_taxon->name()  << "' (" << cur_taxon->rank()  << ")";
 
                     cur_taxon = insert_between( last_success, cur_taxon, rank_iter, found_rank, entry );
                     rank_iter = found_rank;
                 } else {
                     // nope, this entries rank just doesnt make any sense according to the constraint
                     // so lets transfer its LWR to the last succesful rank
-                    if( global_options.verbosity() >= 3 ) {
-                        std::cout   << "Transferring LWR from '" << cur_taxon->name() << "' to '"
-                                    << last_success->name() << "', because rank '"
-                                    << entry->rank() << "' is outside of the constraint." << std::endl;
-                    }
+                    LOG_MSG3 << "Transferring LWR from '" << cur_taxon->name() << "' to '"
+                             << last_success->name() << "', because rank '"
+                             << entry->rank() << "' is outside of the constraint.";
+
                     transfer_lwr( cur_taxon, last_success );
                     // not just do we need to skip, we also need to prune this taxon
                     cur_taxon = prune( cur_taxon );
@@ -634,11 +625,8 @@ Taxon const* map_according_to( Taxonomy const& map, Taxon& taxon, std::string co
             }
 
             if ( do_mapping ) {
-                if( global_options.verbosity() >= 3 ) {
-                    std::cout << "Mapping '" << cur_taxon->name();
-                    std::cout << "' to '" << entry->name();
-                    std::cout << "' (" << entry->rank() << ")" << std::endl;
-                }
+                LOG_MSG3 << "Mapping '" << cur_taxon->name() << "' to '" << entry->name()
+                         << "' (" << entry->rank() << ")";
 
                 // copy over rank name and ID
                 cur_taxon->id( entry->id() );
@@ -655,16 +643,15 @@ Taxon const* map_according_to( Taxonomy const& map, Taxon& taxon, std::string co
         } else {
         // failure:
             // transfer lwr to last_success
-            if( global_options.verbosity() >= 3 ) {
-                std::cout << "Transferring LWR from '" << cur_taxon->name() << "' to '";
-                std::cout << last_success->name() << "'" << std::endl;
-            }
+            LOG_MSG3 << "Transferring LWR from '" << cur_taxon->name() << "' to '"
+                     << last_success->name() << "'";
             transfer_lwr( cur_taxon, last_success );
             cur_taxon = prune( cur_taxon );
         }
 
         if ( *it >= 0 ) {
-            // we have to get the next iterations pointer from the current, as the structure may have changed! (in the insert_between case)
+            // we have to get the next iterations pointer from the current,
+            // as the structure may have changed! (in the insert_between case)
             cur_taxon = find_taxon(*cur_taxon, [&it](Taxon const& t){
                 return t.data<AssignTaxonData>().tmp_id == *it;
             }, BreadthFirstSearch{} );
@@ -702,16 +689,15 @@ void add_taxon_ids( Taxonomy& tax, AssignOptions const& options )
     }, true); // true means also traverse inner taxa
 
     // map all taxa
-    // std::cout << "ROOT NAME: " << dynamic_cast<Taxon*>(&tax)->name() << std::endl;
+    // LOG_MSG3 << "ROOT NAME: " << dynamic_cast<Taxon*>(&tax)->name();
     for (int i = 0; i < tmp_id; ++i) {
         auto taxon = find_taxon( tax, [&i](Taxon const& other) {
             return other.data<AssignTaxonData>().tmp_id == i;
         });
 
-        if ( taxon ) { // its possible that we don't find the taxon since it may have been pruned
-            if( global_options.verbosity() >= 3 ) {
-                std::cout << "== trying to map " << taxon->name() << " ==" << std::endl;
-            }
+        // its possible that we don't find the taxon since it may have been pruned
+        if ( taxon ) {
+            LOG_MSG3 << "== trying to map " << taxon->name() << " ==";
             map_according_to( map, *taxon, options.rank_constraint );
         }
     }
@@ -1046,9 +1032,8 @@ void run_assign( AssignOptions const& options )
         throw std::runtime_error{"Supplied tree is not bifurcating."};
     }
 
-    if( global_options.verbosity() >= 2 ) {
-        std::cout << "Getting taxonomic information from: " << options.taxon_map_file << "\n";
-    }
+    // User output.
+    LOG_MSG1 << "Running the assignment";
 
     // root the tree if necessary
     if ( not options.outgroup_file.empty() ) {
@@ -1074,8 +1059,4 @@ void run_assign( AssignOptions const& options )
 
     // per rank LWR score eval
     assign( sample, node_labels, options, out_dir + "per_query.tsv" );
-
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Finished.\n";
-    }
 }

@@ -225,10 +225,8 @@ CladeTaxaList get_clade_taxa_lists( ExtractOptions const& options )
     }
 
     // Some user output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Clade list file contains " << table.size();
-        std::cout << " taxa in " << clades.size() << " clades.\n";
-    }
+    LOG_MSG1 << "Clade list file contains " << table.size()
+             << " taxa in " << clades.size() << " clades.";
 
     return clades;
 }
@@ -276,7 +274,7 @@ CladeEdgeList get_clade_edges(
         for( auto const& taxon : clade.second ) {
             auto node = find_node( tree, taxon );
             if( node == nullptr ) {
-                std::cout << "Cannot find taxon " << taxon << " in tree of sample " << sample_name << "\n";
+                LOG_WARN << "Cannot find taxon " << taxon << " in tree of sample " << sample_name;
                 continue;
             }
             node_list.push_back( node );
@@ -429,15 +427,12 @@ void write_sample_set(
     using namespace ::genesis::placement;
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        for( size_t si = 0; si < sample_set.size(); ++si ) {
-            std::cout << "Collected " << sample_set.at( si ).size() << " pqueries (representing ";
-            std::cout << total_name_count( sample_set.at( si ) ) << " names) in clade ";
-            std::cout << sample_set.name_at( si ) << "\n";
-        }
-
-        std::cout << "Writing " << sample_set.size() << " clade sample files.\n";
+    for( size_t si = 0; si < sample_set.size(); ++si ) {
+        LOG_MSG1 << "Collected " << sample_set.at( si ).size() << " pqueries (representing "
+                 << total_name_count( sample_set.at( si ) ) << " names) in clade "
+                 << sample_set.name_at( si );
     }
+    LOG_MSG1 << "Writing " << sample_set.size() << " clade sample files.";
 
     // Write files.
     auto writer = JplaceWriter();
@@ -564,10 +559,10 @@ PqueryNamesPerCladeList get_pqueries_per_clade(
     }
 
     if( duplicate_names > 0 ) {
-        std::cout << "Found " << duplicate_names << " pquerie(s) that have the same name. ";
-        std::cout << "This will cause the extraction of sequences with that name to be ";
-        std::cout << "randomly assigned to one of the clades that have a pquery with that name. ";
-        std::cout << "Thus, this should better be fixed first!\n";
+        LOG_WARN << "Warning: Found " << duplicate_names << " pquerie(s) that have the same name. "
+                 << "This will cause the extraction of sequences with that name to be "
+                 << "randomly assigned to one of the clades that have a pquery with that name. "
+                 << "Thus, this should better be fixed first!";
     }
 
     return list;
@@ -619,14 +614,8 @@ void extract_sequences(
         auto const& fasta_filename = options.sequence_input.file_path( fi );
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_EXTRACT_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << options.sequence_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << set_size
+                 << ": " << options.sequence_input.file_path( fi );
 
         auto it = FastaInputIterator(
             from_file( fasta_filename ),
@@ -695,10 +684,10 @@ void extract_sequences(
         writer.to_stream( clade_seqs.second, out_stream );
     }
 
-    std::cout << "Collected " << total_seqs_count << " sequences in " << list.size() << " clades.\n";
+    LOG_MSG1 << "Collected " << total_seqs_count << " sequences in " << list.size() << " clades.";
     if( missing_seqs_count > 0 ) {
-        std::cout << "Thereof, " << missing_seqs_count << " sequences could not be assigned to any ";
-        std::cout << "clade, because their name does not appear in any jplace file.\n";
+        LOG_MSG1 << "Thereof, " << missing_seqs_count << " sequences could not be assigned to any "
+                 << "clade, because their name does not appear in any jplace file.";
     }
 }
 
@@ -742,14 +731,8 @@ void run_extract( ExtractOptions const& options )
     for( size_t fi = 0; fi < set_size; ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_EXTRACT_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << set_size
+                 << ": " << options.jplace_input.file_path( fi ) << "\n";
 
         // Read the sample.
         auto sample = options.jplace_input.sample( fi );

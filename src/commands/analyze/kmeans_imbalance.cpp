@@ -188,9 +188,7 @@ void run_ikmeans( IkmeansOptions const& options )
     // Set up kmeans.
     auto ikmeans = EuclideanKmeans( profile.edge_imbalances.cols() );
     ikmeans.report_iteration = [&]( size_t iteration ){
-        if( global_options.verbosity() >= 2 ) {
-            std::cout << " - Iteration " << iteration << "\n";
-        }
+        LOG_MSG2 << " - Iteration " << iteration;
     };
 
     // Run kmeans for every specified k.
@@ -199,10 +197,11 @@ void run_ikmeans( IkmeansOptions const& options )
     for( auto const& k : ks ) {
 
         // Run it.
-        std::cout << "\nRunning Imbalance Kmeans with k=" << k << "\n";
+        LOG_BOLD;
+        LOG_MSG1 << "Running Imbalance Kmeans with k=" << k;
         auto const iterations = ikmeans.run( edge_imb_vec, k );
         auto const clust_info = ikmeans.cluster_info( edge_imb_vec );
-        std::cout << "Finished after " << iterations << " iterations\n";
+        LOG_MSG1 << "Finished after " << iterations << " iterations";
 
         // Write output.
         write_assignment_file( options, ikmeans.assignments(), clust_info, k );

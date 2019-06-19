@@ -111,11 +111,11 @@ void GlobalOptions::run_global()
     // Set number of threads for genesis.
     genesis::utils::Options::get().number_of_threads( threads_ );
 
-    // Set verobisity level for logging output.
+    // Set verbosity level for logging output.
     if( verbose_ ) {
-        // genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage2 );
+        genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage2 );
     } else {
-        // genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage1 );
+        genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage1 );
     }
 }
 
@@ -130,11 +130,6 @@ std::string GlobalOptions::command_line() const
         ret += ( i==0 ? "" : " " ) + command_line_[i];
     }
     return ret;
-}
-
-size_t GlobalOptions::verbosity() const
-{
-    return ( verbose_ ? 2 : 1 );
 }
 
 bool GlobalOptions::verbose() const

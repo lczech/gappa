@@ -168,8 +168,6 @@ public:
     bool mass_norm_absolute() const;
     bool mass_norm_relative() const;
 
-    virtual void print() const override;
-
     // -------------------------------------------------------------------------
     //     Option Members
     // -------------------------------------------------------------------------

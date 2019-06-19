@@ -26,6 +26,7 @@
 #include "options/global.hpp"
 
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -164,33 +165,38 @@ void FileInputOptions::print() const
 
     // Print list of files, depending on verbosity.
     auto const& files = file_paths();
-    if( global_options.verbosity() == 0 ) {
-        return;
-    } else if( global_options.verbosity() == 1 ) {
-        std::cout << "Found " << files.size() << type << " file";
-        std::cout << ( files.size() > 1 ? "s" : "" ) << ".\n";
-    } else if( global_options.verbosity() == 2 ) {
-        std::cout << "Found " << files.size() << type << " file";
-        std::cout << ( files.size() > 1 ? "s" : "" ) << ": ";
-        for( auto const& file : files ) {
-            if( &file != &files[0] ) {
-                std::cout << ", ";
-            }
-            std::cout << genesis::utils::file_basename( file );
-        }
-        std::cout << "\n";
-    } else {
-        std::cout << "Found " << files.size() << type << " file";
-        std::cout << ( files.size() > 1 ? "s" : "" ) << ":\n";
+    LOG_MSG1 << "Found " << files.size() << type << " file"
+             << ( files.size() > 1 ? "s" : "" );
+    // LOG_MSG2 << genesis::utils::join( base_file_names(), ", " );
 
-        for( auto const& file : files ) {
-            std::string rp;
-            try{
-                rp = genesis::utils::real_path( file );
-            } catch(...) {
-                rp = file;
-            }
-            std::cout << "  - " << rp << "\n";
-        }
-    }
+    // auto const& files = file_paths();
+    // if( global_options.verbosity() == 0 ) {
+    //     return;
+    // } else if( global_options.verbosity() == 1 ) {
+    //     std::cout << "Found " << files.size() << type << " file";
+    //     std::cout << ( files.size() > 1 ? "s" : "" ) << ".\n";
+    // } else if( global_options.verbosity() == 2 ) {
+    //     std::cout << "Found " << files.size() << type << " file";
+    //     std::cout << ( files.size() > 1 ? "s" : "" ) << ": ";
+    //     for( auto const& file : files ) {
+    //         if( &file != &files[0] ) {
+    //             std::cout << ", ";
+    //         }
+    //         std::cout << genesis::utils::file_basename( file );
+    //     }
+    //     std::cout << "\n";
+    // } else {
+    //     std::cout << "Found " << files.size() << type << " file";
+    //     std::cout << ( files.size() > 1 ? "s" : "" ) << ":\n";
+    //
+    //     for( auto const& file : files ) {
+    //         std::string rp;
+    //         try{
+    //             rp = genesis::utils::real_path( file );
+    //         } catch(...) {
+    //             rp = file;
+    //         }
+    //         std::cout << "  - " << rp << "\n";
+    //     }
+    // }
 }

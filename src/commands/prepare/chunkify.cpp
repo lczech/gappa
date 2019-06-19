@@ -291,14 +291,8 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
         auto const& fasta_filename = options.sequence_input.file_path( fi );
 
         // User output
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_CHUNKIFY_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << fasta_filename << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << set_size
+                 << ": " << fasta_filename;
 
         // Count identical sequences of this fasta file, accessed via their hash.
         AbundancesHashMap seq_abundances;
@@ -371,14 +365,12 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
     // Write the remaining chunk.
     write_chunk_file( options, current_chunk, chunk_count );
 
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Processed " << total_seqs_count << " sequences, thereof ";
-        std::cout << (total_seqs_count - min_abun_count) << " (";
-        std::cout << ( 100 * (total_seqs_count - min_abun_count) / total_seqs_count );
-        std::cout << "%) filtered due to low abundance.\n";
-        std::cout << "Wrote " << hash_to_chunk.size() << " unique sequences ";
-        std::cout << "in " << ( chunk_count + 1 ) << " fasta chunk files.\n";
-    }
+    LOG_MSG1 << "Processed " << total_seqs_count << " sequences, thereof "
+             << (total_seqs_count - min_abun_count) << " ("
+             << ( 100 * (total_seqs_count - min_abun_count) / total_seqs_count )
+             << "%) filtered due to low abundance.";
+    LOG_MSG1 << "Wrote " << hash_to_chunk.size() << " unique sequences "
+             << "in " << ( chunk_count + 1 ) << " fasta chunk files.";
 }
 
 // =================================================================================================

@@ -36,6 +36,8 @@
 #include "tools/references.hpp"
 #include "tools/version.hpp"
 
+#include <sstream>
+
 // =================================================================================================
 //      Main Program
 // =================================================================================================
@@ -47,7 +49,7 @@ void setup_main_app_options( CLI::App& app )
     app.add_flag_callback(
         "--version",
         [] () {
-            std::cout << gappa_version() << "\n";
+            LOG_BOLD << gappa_version();
             throw CLI::Success{};
         },
         "Print the gappa version and exit."
@@ -63,7 +65,7 @@ int main( int argc, char** argv )
     // Activate logging.
     genesis::utils::Logging::log_to_stdout();
     genesis::utils::Logging::details.level = false;
-    genesis::utils::Logging::details.time = true;
+    // genesis::utils::Logging::details.time = true;
 
     // -------------------------------------------------------------------------
     //     App Setup
@@ -127,9 +129,22 @@ int main( int argc, char** argv )
     // -------------------------------------------------------------------------
 
     try {
+
+        // Do the parsing of the command line arguments.
+        // Because we use callback functions for the commands,
+        // this is also where the actual commands and functions are executed.
         app.parse( argc, argv );
-    } catch ( CLI::ParseError const& e ) {
-        return app.exit( e );
+
+    } catch ( CLI::ParseError const& error ) {
+
+        // Capture the app exit message, so that we can print it to our log.
+        std::stringstream ss;
+        auto const exit_code = app.exit( error, ss, ss );
+        auto const message = ss.str();
+        if( ! message.empty() ) {
+            LOG_BOLD << message;
+        }
+        return exit_code;
     }
 
     return 0;

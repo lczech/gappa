@@ -113,10 +113,7 @@ void run_accumulate( AccumulateOptions const& options )
     options.jplace_input.print();
 
     // User output.
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading sample" << ( options.jplace_input.file_count() > 1 ? "s" : "" );
-        std::cout << ".\n";
-    }
+    LOG_MSG1 << "Reading sample" << ( options.jplace_input.file_count() > 1 ? "s" : "" ) << ".";
 
     // Get all queries of all samples. Requires that all have the same ref tree.
     // Normalize each pquery to a mass of 1.0, which is reasonable for the threshold.
@@ -207,9 +204,9 @@ void run_accumulate( AccumulateOptions const& options )
 
     // User output about the removal.
     if( ! removal_collector.empty() ) {
-        std::cout << "The following pquries have their placement masses distributed ";
-        std::cout << "across clades in different directions away from the root, ";
-        std::cout << "so that they could not be properly accumulated into basal branches:\n";
+        LOG_MSG1 << "The following pquries have their placement masses distributed "
+                 << "across clades in different directions away from the root, "
+                 << "so that they could not be properly accumulated into basal branches:";
     }
 
     // Now delete the non accumulated pqueries in order to get a non-confusing result.
@@ -219,7 +216,7 @@ void run_accumulate( AccumulateOptions const& options )
         // Some user output.
         auto const& pqry = sample.at( *it );
         for( auto const& name : pqry.names() ) {
-            std::cout << " - " << name.name << "\n";
+            LOG_MSG1 << " - " << name.name;
         }
 
         // Do the deletion!
@@ -228,7 +225,7 @@ void run_accumulate( AccumulateOptions const& options )
 
     // More user output about the removal.
     if( ! removal_collector.empty() ) {
-        std::cout << "Those pqueries are removed from the output!\n";
+        LOG_MSG1 << "Those pqueries are removed from the output!";
     }
 
     // Write the new sample to a file.

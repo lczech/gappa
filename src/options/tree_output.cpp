@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 */
 
 #include "options/tree_output.hpp"
+#include "options/global.hpp"
 
 #include "genesis/tree/drawing/functions.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -69,9 +70,9 @@ void TreeOutputOptions::add_tree_output_opts_to_app( CLI::App* sub )
 void TreeOutputOptions::check_tree_formats() const
 {
     if( ! write_newick_tree_ && ! write_nexus_tree_ && ! write_phyloxml_tree_ && ! write_svg_tree_ ) {
-        std::cout << "Warning: You did not specify any tree output format. ";
-        std::cout << "Thus, no tree files will be written. ";
-        std::cout << "In order to specify the wanted formats, use the --write-...-tree options.\n";
+        LOG_WARN << "Warning: You did not specify any tree output format. "
+                 << "Thus, no tree files will be written. "
+                 << "In order to specify the wanted formats, use the --write-...-tree options.";
     }
 }
 
@@ -130,10 +131,10 @@ void TreeOutputOptions::write_tree_to_files(
     using namespace genesis::tree;
 
     if( write_newick_tree_ ) {
-        std::cout << "Warning: Option --write-newick-tree is set, but the output contains colors, ";
-        std::cout << "which are not available in the Newick format. ";
-        std::cout << "The Newick tree only contains the topology of the tree with names and branch lengths. ";
-        std::cout << "Use another format to get a colored tree!\n";
+        LOG_WARN << "Warning: Option --write-newick-tree is set, but the output contains colors, "
+                 << "which are not available in the Newick format. "
+                 << "The Newick tree only contains the topology of the tree with names and branch lengths. "
+                 << "Use another format to get a colored tree!";
 
         write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
     }
@@ -171,10 +172,10 @@ void TreeOutputOptions::write_tree_to_files(
     bool print_legend = false;
 
     if( write_newick_tree_ ) {
-        std::cout << "Warning: Option --write-newick-tree is set, but the output contains colors, ";
-        std::cout << "which are not available in the Newick format. ";
-        std::cout << "The Newick tree only contains the topology of the tree with names and branch lengths. ";
-        std::cout << "Use another format to get a colored tree!\n";
+        LOG_WARN << "Warning: Option --write-newick-tree is set, but the output contains colors, "
+                 << "which are not available in the Newick format. "
+                 << "The Newick tree only contains the topology of the tree with names and branch lengths. "
+                 << "Use another format to get a colored tree!";
 
         write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
     }
@@ -204,12 +205,12 @@ void TreeOutputOptions::write_tree_to_files(
         // TODO maybe make the num ticks changable. if so, also use it for the svg output!
         auto const tickmarks = color_tickmarks( color_norm, 5 );
 
-        std::cout << "Output options --write-nexus-tree and --write-phyloxml-tree produce trees ";
-        std::cout << "with colored branches; these formats are however not able to store the legend, ";
-        std::cout << "that is, which color represents which value. ";
-        std::cout << "Thus, use to following positions to create a legend. ";
-        std::cout << "These positions range from 0.0 (lowest) to 1.0 (heighest), and are labelled ";
-        std::cout << "with the values and colors represented by those positions.\n";
+        LOG_MSG1 << "Output options --write-nexus-tree and --write-phyloxml-tree produce trees "
+                 << "with colored branches these formats are however not able to store the legend, "
+                 << "that is, which color represents which value. "
+                 << "Thus, use to following positions to create a legend. "
+                 << "These positions range from 0.0 (lowest) to 1.0 (heighest), and are labelled "
+                 << "with the values and colors represented by those positions.";
 
         for( auto const& tick : tickmarks ) {
             auto const rel_pos = tick.first;
@@ -223,10 +224,11 @@ void TreeOutputOptions::write_tree_to_files(
             }
 
             auto const col_str = color_to_hex( color_map( rel_pos ));
-            std::cout << "    At " << to_string_precise( rel_pos, 3 ) << ": Label '" << label << "', Color " << col_str << "\n";
+            LOG_MSG1 << "    At " << to_string_precise( rel_pos, 3 ) << ": Label '"
+                     << label << "', Color " << col_str;
         }
 
-        std::cout << "Alternatively, use the option --write-svg-tree to create an Svg file ";
-        std::cout << "from which the color legend can be copied.\n";
+        LOG_MSG1 << "Alternatively, use the option --write-svg-tree to create an Svg file "
+                 << "from which the color legend can be copied.";
     }
 }

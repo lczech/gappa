@@ -98,9 +98,7 @@ void run_nhd( NhdOptions const& options )
 
     // Print some user output.
     options.jplace_input.print();
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Reading samples and preparing node histograms.\n";
-    }
+    LOG_MSG1 << "Reading samples and preparing node histograms.";
 
     // Prepare storage.
     auto const set_size = options.jplace_input.file_count();
@@ -117,14 +115,8 @@ void run_nhd( NhdOptions const& options )
     for( size_t fi = 0; fi < set_size; ++fi ) {
 
         // User output.
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_NHD_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << set_size;
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << (++file_count) << " of " << set_size
+                 << ": " << options.jplace_input.file_path( fi );
 
         // Read in file.
         auto const sample = options.jplace_input.sample( fi );
@@ -143,19 +135,11 @@ void run_nhd( NhdOptions const& options )
         hist_vecs[fi] = node_distance_histogram_set( sample, node_distances, node_sides, options.bins );
     }
 
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Calculating pairwise node histogram distances.\n";
-    }
+    LOG_MSG1 << "Calculating pairwise node histogram distances.";
 
     // Calcualte result matrix.
     auto const nhd_matrix = node_histogram_distance( hist_vecs );
 
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Writing distance matrix.\n";
-    }
+    LOG_MSG1 << "Writing distance matrix.";
     options.matrix_output.write_matrix( nhd_matrix );
-
-    if( global_options.verbosity() >= 1 ) {
-        std::cout << "Finished.\n";
-    }
 }

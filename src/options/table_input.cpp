@@ -215,36 +215,26 @@ genesis::utils::Dataframe TableInputOptions::read_double_dataframe(
 
     // Some user warning if we removed columns.
     if( rem_names.size() > 0 ) {
-        std::cout << "Warning: The following columns of the table file contained non-numerical ";
-        std::cout << "data or only invalid values, which cannot be used here, and are hence ignored: ";
+        LOG_WARN << "Warning: The following columns of the table file contained non-numerical "
+                 << "data or only invalid values, which cannot be used here, and are hence ignored: ";
         for( auto const& e : rem_names ) {
-            std::cout << " - " << e << "\n";
+            LOG_WARN << " - " << e;
         }
-        // std::cout << join( rem_names, ", " ) << "\n";
     }
 
     // TODO this should also be an option for the other reading functions here!
 
     // User output
-    if( global_options.verbosity() == 1 ) {
-        std::cout << "Using " << df.col_names().size() << " table columns";
-        std::cout << ( df.col_names().size() == 1 ? "" : "s" ) << ".\n";
-    }
-    if( global_options.verbosity() == 2 ) {
-        std::cout << "Using table columns: " << join( df.col_names(), ", " ) << "\n";
-    }
-    if( global_options.verbosity() >= 3 ) {
-        std::cout << "Using table columns: \n";
-        for( size_t i = 0; i < df.cols(); ++i ) {
-            auto const& col = df[i].as<double>();
-            size_t const cnt = std::count_if( col.begin(), col.end(), []( double v ){
-                return std::isfinite( v );
-            });
-            if( cnt != df.rows() ) {
-                std::cout << " - " << df[i].name() << " (" << cnt << " of " << df.rows() << " valid values)\n";
-            } else {
-                std::cout << " - " << df[i].name() << "\n";
-            }
+    LOG_MSG1 << "Using table columns: " << join( df.col_names(), ", " );
+    for( size_t i = 0; i < df.cols(); ++i ) {
+        auto const& col = df[i].as<double>();
+        size_t const cnt = std::count_if( col.begin(), col.end(), []( double v ){
+            return std::isfinite( v );
+        });
+        if( cnt != df.rows() ) {
+            LOG_MSG2 << " - " << df[i].name() << " (" << cnt << " of " << df.rows() << " valid values)";
+        } else {
+            LOG_MSG2 << " - " << df[i].name();
         }
     }
 
@@ -397,7 +387,7 @@ std::unordered_set<std::string> TableInputOptions::get_column_names_(
         std::unordered_set<std::string> result;
         for( auto const& e : input_list ) {
             if( result.count(e) > 0 ) {
-                std::cout << "Warning: Column name list contains duplicate entry '" << e << "'.\n";
+                LOG_WARN << "Warning: Column name list contains duplicate entry '" << e << "'.";
             }
             result.insert(e);
         }
@@ -461,10 +451,10 @@ std::unordered_set<std::string> TableInputOptions::get_column_names_(
 
     // User warning if there are columns not found in the input file.
     if( column_list.size() > 0 ) {
-        std::cout << "Warning: There were columns given by " << option_name;
-        std::cout << " that are not present in the input table:\n";
+        LOG_WARN << "Warning: There were columns given by " << option_name
+                 << " that are not present in the input table:";
         for( auto const& e : column_list ) {
-            std::cout << " - " << e << "\n";
+            LOG_WARN << " - " << e << "\n";
         }
     }
 

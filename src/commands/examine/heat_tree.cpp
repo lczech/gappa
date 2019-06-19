@@ -118,14 +118,8 @@ void run_heat_tree( HeatTreeOptions const& options )
     for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
 
         // User output
-        if( global_options.verbosity() >= 2 ) {
-            #pragma omp critical(GAPPA_VISUALIZE_PRINT_PROGRESS)
-            {
-                ++file_count;
-                std::cout << "Processing file " << file_count << " of " << options.jplace_input.file_count();
-                std::cout << ": " << options.jplace_input.file_path( fi ) << "\n";
-            }
-        }
+        LOG_MSG2 << "Processing file " << ( ++file_count ) << " of " << options.jplace_input.file_count()
+                 << ": " << options.jplace_input.file_path( fi );
 
         // Read in file. This also already applies all normalizations.
         auto const sample = options.jplace_input.sample( fi );
@@ -201,10 +195,10 @@ void run_heat_tree( HeatTreeOptions const& options )
     // and if this leads to having under values.
     if( options.color_norm.log_scaling() && auto_min <= 0.0 ) {
         if( ! *options.color_norm.min_value_option && ! *options.color_map.clip_under_option ) {
-            std::cout << "Warning: Some branches have mass 0, which cannot be shown using --log-scaling. ";
-            std::cout << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n";
-            std::cout << "This will lead to those branches being shown in the color specified by ";
-            std::cout << "--mask-color. Use --clip-under and --min-value to change this.\n";
+            LOG_WARN << "Warning: Some branches have mass 0, which cannot be shown using --log-scaling. "
+                     << "Hence, the minimum was set to " << color_norm->min_value() << " instead.\n"
+                     << "This will lead to those branches being shown in the color specified by "
+                     << "--mask-color. Use --clip-under and --min-value to change this.";
         } else {
 
             // The log color norm yields -inf for 0 values.

@@ -239,14 +239,14 @@ void run_taxonomy_tree( TaxonomyTreeOptions const& options )
         }
         if( ! valid_name && ! warned_bad_chars ) {
             warned_bad_chars = true;
-            std::cout << "Warning: Taxonomy contains characters that are not valid in Newick ";
-            std::cout << "files: ' ,:;\"()[]'. We can handle this, and they get wrapped in ";
-            std::cout << "quotation marks in the output, according to the Newick standard. ";
-            std::cout << "However, many downstream tools do not correctly interpret such names. ";
-            std::cout << "We hence recommend to remove them from the input taxonomy.\n";
+            LOG_WARN << "Warning: Taxonomy contains characters that are not valid in Newick "
+                     << "files: ' ,:;\"()[]'. We can handle this, and they get wrapped in "
+                     << "quotation marks in the output, according to the Newick standard. "
+                     << "However, many downstream tools do not correctly interpret such names. "
+                     << "We hence recommend to remove them from the input taxonomy.";
         }
-        if( ! valid_name && global_options.verbosity() >= 2 ) {
-            std::cout << " - Invalid name: \"" << name << "\"\n";
+        if( ! valid_name ) {
+            LOG_WARN << " - Invalid name: \"" << name << "\"";
         }
     }
 

@@ -28,6 +28,8 @@
 
 #include "tools/version.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <string>
 #include <vector>
 
@@ -73,9 +75,7 @@ public:
 
     std::string command_line() const;
 
-    size_t verbosity() const;
     bool verbose() const;
-
     size_t threads() const;
 
     // -------------------------------------------------------------------------

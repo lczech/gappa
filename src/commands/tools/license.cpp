@@ -22,6 +22,7 @@
 */
 
 #include "commands/tools/license.hpp"
+#include "options/global.hpp"
 
 // =================================================================================================
 //      Setup
@@ -765,8 +766,8 @@ Public License instead of this License.  But first, please read
 void run_license( LicenseOptions const& options )
 {
     if( options.full ) {
-        std::cout << license_full();
+        LOG_BOLD << license_full();
     } else {
-        std::cout << license_short();
+        LOG_BOLD << license_short();
     }
 }

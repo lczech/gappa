@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_EXAMINE_H_
-#define GAPPA_COMMANDS_EXAMINE_H_
+#ifndef GAPPA_COMMANDS_EXAMINE_INFO_H_
+#define GAPPA_COMMANDS_EXAMINE_INFO_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,41 +26,27 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/examine/assign.hpp"
-#include "commands/examine/edpl.hpp"
-#include "commands/examine/graft.hpp"
-#include "commands/examine/heat_tree.hpp"
-#include "commands/examine/info.hpp"
-#include "commands/examine/lwr.hpp"
-
-#include "options/global.hpp"
+#include "options/jplace_input.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class InfoOptions
+{
+public:
+
+    JplaceInputOptions jplace_input;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-inline void setup_examine( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "examine",
-        "Commands for examining, visualizing, and tabulating information in placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_assign( *sub );
-    setup_edpl( *sub );
-    setup_graft( *sub );
-    setup_heat_tree( *sub );
-    setup_info( *sub );
-    setup_lwr( *sub );
-
-    // Add the global options to each of the above subcommands.
-    global_options.add_to_module( *sub );
-}
+void setup_info( CLI::App& app );
+void run_info( InfoOptions const& options );
 
 #endif // include guard

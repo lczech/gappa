@@ -217,7 +217,7 @@ OtuTable read_split_file( SplitOptions const& options )
         auto const& sample_name = line[1];
         if( sample_to_index.count( sample_name ) == 0 ) {
             sample_to_index[ sample_name ] = result.samples.size();
-            result.samples.push_back({});
+            result.samples.emplace_back();
             result.samples.back().name = sample_name;
         }
     }
@@ -305,7 +305,7 @@ OtuTable read_otu_table_file( SplitOptions const& options )
         }
 
         // Add sample name
-        result.samples.push_back({});
+        result.samples.emplace_back();
         result.samples.back().name = header[i];
         assert( result.samples.size() == i );
     }

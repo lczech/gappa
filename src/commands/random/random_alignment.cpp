@@ -49,7 +49,7 @@ void setup_random_alignment( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<RandomAlignmentOptions>();
     auto sub = app.add_subcommand(
-        "alignment",
+        "random-alignment",
         "Create a random alignment with a given numer of sequences of a given length."
     );
 

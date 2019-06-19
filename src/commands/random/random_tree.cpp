@@ -49,7 +49,7 @@ void setup_random_tree( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<RandomTreeOptions>();
     auto sub = app.add_subcommand(
-        "tree",
+        "random-tree",
         "Create a random tree with a given numer of leaf nodes."
     );
 

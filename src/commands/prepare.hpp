@@ -33,6 +33,7 @@
 #include "commands/prepare/unchunkify.hpp"
 
 #include "options/global.hpp"
+#include "tools/misc.hpp"
 
 #include <string>
 #include <vector>
@@ -63,9 +64,9 @@ inline void setup_prepare( CLI::App& app )
     global_options.add_to_module( *sub );
 
     // Add legacy commands.
-    add_legacy_command( *sub, "random-alignment", "random alignment" );
-    add_legacy_command( *sub, "random-placements", "random placements" );
-    add_legacy_command( *sub, "random-tree", "random tree" );
+    add_legacy_command( *sub, "random-alignment", "random random-alignment" );
+    add_legacy_command( *sub, "random-placements", "random random-placements" );
+    add_legacy_command( *sub, "random-tree", "random random-tree" );
 }
 
 #endif // include guard

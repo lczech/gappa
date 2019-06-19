@@ -59,7 +59,7 @@ void setup_random_placements( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<RandomPlacementsOptions>();
     auto sub = app.add_subcommand(
-        "placements",
+        "random-placements",
         "Create a set of random phylogenetic placements on a given reference tree."
     );
 

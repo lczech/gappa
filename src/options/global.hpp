@@ -26,6 +26,7 @@
 
 #include "CLI/CLI.hpp"
 
+#include "tools/cli_option.hpp"
 #include "tools/version.hpp"
 
 #include "genesis/utils/core/logging.hpp"
@@ -84,8 +85,9 @@ public:
 
 private:
 
-    bool verbose_ = false;
-    size_t threads_ = 0;
+    CliOption<bool>        verbose_ = false;
+    CliOption<size_t>      threads_ = 0;
+    CliOption<std::string> log_file_ = "";
 
     std::vector<std::string> command_line_;
 

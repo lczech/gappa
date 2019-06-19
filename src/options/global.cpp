@@ -37,16 +37,16 @@
 void GlobalOptions::initialize( int const argc, char const* const* argv )
 {
     // By default, use the hardware threads.
-    threads_ = std::thread::hardware_concurrency();
+    threads_.value = std::thread::hardware_concurrency();
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to hardware_concurrency fails.
-    if( threads_ == 0 ) {
-        threads_ = 1;
+    if( threads_.value == 0 ) {
+        threads_.value = 1;
     }
 
     // Set number of threads for genesis.
-    genesis::utils::Options::get().number_of_threads( threads_ );
+    genesis::utils::Options::get().number_of_threads( threads_.value );
 
     // Set verbosity to max, just in case.
     genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kDebug4 );
@@ -68,20 +68,28 @@ void GlobalOptions::add_to_module( CLI::App& module )
 void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 {
     // Threads
-    auto opt_threads = subcommand.add_option(
+    threads_ = subcommand.add_option(
         "--threads",
-        threads_,
+        threads_.value,
         "Number of threads to use for calculations."
     );
-    opt_threads->group( "Global Options" );
+    threads_.option->group( "Global Options" );
+
+    // Log File
+    log_file_ = subcommand.add_option(
+        "--log-file",
+        log_file_.value,
+        "Write all output to a log file, in addition to standard output to the terminal."
+    );
+    log_file_.option->group( "Global Options" );
 
     // Verbosity
-    auto opt_verbose = subcommand.add_flag(
+    verbose_ = subcommand.add_flag(
         "--verbose",
-        verbose_,
+        verbose_.value,
         "Produce more verbose output."
     );
-    opt_verbose->group( "Global Options" );
+    verbose_.option->group( "Global Options" );
 
     // TODO add random seed option
     // TODO add global file overwrite option.
@@ -98,21 +106,26 @@ void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 void GlobalOptions::run_global()
 {
     // If user did not provide number, use hardware value.
-    if( threads_ == 0 ) {
-        threads_ = std::thread::hardware_concurrency();
+    if( threads_.value == 0 ) {
+        threads_.value = std::thread::hardware_concurrency();
     }
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to hardware_concurrency fails.
-    if( threads_ == 0 ) {
-        threads_ = 1;
+    if( threads_.value == 0 ) {
+        threads_.value = 1;
     }
 
     // Set number of threads for genesis.
-    genesis::utils::Options::get().number_of_threads( threads_ );
+    genesis::utils::Options::get().number_of_threads( threads_.value );
+
+    // Set log file.
+    if( ! log_file_.value.empty() ) {
+        genesis::utils::Logging::log_to_file( log_file_.value );
+    }
 
     // Set verbosity level for logging output.
-    if( verbose_ ) {
+    if( verbose_.value ) {
         genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage2 );
     } else {
         genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage1 );
@@ -134,12 +147,12 @@ std::string GlobalOptions::command_line() const
 
 bool GlobalOptions::verbose() const
 {
-    return verbose_;
+    return verbose_.value;
 }
 
 size_t GlobalOptions::threads() const
 {
-    return threads_;
+    return threads_.value;
 }
 
 // =================================================================================================

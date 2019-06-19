@@ -42,7 +42,7 @@ std::vector<std::string> get_all_citation_keys();
 std::string cite_bibtex( std::string const& key );
 std::string cite_bibtex( std::vector<std::string> const& keys );
 
-std::string cite_markdown( std::string const& key, bool with_quote_block = true );
-std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote_block = true );
+std::string cite_markdown( std::string const& key, bool with_quote_block = true, bool with_key = true );
+std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote_block = true, bool with_key = true );
 
 #endif // include guard

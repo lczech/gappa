@@ -161,16 +161,28 @@ std::function<void()> gappa_cli_callback(
     std::vector<std::string> citations,
     std::function<void()>    run_function
 ) {
-    // If the genesis/gappa citation is not present, add it to the front!
-    if( ! genesis::utils::contains( citations, "Czech2019-genesis-and-gappa" )) {
-        citations.insert( citations.begin(), "Czech2019-genesis-and-gappa" );
-    }
-
     // Check whether the reference keys are valid.
     // This is immediately run, and not part of the callback itself.
     // This way, the check is always performed, for all subcommands, so that we do not need
     // to execute a command to be sure that its citations are correctly set.
     check_citations( citations );
+
+    // Att the citations to the list, so that they can be used by the wiki command
+    // to automatically generate citation lists at the bottom of each page.
+    if( citation_list.count( subcommand ) > 0 ) {
+        throw std::runtime_error(
+            "Internal error: Citation list for subcommand " + subcommand->get_name() +
+            " has already been set."
+        );
+    }
+    if( ! citations.empty() ) {
+        citation_list[ subcommand ] = citations;
+    }
+
+    // If the genesis/gappa citation is not present, add it to the front!
+    if( ! genesis::utils::contains( citations, "Czech2019-genesis-and-gappa" )) {
+        citations.insert( citations.begin(), "Czech2019-genesis-and-gappa" );
+    }
 
     return [ subcommand, citations, run_function ](){
 
@@ -194,6 +206,11 @@ std::function<void()> gappa_cli_callback(
         LOG_MSG << "Finished " << genesis::utils::current_date() << " " << genesis::utils::current_time();
     };
 }
+
+/**
+ * @brief Instanciation of the citation list object. This is alive during the whole program run.
+ */
+CitationList citation_list;
 
 // =================================================================================================
 //      Checks and Helpers

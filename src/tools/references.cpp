@@ -94,6 +94,15 @@ static std::unordered_map<std::string, Citation> citations_ = {
         "2013",
         "10.1371/journal.pone.0056859"
     }},
+    { "Evans2012-kr-distance", {
+        {{ "Steven", "Evans" }, { "Frederick", "Matsen" }},
+        "The phylogenetic Kantorovich-Rubinstein metric for environmental sequence samples",
+        "Journal of the Royal Statistical Society",
+        "",
+        "",
+        "2012",
+        "10.1111/j.1467-9868.2011.01018.x"
+    }},
     { "Washburne2017-phylofactorization", {
         {
             { "Alex", "Washburne" }, { "Justin", "Silverman" }, { "Jonathan", "Leff" },
@@ -216,13 +225,15 @@ std::string cite_bibtex( std::string const& key )
     return ss.str();
 }
 
-std::string cite_markdown( std::string const& key, bool with_quote_block )
+std::string cite_markdown( std::string const& key, bool with_quote_block, bool with_key )
 {
     auto const& entry = get_citation( key );
     std::string const in = ( with_quote_block ? "> " : "" );
 
     std::stringstream ss;
-    ss << key << ":\n";
+    if( with_key ) {
+        ss << key << ":\n";
+    }
     ss << in << cite_authors( entry, true, ", " ) << ".\n";
     ss << in << "**" << entry.title << ".**\n";
     ss << in << "*" << entry.journal << "*";
@@ -251,7 +262,7 @@ std::string cite_bibtex( std::vector<std::string> const& keys )
     return result;
 }
 
-std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote_block )
+std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote_block, bool with_key )
 {
     check_citation_duplicates( keys );
 
@@ -260,7 +271,7 @@ std::string cite_markdown( std::vector<std::string> const& keys, bool with_quote
         if( &key != &keys[0] ) {
             result += "\n";
         }
-        result += cite_markdown( key, with_quote_block );
+        result += cite_markdown( key, with_quote_block, with_key );
     }
     return result;
 }

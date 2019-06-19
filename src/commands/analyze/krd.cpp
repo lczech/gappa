@@ -94,7 +94,7 @@ void setup_krd( CLI::App& app )
     sub->callback( gappa_cli_callback(
         sub,
         {
-            "Matsen2011-edgepca-and-squash-clustering"
+            "Evans2012-kr-distance"
         },
         [ opt ]() {
             run_krd( *opt );

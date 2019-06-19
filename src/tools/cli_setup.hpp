@@ -28,6 +28,7 @@
 
 #include <functional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // =================================================================================================
@@ -47,6 +48,19 @@ std::function<void()> gappa_cli_callback(
     std::vector<std::string> citations,
     std::function<void()>    run_function
 );
+
+/**
+ * @brief Type to store a map from commands to their respective citations.
+ */
+using CitationList = std::unordered_map<CLI::App const*, std::vector<std::string>>;
+
+/**
+ * @brief Map from subcommand to its citation list.
+ *
+ * We store the citations for all commands, so that the wiki command can use them automatically
+ * to generate citation lists at the bottom of the wiki pages
+ */
+extern CitationList citation_list;
 
 // =================================================================================================
 //      Checks and Helpers

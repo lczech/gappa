@@ -23,6 +23,8 @@
 
 #include "commands/tools/wiki.hpp"
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
+#include "tools/references.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -194,15 +196,35 @@ void make_options_table( CLI::App const& command, std::ostream& os )
         if( opt->get_required() ) {
             tmp_os << "<strong>Required.</strong>";
         }
-        auto opt_str = dynamic_cast<CLI::Formatter const*>( command.get_formatter().get() )->make_option_opts( opt );
-        if( ! opt_str.empty() ) {
-            opt_str = genesis::utils::replace_all(
-                opt_str,
-                command.get_formatter()->get_label("REQUIRED"),
-                ""
-            );
-            tmp_os << " <code>" << genesis::utils::trim( opt_str ) << "</code><br>";
+
+        auto formatter = dynamic_cast<CLI::Formatter const*>( command.get_formatter().get() );
+        auto opt_str = formatter->make_option_opts( opt );
+        opt_str = genesis::utils::replace_all(
+            opt_str,
+            command.get_formatter()->get_label("REQUIRED"),
+            ""
+        );
+
+        // Little special case: --threads defaults to the number of cores on the current system
+        // where this wiki command is being run. Make this nicer.
+        if( opt->get_name() == "--threads" ) {
+            std::string tn;
+            if( !opt->get_type_name().empty() ) {
+                tn = formatter->get_label( opt->get_type_name() );
+            }
+            std::string search;
+            if( !opt->get_default_str().empty() ) {
+                search = tn + "=" + opt->get_default_str();
+            }
+            if( !search.empty() ) {
+                opt_str = genesis::utils::replace_all( opt_str, search, tn );
+            }
         }
+
+        // Now print to the output.
+        tmp_os << " <code>" << genesis::utils::trim( opt_str ) << "</code><br>";
+
+        // Add description
         auto descr = opt->get_description();
         if( descr.substr( 0, 10 ) == "Required. " ) {
             descr = descr.substr( 10 );
@@ -324,7 +346,7 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
     }
     os << "`\n\n";
 
-    // Print the options of thus command.
+    // Print the options of the command.
     if( has_options ) {
         os << "## Options\n\n";
         make_options_table( command, os );
@@ -336,8 +358,17 @@ void make_wiki_command_page( WikiOptions const& options, CLI::App const& command
         make_subcommands_table( subcomms, os );
     }
 
-    // Add markdown file content and finish.
+    // Add markdown file content.
     add_markdown_content( options, command.get_name(), os );
+
+    // If there is a citation list for this command, add it in a nice format.
+    if( citation_list.count( &command ) > 0 ) {
+        os << "\n";
+        os << "## Citation\n\n";
+        os << "When using this method, please do not forget to cite\n\n";
+        os << cite_markdown( citation_list[ &command ], true, false );
+    }
+
     os.close();
 }
 

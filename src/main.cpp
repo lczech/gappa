@@ -36,6 +36,8 @@
 #include "tools/references.hpp"
 #include "tools/version.hpp"
 
+#include "genesis/utils/core/exception.hpp"
+
 #include <sstream>
 
 // =================================================================================================
@@ -99,7 +101,7 @@ int main( int argc, char** argv )
     // -------------------------------------------------------------------------
 
     // Init global options. This ensures that all subcommands that need the global options
-    // have them initialized to proper values that they can use (eg for the help output).
+    // have them initialized to proper values that they can use (e.g., for the help output).
     global_options.initialize( argc, argv );
 
     // Set up all subcommands.
@@ -145,6 +147,19 @@ int main( int argc, char** argv )
         if( ! message.empty() ) {
             LOG_BOLD << message;
         }
+
+    } catch( genesis::ExistingFileError const& error ) {
+
+        // Special case for existing files: This is very common, and we want a nice and useful
+        // error messsage for this one!
+        std::string message
+            = "Output file '" + error.filename() + "' already exists. If you want to allow "
+            + "overwriting of existing output files, use "
+            + global_options.opt_allow_file_overwriting.option->get_name()
+        ;
+        LOG_BOLD << message;
+        LOG_BOLD;
+        throw genesis::ExistingFileError( message, error.filename() );
 
     } catch( std::exception const& error ) {
 

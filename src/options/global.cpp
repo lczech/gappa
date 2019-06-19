@@ -37,16 +37,16 @@
 void GlobalOptions::initialize( int const argc, char const* const* argv )
 {
     // By default, use the hardware threads.
-    threads_.value = std::thread::hardware_concurrency();
+    opt_threads.value = std::thread::hardware_concurrency();
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to hardware_concurrency fails.
-    if( threads_.value == 0 ) {
-        threads_.value = 1;
+    if( opt_threads.value == 0 ) {
+        opt_threads.value = 1;
     }
 
     // Set number of threads for genesis.
-    genesis::utils::Options::get().number_of_threads( threads_.value );
+    genesis::utils::Options::get().number_of_threads( opt_threads.value );
 
     // Set verbosity to max, just in case.
     genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kDebug4 );
@@ -67,32 +67,39 @@ void GlobalOptions::add_to_module( CLI::App& module )
 
 void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 {
-    // Threads
-    threads_ = subcommand.add_option(
-        "--threads",
-        threads_.value,
-        "Number of threads to use for calculations."
+    // Allow to overwrite files.
+    opt_allow_file_overwriting = subcommand.add_flag(
+        "--allow-file-overwriting",
+        opt_allow_file_overwriting.value,
+        "Allow to overwrite existing output files instead of aborting the command."
     );
-    threads_.option->group( "Global Options" );
-
-    // Log File
-    log_file_ = subcommand.add_option(
-        "--log-file",
-        log_file_.value,
-        "Write all output to a log file, in addition to standard output to the terminal."
-    );
-    log_file_.option->group( "Global Options" );
+    opt_allow_file_overwriting.option->group( "Global Options" );
 
     // Verbosity
-    verbose_ = subcommand.add_flag(
+    opt_verbose = subcommand.add_flag(
         "--verbose",
-        verbose_.value,
+        opt_verbose.value,
         "Produce more verbose output."
     );
-    verbose_.option->group( "Global Options" );
+    opt_verbose.option->group( "Global Options" );
+
+    // Threads
+    opt_threads = subcommand.add_option(
+        "--threads",
+        opt_threads.value,
+        "Number of threads to use for calculations."
+    );
+    opt_threads.option->group( "Global Options" );
+
+    // Log File
+    opt_log_file = subcommand.add_option(
+        "--log-file",
+        opt_log_file.value,
+        "Write all output to a log file, in addition to standard output to the terminal."
+    );
+    opt_log_file.option->group( "Global Options" );
 
     // TODO add random seed option
-    // TODO add global file overwrite option.
 
     // TODO in order to run callbacks for certain options, use ther full functional form!
     // for example, the allow overwrite option (yet to do), or threads or the like can use this.
@@ -106,26 +113,32 @@ void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 void GlobalOptions::run_global()
 {
     // If user did not provide number, use hardware value.
-    if( threads_.value == 0 ) {
-        threads_.value = std::thread::hardware_concurrency();
+    if( opt_threads.value == 0 ) {
+        opt_threads.value = std::thread::hardware_concurrency();
     }
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to hardware_concurrency fails.
-    if( threads_.value == 0 ) {
-        threads_.value = 1;
+    if( opt_threads.value == 0 ) {
+        opt_threads.value = 1;
     }
 
     // Set number of threads for genesis.
-    genesis::utils::Options::get().number_of_threads( threads_.value );
+    genesis::utils::Options::get().number_of_threads( opt_threads.value );
+
+    // Allow to overwrite files. Has to be done before adding the log file (coming below),
+    // as this might already fail if the log file exists.
+    if( opt_allow_file_overwriting.value ) {
+        genesis::utils::Options::get().allow_file_overwriting( true );
+    }
 
     // Set log file.
-    if( ! log_file_.value.empty() ) {
-        genesis::utils::Logging::log_to_file( log_file_.value );
+    if( ! opt_log_file.value.empty() ) {
+        genesis::utils::Logging::log_to_file( opt_log_file.value );
     }
 
     // Set verbosity level for logging output.
-    if( verbose_.value ) {
+    if( opt_verbose.value ) {
         genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage2 );
     } else {
         genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage1 );
@@ -143,16 +156,6 @@ std::string GlobalOptions::command_line() const
         ret += ( i==0 ? "" : " " ) + command_line_[i];
     }
     return ret;
-}
-
-bool GlobalOptions::verbose() const
-{
-    return verbose_.value;
-}
-
-size_t GlobalOptions::threads() const
-{
-    return threads_.value;
 }
 
 // =================================================================================================

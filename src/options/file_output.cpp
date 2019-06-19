@@ -23,7 +23,11 @@
 
 #include "options/file_output.hpp"
 
+#include "genesis/utils/core/exception.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/core/options.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <stdexcept>
@@ -153,9 +157,16 @@ void FileOutputOptions::check_nonexistent_output_files(
     for( auto const& file : filenames ) {
         auto const dir_cont = dir_list_contents( out_dir_, true, file );
         if( ! dir_cont.empty() ) {
-            throw CLI::ValidationError(
-                optname + " (" + out_dir_ +  ")", "Output path already exists: " + file
-            );
+            auto fn = genesis::utils::replace_all( file, "\\.", "." );
+            // fn = genesis::utils::replace_all( fn, ".", "*" );
+
+            // If we allow overwriting, only warn about the files.
+            if( genesis::utils::Options::get().allow_file_overwriting() ) {
+                LOG_WARN << "Warning: Output file already exists: " + fn;
+                LOG_BOLD;
+            } else {
+                throw genesis::ExistingFileError( "Output file already exists: " + fn, fn );
+            }
         }
     }
 
@@ -165,8 +176,11 @@ void FileOutputOptions::check_nonexistent_output_files(
     std::sort( cpy.begin(), cpy.end() );
     auto const adj = std::adjacent_find( cpy.begin(), cpy.end() ) ;
     if( adj != cpy.end() ) {
+        auto fn = genesis::utils::replace_all( *adj, "\\.", "." );
+        // fn = genesis::utils::replace_all( fn, ".", "*" );
         throw CLI::ValidationError(
-            optname, "Output file name used multiple times: " + ( *adj )
+            optname, "Output file name used multiple times: " + fn +
+            "\nThis will lead to the output being overwritten while producing it."
         );
     }
 

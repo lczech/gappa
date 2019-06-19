@@ -76,18 +76,16 @@ public:
 
     std::string command_line() const;
 
-    bool verbose() const;
-    size_t threads() const;
-
     // -------------------------------------------------------------------------
     //     Option Members
     // -------------------------------------------------------------------------
 
-private:
+    CliOption<bool>        opt_verbose = false;
+    CliOption<size_t>      opt_threads = 0;
+    CliOption<std::string> opt_log_file = "";
+    CliOption<bool>        opt_allow_file_overwriting = false;
 
-    CliOption<bool>        verbose_ = false;
-    CliOption<size_t>      threads_ = 0;
-    CliOption<std::string> log_file_ = "";
+private:
 
     std::vector<std::string> command_line_;
 

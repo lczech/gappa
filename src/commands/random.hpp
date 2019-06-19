@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PREPARE_RANDOM_TREE_H_
-#define GAPPA_COMMANDS_PREPARE_RANDOM_TREE_H_
+#ifndef GAPPA_COMMANDS_RANDOM_H_
+#define GAPPA_COMMANDS_RANDOM_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,33 +26,35 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/file_input.hpp"
-#include "options/file_output.hpp"
-#include "options/tree_output.hpp"
+#include "commands/random/random_alignment.hpp"
+#include "commands/random/random_placements.hpp"
+#include "commands/random/random_tree.hpp"
+
+#include "options/global.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
-//      Options
-// =================================================================================================
-
-class RandomTreeOptions
-{
-public:
-
-    // Input data.
-    size_t num_leaves;
-
-    // Output options.
-    FileOutputOptions output;
-};
-
-// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_random_tree( CLI::App& app );
-void run_random_tree( RandomTreeOptions const& options );
+inline void setup_random( CLI::App& app )
+{
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "random",
+        "Commands for random generation of phylogenetic and placement data."
+    );
+    sub->require_subcommand( 1 );
+
+    // Add module subcommands.
+    setup_random_alignment( *sub );
+    setup_random_placements( *sub );
+    setup_random_tree( *sub );
+
+    // Add the global options to each of the above subcommands.
+    global_options.add_to_module( *sub );
+}
 
 #endif // include guard

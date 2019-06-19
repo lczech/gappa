@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_PREPARE_RANDOM_ALIGNMENT_H_
-#define GAPPA_COMMANDS_PREPARE_RANDOM_ALIGNMENT_H_
+#ifndef GAPPA_COMMANDS_RANDOM_RANDOM_TREE_H_
+#define GAPPA_COMMANDS_RANDOM_RANDOM_TREE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -28,6 +28,7 @@
 
 #include "options/file_input.hpp"
 #include "options/file_output.hpp"
+#include "options/tree_output.hpp"
 
 #include <string>
 #include <vector>
@@ -36,27 +37,22 @@
 //      Options
 // =================================================================================================
 
-class RandomAlignmentOptions
+class RandomTreeOptions
 {
 public:
 
     // Input data.
-    size_t num_sequences;
-    size_t len_sequences;
-    std::string characters = "-ACGT";
+    size_t num_leaves;
 
     // Output options.
     FileOutputOptions output;
-    bool write_fasta = false;
-    bool write_strict_phylip = false;
-    bool write_relaxed_phylip = false;
 };
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_random_alignment( CLI::App& app );
-void run_random_alignment( RandomAlignmentOptions const& options );
+void setup_random_tree( CLI::App& app );
+void run_random_tree( RandomTreeOptions const& options );
 
 #endif // include guard

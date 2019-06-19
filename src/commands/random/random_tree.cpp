@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/prepare/random_tree.hpp"
+#include "commands/random/random_tree.hpp"
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"
@@ -49,7 +49,7 @@ void setup_random_tree( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<RandomTreeOptions>();
     auto sub = app.add_subcommand(
-        "random-tree",
+        "tree",
         "Create a random tree with a given numer of leaf nodes."
     );
 

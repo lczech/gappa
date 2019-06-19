@@ -27,6 +27,7 @@
 #include "commands/edit.hpp"
 #include "commands/examine.hpp"
 #include "commands/prepare.hpp"
+#include "commands/random.hpp"
 #include "commands/tools.hpp"
 
 #include "options/global.hpp"
@@ -109,6 +110,7 @@ int main( int argc, char** argv )
     setup_edit( app );
     setup_examine( app );
     setup_prepare( app );
+    setup_random( app );
     setup_tools( app );
 
     // -------------------------------------------------------------------------

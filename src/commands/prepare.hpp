@@ -29,9 +29,6 @@
 #include "commands/prepare/chunkify.hpp"
 #include "commands/prepare/extract.hpp"
 #include "commands/prepare/phat.hpp"
-#include "commands/prepare/random_alignment.hpp"
-#include "commands/prepare/random_placements.hpp"
-#include "commands/prepare/random_tree.hpp"
 #include "commands/prepare/taxonomy_tree.hpp"
 #include "commands/prepare/unchunkify.hpp"
 
@@ -57,14 +54,18 @@ inline void setup_prepare( CLI::App& app )
     setup_chunkify( *sub );
     setup_extract( *sub );
     setup_phat( *sub );
-    setup_random_alignment( *sub );
-    setup_random_placements( *sub );
-    setup_random_tree( *sub );
     setup_taxonomy_tree( *sub );
     setup_unchunkify( *sub );
 
     // Add the global options to each of the above subcommands.
+    // This has to be run here, so that these options are added to all above commands,
+    // but not to the legacy commands that come next.
     global_options.add_to_module( *sub );
+
+    // Add legacy commands.
+    add_legacy_command( *sub, "random-alignment", "random alignment" );
+    add_legacy_command( *sub, "random-placements", "random placements" );
+    add_legacy_command( *sub, "random-tree", "random tree" );
 }
 
 #endif // include guard

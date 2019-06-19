@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/prepare/random_placements.hpp"
+#include "commands/random/random_placements.hpp"
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"
@@ -59,7 +59,7 @@ void setup_random_placements( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<RandomPlacementsOptions>();
     auto sub = app.add_subcommand(
-        "random-placements",
+        "placements",
         "Create a set of random phylogenetic placements on a given reference tree."
     );
 

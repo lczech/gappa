@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/prepare/random_alignment.hpp"
+#include "commands/random/random_alignment.hpp"
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"
@@ -49,7 +49,7 @@ void setup_random_alignment( CLI::App& app )
     // Create the options and subcommand objects.
     auto opt = std::make_shared<RandomAlignmentOptions>();
     auto sub = app.add_subcommand(
-        "random-alignment",
+        "alignment",
         "Create a random alignment with a given numer of sequences of a given length."
     );
 

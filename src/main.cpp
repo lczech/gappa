@@ -128,6 +128,7 @@ int main( int argc, char** argv )
     //     Go Go Go
     // -------------------------------------------------------------------------
 
+    int exit_code = 0;
     try {
 
         // Do the parsing of the command line arguments.
@@ -135,17 +136,33 @@ int main( int argc, char** argv )
         // this is also where the actual commands and functions are executed.
         app.parse( argc, argv );
 
-    } catch ( CLI::ParseError const& error ) {
+    } catch( CLI::ParseError const& error ) {
 
         // Capture the app exit message, so that we can print it to our log.
         std::stringstream ss;
-        auto const exit_code = app.exit( error, ss, ss );
+        exit_code = app.exit( error, ss, ss );
         auto const message = ss.str();
         if( ! message.empty() ) {
             LOG_BOLD << message;
         }
-        return exit_code;
+
+    } catch( std::exception const& error ) {
+
+        // More general error. We also catch this in order to make sure it is logged everywhere,
+        // but then re-throw to make the program fail.
+        LOG_BOLD << "Error: " << error.what();
+        LOG_BOLD;
+        throw;
+
+    } catch (...) {
+
+        // Capture everything else. Should not happen, but why not.
+        LOG_BOLD << "Error: Unknown error.";
+        LOG_BOLD;
+        throw;
     }
 
-    return 0;
+    // Close all logging, and return the exit code.
+    genesis::utils::Logging::clear();
+    return exit_code;
 }

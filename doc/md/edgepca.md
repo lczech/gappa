@@ -17,13 +17,3 @@ Furthermore, if the `--write-...-tree` options are used, the principal component
 ![First two Edge PCA component trees.](https://github.com/lczech/gappa/blob/master/doc/png/analyze_edgepca_trees.png?raw=true)
 
 These trees allow to interpret how the plot above separates samples; that is, they show which edges contribute most to distinguish samples from each other.
-
-<!--
-## Citation
-
-When using this method, please do not forget to cite
-
-> Matsen FA, Evans SN (2013),
-> **"Edge Principal Components and Squash Clustering: Using the Special Structure of Phylogenetic Placement Data for Sample Comparison."**,
-> *PLOS ONE 8(3): e56859*, doi:[10.1371/journal.pone.0056859](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0056859)
--->

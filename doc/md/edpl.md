@@ -45,14 +45,3 @@ The histogram shows the accumulated EDPL values: The x-axis are EDPLs, the y-axi
 many of the query sequences have an EDPL at or below the respecive value.
 For example, the lowest bin indicates that more than 60% of the query sequences have an EDPL
 between 0.0 and 0.02.
-
-<!--
-## Citation
-
-When using this method, please do not forget to cite
-
-> F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
-> **"pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree."**,
-> *BMC Bioinformatics*, vol. 11, no. 1, p. 538, 2010,
-> doi: [https://doi.org/10.1186/1471-2105-11-538](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-538)
--->

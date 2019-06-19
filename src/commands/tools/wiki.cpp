@@ -222,7 +222,9 @@ void make_options_table( CLI::App const& command, std::ostream& os )
         }
 
         // Now print to the output.
-        tmp_os << " <code>" << genesis::utils::trim( opt_str ) << "</code><br>";
+        if( ! opt_str.empty() ) {
+            tmp_os << " <code>" << genesis::utils::trim( opt_str ) << "</code><br>";
+        }
 
         // Add description
         auto descr = opt->get_description();

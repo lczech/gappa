@@ -284,6 +284,22 @@ void fix_cli_default_values( CLI::App& app )
     }
 }
 
+void set_module_help_group( CLI::App& module, std::string const& group_name )
+{
+    for( auto subcom : module.get_subcommands({}) ) {
+
+        // Get the current settings for the help flag.
+        auto const name = subcom->get_help_ptr()->get_name(false, true);
+        auto const desc = subcom->get_help_ptr()->get_description();
+
+        // First remove it, then add it again. This way, it is the last one to be added,
+        // which is nicer for the help message.
+        subcom->set_help_flag();
+        subcom->set_help_flag( name, desc );
+        subcom->get_help_ptr()->group( group_name );
+    }
+}
+
 // =================================================================================================
 //      CLI11 Option Printing
 // =================================================================================================

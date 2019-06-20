@@ -85,7 +85,6 @@ int main( int argc, char** argv )
     // We don't like short options in gappa. Reset the help option.
     // This is inherited by subcommands automatically.
     app.set_help_flag( "--help", "Print this help message and exit." );
-    // app.get_help_ptr()->group( "Global Options" );
 
     // We want all options to capture their default values, so that we see them in the help.
     // No idea why CLI does not do that all the time. Hopefully, this is the correct way to solve this.

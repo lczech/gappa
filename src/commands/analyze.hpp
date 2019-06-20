@@ -37,6 +37,7 @@
 #include "commands/analyze/squash.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 #include "tools/misc.hpp"
 
 #include <string>
@@ -70,6 +71,7 @@ inline void setup_analyze( CLI::App& app )
     // This has to be run here, so that these options are added to all above commands,
     // but not to the legacy commands that come next.
     global_options.add_to_module( *sub );
+    set_module_help_group( *sub );
 
     // Add legacy commands.
     add_legacy_command( *sub, "assign", "examine assign" );

@@ -31,6 +31,7 @@
 #include "commands/random/random_tree.hpp"
 
 #include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 
 #include <string>
 #include <vector>
@@ -55,6 +56,7 @@ inline void setup_random( CLI::App& app )
 
     // Add the global options to each of the above subcommands.
     global_options.add_to_module( *sub );
+    set_module_help_group( *sub );
 }
 
 #endif // include guard

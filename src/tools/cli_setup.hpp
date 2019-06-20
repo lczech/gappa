@@ -94,4 +94,9 @@ void check_subcommand_names( CLI::App const& app );
  */
 void fix_cli_default_values( CLI::App& app );
 
+/**
+ * @brief Set the help group name for all subcommands of a module.
+ */
+void set_module_help_group( CLI::App& module, std::string const& group_name = "Global Options" );
+
 #endif // include guard

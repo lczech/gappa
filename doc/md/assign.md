@@ -35,6 +35,12 @@ Loach   Eukaryota;Animalia;Chordata;Amphibia;Anura;Rhacophoridae
 Cow     Eukaryota;Animalia;Chordata;Mammalia;Artiodactyla;Bovidae
 ```
 
+### Resolve missing taxonomic labels (`--resolve-missing-paths`)
+
+The above mentioned Taxonomic Label file may be incomplete, leaving some taxa (tips) of the reference tree without a label. The direct consequence of this is an incompletely labeled reference tree, leaving queries on those branches without a taxonomic assignment.
+
+When specifying the `--resolve-missing-paths` flag, the `assign` algorithm tries to resolve the missing labels. It does so by identifying unlabeled branches, traveling "up" the tree (in direction of the root) until it finds a branch that is labeled. It then labels all branches on that path using this closest label.
+
 ### Distribution Ratio (`--distribution-ratio`)
 
 This option controls the strategy by which the likelihood weight of a placement is assigned to the taxonomic labels associated with the placement branch.

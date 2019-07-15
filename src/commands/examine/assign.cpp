@@ -63,8 +63,6 @@
 #   include <omp.h>
 #endif
 
-constexpr char UNDETERMINED[] = "N/A";
-
 // =================================================================================================
 //      Setup
 // =================================================================================================
@@ -118,7 +116,6 @@ void setup_assign( CLI::App& app )
         "Doesn't affect intermediate results, and an unfiltered verison will be printed as well."
     )->group("Settings");
 
-    // Add specific options.
     sub->add_option(
         "--max-level",
         opt->max_tax_level,
@@ -134,6 +131,14 @@ void setup_assign( CLI::App& app )
         "Specifies the amount going to the proximal annotation. If not set program will determine "
         "the ratio automatically from the 'distal length' specified per placement."
     )->check(CLI::Range(0.0,1.0))->group("Settings");
+
+    sub->add_flag(
+        "--resolve-missing-paths",
+        opt->resolve_missing_labels,
+        "Should the taxon file be incomplete and leave some taxa without taxopaths, fill in the "
+        "missing node labels using the closest (in the tree) label.\n"
+        "If not specified, those parts of the tree remain unlabeled, and their placements unassigned."
+    )->group("Settings");
 
     // Output
     opt->output_dir.add_output_dir_opt_to_app( sub );
@@ -202,24 +207,29 @@ Taxopath intersect( Taxopath const& lhs, Taxopath const& rhs )
         result.push_back( lhs[i] );
     }
 
-    if ( result.empty() ) {
-        result.push_back( UNDETERMINED );
-    }
+    // allow the posibility of empty taxopaths, mark them accordingly so that they may be fixed later
 
     return result;
 }
 
 // go through the tree in postorder fashion and label inner nodes according to the most common taxonomic rank of the children
+// allow empty labels and propagate them up, however any label is always better than no label
+// so intersect should always return the common most specific taxopath, except when one taxopath is fully empty,
+// in which case it should take the nonempty one
 void postorder_label( PlacementTree const& tree, std::vector<Taxopath>& node_labels )
 {
-    for ( auto it : postorder(tree) ) {
+    for ( auto it : postorder( tree ) ) {
         if( is_inner( it.node() )) {
             auto const child_1_idx = it.node().link().next().outer().node().index();
             auto const child_2_idx = it.node().link().next().next().outer().node().index();
 
-            assert( not node_labels[ child_1_idx ].empty() );
-
-            node_labels[ it.node().index() ] = intersect( node_labels[ child_1_idx ], node_labels[ child_2_idx ] );
+            if ( node_labels[ child_1_idx ].empty() ) {
+                node_labels[ it.node().index() ] = node_labels[ child_2_idx ];
+            } else if ( node_labels[ child_2_idx ].empty() ) {
+                node_labels[ it.node().index() ] = node_labels[ child_1_idx ];
+            } else {
+                node_labels[ it.node().index() ] = intersect( node_labels[ child_1_idx ], node_labels[ child_2_idx ] );
+            }
         }
     }
 }
@@ -245,7 +255,7 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
     TaxopathParser tpp;
     CsvReader csv_reader;
     csv_reader.separator_chars( "\t" );
-    std::vector<Taxopath> node_labels(tree.node_count());
+    std::vector<Taxopath> node_labels( tree.node_count() );
 
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( taxon_file ));
     while (it) {
@@ -267,15 +277,6 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
         node_labels[ node_ptr->index() ] = tpp.parse( tax_string );
     }
 
-    // check if any leafs weren't assigned a Taxopath
-    for ( auto const& node_it : tree.nodes() ) {
-        if ( is_leaf( node_it ) and node_labels[ node_it.index() ].empty() ) {
-            auto name = node_it.data< CommonNodeData >().name;
-            throw std::runtime_error{"The leaf in the tree labelled '" + name
-                + "' wasn't assigned a taxonomic path. Did you forget to include it in the taxon file?"};
-        }
-    }
-
     return node_labels;
 }
 
@@ -283,7 +284,7 @@ void add_lwr_to_taxonomy(   const double lwr,
                             Taxopath const& path,
                             Taxonomy& taxonomy )
 {
-    if ( path.at(0) == UNDETERMINED) {
+    if ( path.empty() ) {
         return;
     }
     auto cur_tax = &add_from_taxopath( taxonomy, path );
@@ -1020,6 +1021,38 @@ void outgroup_rooting(  Sample& sample,
     make_rooted( sample, *edge_ptr );
 }
 
+// Label undetermined nodes by passing the closest taxopath down
+void label_undetermined_nodes( PlacementTree const& tree, std::vector<Taxopath>& node_labels ) {
+    for ( size_t node_id = 0; node_id < node_labels.size(); ++node_id ) {
+        auto& taxopath = node_labels[ node_id ];
+        if ( taxopath.empty() ) {
+            // found an undetermined node label!
+            // travel up the tree until a node has a taxopath
+            size_t cur_node_id = node_id;
+            std::vector<size_t> nodes_to_fix;
+            while ( node_labels[ cur_node_id ].empty() ) {
+                // unsolvable if root is unassigned
+                if ( is_root( tree.node_at( cur_node_id ) ) ) {
+                    throw std::runtime_error{"Cannot resolve taxonomic assignment of unassigned taxa as the root node seems to be unassigned"};
+                }
+
+                // track that this node needs to be assigned a proper taxopath
+                nodes_to_fix.push_back( cur_node_id );
+
+                // iterate by going to the parent node
+                cur_node_id = tree.node_at( cur_node_id ).link().outer().node().index();
+            }
+
+            // cur_node_id's node now has an actual taxopath
+            auto const& closest_taxopath = node_labels[ cur_node_id ];
+            // apply that label to all nodes found to be lacking
+            for ( auto const& fix_id : nodes_to_fix ) {
+                node_labels[ fix_id ] = closest_taxopath;
+            }
+        }
+    }
+}
+
 void run_assign( AssignOptions const& options )
 {
     auto out_dir = options.output_dir.out_dir();
@@ -1053,6 +1086,11 @@ void run_assign( AssignOptions const& options )
 
     // assign taxpaths to inner nodes
     postorder_label( tree, node_labels );
+
+    // label those leaves that didn't come with a taxonomic path assignment
+    if ( options.resolve_missing_labels ) {
+        label_undetermined_nodes( tree, node_labels );
+    }
 
     // print taxonomically labelled tree as intermediate result
     print_labelled( tree, node_labels, out_dir + "labelled_tree.newick" );

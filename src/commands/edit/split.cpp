@@ -429,6 +429,7 @@ void run_split( SplitOptions const& options )
     #pragma omp parallel for schedule(dynamic)
     for( size_t si = 0; si < otu_table.samples.size(); ++si ) {
         auto const& sample_entry = otu_table.samples[si];
+
         auto const filename = options.jplace_output.file_prefix() + sample_entry.name + ".jplace";
 
         // User output.

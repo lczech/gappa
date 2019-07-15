@@ -58,6 +58,7 @@ public:
     bool                krona   = false;
     bool                sativa  = false;
     bool                best_hit= false;
+    bool                resolve_missing_labels = false;
 
     std::string         sample_id = "";
 };

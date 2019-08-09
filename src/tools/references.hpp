@@ -1,5 +1,5 @@
-#ifndef GAPPA_TOOLS_CITE_H_
-#define GAPPA_TOOLS_CITE_H_
+#ifndef GAPPA_TOOLS_REFERENCES_H_
+#define GAPPA_TOOLS_REFERENCES_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis

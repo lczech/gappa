@@ -1,6 +1,7 @@
 ## Description
 
-The command takes the reference tree of the provided placefile(s), and for each pquery, it attaches a new leaf node to the tree, positioned according to its proximal length and pendant length. The resulting tree is useful to get an overview of the distribution of placements. It is mainly intended to view a few placements. For large samples, it might be a bit cluttered.
+The command takes the reference tree of the provided placefile(s), and for each pquery, it attaches a new leaf node to the tree, positioned according to its proximal length and pendant length of the most likely placement.
+The resulting tree is useful to get an overview of the distribution of placements. It is mainly intended to view a few placements. For large samples, it might be a bit cluttered.
 
 Similar trees are produced by [RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html), where the file is called `RAxML_labelledTree`, and by the [`guppy tog` command](http://matsen.github.io/pplacer/generated_rst/guppy_tog.html#guppy-tog). Both programs differ in the exact way the the placements are added as edges. To control this behaviour, use the `--fully-resolve` parameter.
 

@@ -39,6 +39,7 @@
 
 #include "genesis/utils/core/exception.hpp"
 
+#include <memory>
 #include <sstream>
 
 // =================================================================================================
@@ -93,7 +94,7 @@ int main( int argc, char** argv )
     // Gappa expects exactly one subcommand.
     app.require_subcommand( 1 );
 
-    // The main app offers a few options as well.
+    // Set the options for the main app. Currently, this is only --version
     setup_main_app_options( app );
 
     // -------------------------------------------------------------------------

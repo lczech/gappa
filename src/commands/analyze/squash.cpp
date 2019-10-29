@@ -115,6 +115,10 @@ void run_squash( SquashOptions const& options )
     // Print some user output.
     options.jplace_input.print();
 
+    // Get color map and norm.
+    auto color_map  = options.color_map.color_map();
+    auto color_norm = options.color_norm.get_sequential_norm();
+
     // Read in the trees and immediately convert them to mass trees to save storage.
     auto mass_trees = options.jplace_input.mass_tree_set();
 
@@ -127,6 +131,22 @@ void run_squash( SquashOptions const& options )
     sc.report_step = [&]( size_t i, size_t total ){
         LOG_MSG2 << " - Step " << i << " of " << total;
     };
+    sc.write_cluster_tree = [&]( tree::MassTree const& cluster_tree, size_t index ){
+        // Prepare colors
+        auto const masses = tree::mass_tree_mass_per_edge( cluster_tree );
+        color_norm->autoscale_max( masses );
+
+        // Now, make a color vector and write to files.
+        auto const colors = color_map( *color_norm, masses );
+        auto const cntr_fn = options.file_output.out_dir() + options.file_output.file_prefix() + std::to_string( index );
+        options.tree_output.write_tree_to_files(
+            cluster_tree,
+            colors,
+            color_map,
+            *color_norm,
+            cntr_fn
+        );
+    };
 
     // Run, Forrest, run!
     LOG_MSG1 << "Running Squash Clustering";
@@ -138,28 +158,4 @@ void run_squash( SquashOptions const& options )
     std::ofstream file_clust_tree;
     utils::file_output_stream( options.file_output.out_dir() + "cluster.newick",  file_clust_tree );
     file_clust_tree << sc.tree_string( options.jplace_input.base_file_names() );
-
-    // Get color map and norm.
-    auto color_map  = options.color_map.color_map();
-    auto color_norm = options.color_norm.get_sequential_norm();
-
-    // Writing inner trees of the cluster hierachry.
-    for( size_t i = 0; i < sc.clusters().size(); ++i ) {
-        auto const& cc = sc.clusters()[i];
-
-        // Prepare colors
-        auto const masses = tree::mass_tree_mass_per_edge( cc.tree );
-        color_norm->autoscale_max( masses );
-
-        // Now, make a color vector and write to files.
-        auto const colors = color_map( *color_norm, masses );
-        auto const cntr_fn = options.file_output.out_dir() + options.file_output.file_prefix() + std::to_string( i );
-        options.tree_output.write_tree_to_files(
-            cc.tree,
-            colors,
-            color_map,
-            *color_norm,
-            cntr_fn
-        );
-    }
 }

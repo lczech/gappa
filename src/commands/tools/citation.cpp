@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ void run_citation( CitationOptions const& options )
         if( options.all ) {
             list = get_all_citation_keys();
         } else {
-            list = { "Czech2019-genesis-and-gappa" };
+            list = { "Czech2020-genesis-and-gappa" };
         }
     } else {
         list = options.keys;

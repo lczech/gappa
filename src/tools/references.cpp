@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,14 +76,14 @@ static std::unordered_map<std::string, Citation> citations_ = {
         "2019",
         "10.1371/journal.pone.0217050"
     }},
-    { "Czech2019-genesis-and-gappa", {
+    { "Czech2020-genesis-and-gappa", {
         {{ "Lucas", "Czech" }, { "Pierre", "Barbera" }, { "Alexandros", "Stamatakis" }},
         "Genesis and Gappa: Processing, Analyzing and Visualizing Phylogenetic (Placement) Data",
-        "bioRxiv",
+        "Bioinformatics",
         "",
         "",
-        "2019",
-        "10.1101/647958"
+        "2020",
+        "10.1093/bioinformatics/btaa070"
     }},
     { "Matsen2011-edgepca-and-squash-clustering", {
         {{ "Frederick", "Matsen" }, { "Steven", "Evans" }},

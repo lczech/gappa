@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -180,8 +180,8 @@ std::function<void()> gappa_cli_callback(
     }
 
     // If the genesis/gappa citation is not present, add it to the front!
-    if( ! genesis::utils::contains( citations, "Czech2019-genesis-and-gappa" )) {
-        citations.insert( citations.begin(), "Czech2019-genesis-and-gappa" );
+    if( ! genesis::utils::contains( citations, "Czech2020-genesis-and-gappa" )) {
+        citations.insert( citations.begin(), "Czech2020-genesis-and-gappa" );
     }
 
     return [ subcommand, citations, run_function ](){

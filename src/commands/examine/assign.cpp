@@ -168,10 +168,17 @@ void setup_assign( CLI::App& app )
     )->group("Output");
 
     sub->add_flag(
+        "--per-query-results",
+        opt->per_query_results,
+        "Print intermediate / per-query results (per_query.tsv)."
+    )->group("Output");
+
+    sub->add_flag(
         "--best-hit",
         opt->best_hit,
-        "In the intermediate results, only print the taxonomic path with the highest LWR."
+        "In the per-query results, only print the taxonomic path with the highest LWR."
     )->group("Output");
+
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -830,7 +837,7 @@ Taxon& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
 static void assign( Sample const& sample,
                     std::vector<Taxopath> const& node_labels,
                     AssignOptions const& options,
-                    std::string per_pquery_result_file = "" )
+                    std::string per_pquery_result_file )
 {
     bool    const   auto_ratio = ( options.dist_ratio < 0.0 );
     double  const   dist_ratio = options.dist_ratio;
@@ -841,9 +848,9 @@ static void assign( Sample const& sample,
     Taxonomy diversity;
 
     std::ofstream per_pquery_out_stream;
-    bool const intermediate_results = (not per_pquery_result_file.empty());
+    bool const per_query_results = options.per_query_results;
 
-    if ( intermediate_results ) {
+    if ( per_query_results ) {
         genesis::utils::file_output_stream( per_pquery_result_file, per_pquery_out_stream );
         per_pquery_out_stream << "name\tLWR\tfract\taLWR\tafract\ttaxopath\n";
     }
@@ -910,7 +917,7 @@ static void assign( Sample const& sample,
 
             // add LW to taxopaths of the nodes according to strategy
             // first to the local one
-            if ( intermediate_results ) {
+            if ( per_query_results ) {
                 add_lwr_to_taxonomy( proximal_portion,  proximal_tax,   per_pq_assignments );
                 add_lwr_to_taxonomy( distal_portion,    distal_tax,     per_pq_assignments );
             }
@@ -920,7 +927,7 @@ static void assign( Sample const& sample,
             add_lwr_to_taxonomy( distal_portion, distal_tax, diversity );
         }
 
-        if ( intermediate_results ) {
+        if ( per_query_results ) {
             std::string composite_name;
             for ( auto const& name : pq.names() ) {
                 if ( not composite_name.empty() ) {

@@ -52,7 +52,7 @@ public:
 
     double              dist_ratio = -1.0;
 
-    FileOutputOptions   output_dir;
+    FileOutputOptions   file_output;
 
     bool                cami    = false;
     bool                krona   = false;

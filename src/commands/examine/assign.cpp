@@ -141,7 +141,8 @@ void setup_assign( CLI::App& app )
     )->group("Settings");
 
     // Output
-    opt->output_dir.add_output_dir_opt_to_app( sub );
+    opt->file_output.add_output_dir_opt_to_app( sub );
+    opt->file_output.add_file_prefix_opt_to_app( sub, "", "assign_" );
 
     auto cami_flag = sub->add_flag(
         "--cami",
@@ -857,7 +858,9 @@ static void assign( Sample const& sample,
 
     std::ofstream sativa_out_stream;
     if ( options.sativa ) {
-        genesis::utils::file_output_stream( options.output_dir.out_dir() + "sativa.tsv", sativa_out_stream );
+        genesis::utils::file_output_stream( options.file_output.out_dir() +
+                                            options.file_output.file_prefix() + "sativa.tsv",
+                                            sativa_out_stream );
     }
 
     for ( auto const& pq : sample.pqueries() ) {
@@ -954,19 +957,19 @@ static void assign( Sample const& sample,
 
     // ========= OUTPUT =============
 
-    std::string out_dir = options.output_dir.out_dir();
+    std::string out_path = options.file_output.out_dir() + options.file_output.file_prefix();
 
     // return diversity profile
-    print_taxonomy_table( options, 0, diversity, out_dir + "profile.tsv" );
+    print_taxonomy_table( options, 0, diversity, out_path + "profile.tsv" );
 
     // print result in CAMI format if desired
     if ( options.cami ) {
-        print_cami( options, diversity, out_dir + "cami.profile" );
+        print_cami( options, diversity, out_path + "cami.profile" );
     }
 
     // print result in krona format if desired
     if ( options.krona ) {
-        print_krona( options, diversity, out_dir + "krona.profile" );
+        print_krona( options, diversity, out_path + "krona.profile" );
     }
 
     // constrain to subtaxonomy if specified
@@ -978,7 +981,7 @@ static void assign( Sample const& sample,
         auto const base_level = taxon_level( subtaxonomy );
 
         // and print to file
-        print_taxonomy_table( options, base_level, subtaxonomy, out_dir + "profile_filtered.tsv" );
+        print_taxonomy_table( options, base_level, subtaxonomy, out_path + "profile_filtered.tsv" );
     }
 }
 
@@ -1062,7 +1065,7 @@ void label_undetermined_nodes( PlacementTree const& tree, std::vector<Taxopath>&
 
 void run_assign( AssignOptions const& options )
 {
-    auto out_dir = options.output_dir.out_dir();
+    auto out_path = options.file_output.out_dir() + options.file_output.file_prefix();
 
     options.jplace_input.print();
     auto sample = options.jplace_input.merged_samples();
@@ -1100,8 +1103,8 @@ void run_assign( AssignOptions const& options )
     }
 
     // print taxonomically labelled tree as intermediate result
-    print_labelled( tree, node_labels, out_dir + "labelled_tree.newick" );
+    print_labelled( tree, node_labels, out_path + "labelled_tree.newick" );
 
     // per rank LWR score eval
-    assign( sample, node_labels, options, out_dir + "per_query.tsv" );
+    assign( sample, node_labels, options, out_path + "per_query.tsv" );
 }

@@ -172,10 +172,10 @@ if( NOT OPENMP_FOUND )
 endif()
 
 # Add CLI11 as dependency. It's header-only, so this is easy.
-include_directories( "libs/CLI11/include" )
+include_directories( SYSTEM "libs/CLI11/include" )
 
 # Same for sparse++
-include_directories( "libs/sparsepp" )
+include_directories( SYSTEM "libs/sparsepp" )
 
 # ------------------------------------------------------------------------------
 #   Sources

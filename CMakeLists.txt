@@ -39,6 +39,12 @@ endif()
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
+# Need to make sure that AppleClang is actually recognized and not mistakingly identifyed
+# as normal Clang. See https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
+# This is important for the test cmake script, where we need to set some warnings for clang,
+# but not for apple clang.
+cmake_policy(SET CMP0025 NEW)
+
 # --------------------------------------------------------------------------------------------------
 #   Project Definition and Requirements
 # --------------------------------------------------------------------------------------------------
@@ -81,12 +87,25 @@ endif()
 #   Compiler and Linker Options
 # --------------------------------------------------------------------------------------------------
 
-# Set the warn flags to a very high level - except unknown pragmas, as this causes needless
-# warnings with OpenMP and other pragma-based techniques.
-set (WARN_FLAGS              "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
-set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
+if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
+    # MinGW/MSVC do not support much. Also, the above string comparison in the condition does
+    # not work there, hence the extra `MSVC` check...
+    set (WARN_FLAGS "-Wall")
+else ()
+    # For other operating systems, set the warn flags to a very high level - except unknown pragmas,
+    # as this causes needless warnings with OpenMP and other pragma-based techniques.
+    set (WARN_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
 
-set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG" )
+    # Furthermore, in debug mode, we also want all warnings to be errors, so that we do not miss them
+    # In release, this might hinder users to successfully build genesis if any warnings remain
+    # or occur only on their compiler, so let's avoid trouble for them.
+    IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+        set (WARN_FLAGS "${WARN_FLAGS} -Werror")
+    ENDIF()
+endif ()
+
+set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
+set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" )
 set (CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG" )
 
 IF(GAPPA_BUILD_STATIC)
@@ -121,6 +140,11 @@ SET( sparsepp_COMMIT_HASH "6bfe3b4bdb364993e612d6bb729d680cf4c77649" ) #sparsepp
 DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "CLI11"    "CMakeLists.txt" "CLIUtils/CLI11"    ${CLI11_COMMIT_HASH} )
 DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "genesis"  "CMakeLists.txt" "lczech/genesis"    ${genesis_COMMIT_HASH} )
 DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "sparsepp" "sparsepp/spp.h" "greg7mdp/sparsepp" ${sparsepp_COMMIT_HASH} )
+
+# Policy CMP0042: Enable MACOSX_RPATH
+if (APPLE)
+   set(CMAKE_MACOSX_RPATH ON)
+endif (APPLE)
 
 # --------------------------------------------------------------------------------------------------
 #   Dependencies Settings

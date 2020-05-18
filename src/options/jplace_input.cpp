@@ -55,7 +55,7 @@ CLI::Option* JplaceInputOptions::add_jplace_input_opt_to_app( CLI::App* sub, boo
     }
 
     jplace_input_option = FileInputOptions::add_multi_file_input_opt_to_app(
-        sub, "jplace", "jplace", required, "Input"
+        sub, "jplace", "jplace(\\.gz)?", "jplace[.gz]", required, "Input"
     );
     return jplace_input_option;
 }

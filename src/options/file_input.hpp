@@ -66,12 +66,15 @@ public:
      * @brief Add the options to an App.
      *
      * Takes a file type used for help messages, and an extension for valid files.
-     * The extenion can be a regex, e.g., `(fas|fasta)`.
+     * The extenion needs to be provided twice, once as a regex, e.g., `(fas|fasta)(\\.gz)?`,
+     * that is used for the actual file matching, and one "nice" version for user output,
+     * for example `(fas|fasta)[.gz]`, both of them without the leading period `.`
      */
     CLI::Option* add_multi_file_input_opt_to_app(
         CLI::App* sub,
         std::string const& type,
-        std::string const& extension,
+        std::string const& extension_regex,
+        std::string const& extension_nice,
         bool               required = true,
         std::string const& group = "Input"
     );

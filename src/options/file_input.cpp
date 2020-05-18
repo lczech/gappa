@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,8 @@
 CLI::Option* FileInputOptions::add_multi_file_input_opt_to_app(
     CLI::App* sub,
     std::string const& type,
-    std::string const& extension,
+    std::string const& extension_regex,
+    std::string const& extension_nice,
     bool               required,
     std::string const& group
 ){
@@ -54,14 +55,14 @@ CLI::Option* FileInputOptions::add_multi_file_input_opt_to_app(
 
     // Store file type info.
     file_type_ = type;
-    file_ext_  = extension;
+    file_ext_  = extension_regex;
 
     // Input files.
     option_ = sub->add_option(
         "--" + type + "-path",
         raw_paths_,
-        "List of " + type + " files or directories to process. " +
-        "For directories, only files with the extension ." + extension + " are processed."
+        "List of " + type + " files or directories to process. For directories, " +
+        "only files with the extension `." + extension_nice + "` are processed."
     );
     if( required ) {
         option_->required();

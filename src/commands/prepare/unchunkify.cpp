@@ -121,7 +121,9 @@ void setup_unchunkify( CLI::App& app )
     //     Input options
     // -----------------------------------------------------------
 
-    opt->abundance_map_input.add_multi_file_input_opt_to_app( sub, "abundances", "json" );
+    opt->abundance_map_input.add_multi_file_input_opt_to_app(
+        sub, "abundances", "json(\\.gz)?", "json[.gz]"
+    );
     opt->jplace_input.add_jplace_input_opt_to_app( sub, false )->group( "Input" );
 
     // -----------------------------------------------------------

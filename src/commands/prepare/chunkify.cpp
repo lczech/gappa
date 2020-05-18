@@ -266,8 +266,14 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
     using namespace genesis::utils;
     using namespace genesis::sequence;
 
-    // using ChunkHashMap = std::unordered_map< typename HashFunction::DigestType, size_t >;
-    using ChunkHashMap = spp::sparse_hash_map< typename HashFunction::DigestType, size_t >;
+    // sparsepp has issues with old debug versions of the STL, so we need to deactivate in
+    // these cases. This mainly affects testing, as in release, it seems, we can still build
+    // with sparsepp, at least according to travis.
+    #if ( defined(DEBUG) && !defined(__clang__) && defined(__GNUC__) && __GNUC___ <= 5 )
+        using ChunkHashMap = std::unordered_map< typename HashFunction::DigestType, size_t >;
+    #else
+        using ChunkHashMap = spp::sparse_hash_map< typename HashFunction::DigestType, size_t >;
+    #endif
 
     // Sequences hashes, mapping to the chunk number where they are stored,
     // i.e. where they first occured.

@@ -159,11 +159,10 @@ jobs:
     #     xenial
     # ==========================================================================
 
-    # # Cannot build, since sparsepp and the debug STL implementation have a weird failing interaction
-    # - name: "xenial / default / debug"
-    #   stage: "Default"
-    #   os: linux
-    #   dist: xenial
+    - name: "xenial / default / debug"
+      stage: "Default"
+      os: linux
+      dist: xenial
 
     - name: "xenial / default / release"
       stage: "Default"

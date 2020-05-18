@@ -35,6 +35,7 @@
 #include "genesis/tree/function/functions.hpp"
 
 #include <cassert>
+#include <limits>
 #include <utility>
 
 #ifdef GENESIS_OPENMP
@@ -148,7 +149,7 @@ void run_accumulate( AccumulateOptions const& options )
 
         // Move the masses up the tree until they exceed the threshold.
         bool exceeded_threshold = false;
-        size_t result_edge;
+        size_t result_edge = std::numeric_limits<size_t>::max();
         for( auto it : postorder( tree )) {
 
             // We are interested in edges, so skip the last iteration.
@@ -174,6 +175,7 @@ void run_accumulate( AccumulateOptions const& options )
                 break;
             }
         }
+        assert( result_edge < std::numeric_limits<size_t>::max() );
 
         // If there is a branch where the accumualtion worked, use it.
         // If not, put on removal list! This can happen if the masses are distributed across different

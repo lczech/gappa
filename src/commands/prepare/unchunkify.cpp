@@ -347,6 +347,7 @@ std::shared_ptr<MappedSample<HashFunction>> load_sample(
 ) {
     // Report cache size on every load, that is, whenever the cache actually changes.
     LOG_MSG3 << "Current jplace cache size: " << chunk_cache.size();
+    LOG_MSG2 << "Reading file " << file_path;
 
     // Create the result and load the sample.
     auto mapped_sample = std::make_shared<MappedSample<HashFunction>>();

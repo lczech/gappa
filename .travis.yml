@@ -159,11 +159,10 @@ jobs:
     #     xenial
     # ==========================================================================
 
-    # # Cannot build, because sparsepp has some issue...
-    # - name: "xenial / default / debug"
-    #   stage: "Default"
-    #   os: linux
-    #   dist: xenial
+    - name: "xenial / default / debug"
+      stage: "Default"
+      os: linux
+      dist: xenial
 
     - name: "xenial / default / release"
       stage: "Default"

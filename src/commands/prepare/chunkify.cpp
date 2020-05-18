@@ -316,7 +316,9 @@ void run_chunkify_with_hash( ChunkifyOptions const& options )
             ++min_abun_count;
 
             // Calculate (relatively expensive) hashes.
-            auto const hash_digest = HashFunction::read_digest( from_string( it->sites() ));
+            // The hash_digest should be const here, but due to some weird interaction of
+            // sparsepp and the debug STL implementation, this does not work.
+            auto hash_digest = HashFunction::read_digest( from_string( it->sites() ));
             auto const hash_hex = HashFunction::digest_to_hex( hash_digest );
 
             // Increment seq abundance for this file and label.

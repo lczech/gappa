@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -115,8 +115,8 @@ void MatrixOutputOptions::write_matrix(
 
     // Do the writing
     if( omit_labels_ ) {
-        writer.to_file( mat, filename );
+        writer.write( mat, genesis::utils::to_file( filename ));
     } else {
-        writer.to_file( mat, filename, row_names, col_names, corner );
+        writer.write( mat, genesis::utils::to_file( filename ), row_names, col_names, corner );
     }
 }

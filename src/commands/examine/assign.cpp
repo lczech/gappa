@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Pierre Barbera, Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Pierre Barbera, Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -254,7 +254,7 @@ void print_labelled( PlacementTree const& tree,
             );
         }
     );
-    writer.to_file( tree, file_name );
+    writer.write( tree, genesis::utils::to_file( file_name ));
 }
 
 std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,11 +63,11 @@ public:
 
     ~TableInputOptions() = default;
 
-    TableInputOptions( TableInputOptions const& other ) = default;
-    TableInputOptions( TableInputOptions&& )            = default;
+    TableInputOptions( TableInputOptions const& other ) = delete;
+    TableInputOptions( TableInputOptions&& )            = delete;
 
-    TableInputOptions& operator= ( TableInputOptions const& other ) = default;
-    TableInputOptions& operator= ( TableInputOptions&& )            = default;
+    TableInputOptions& operator= ( TableInputOptions const& other ) = delete;
+    TableInputOptions& operator= ( TableInputOptions&& )            = delete;
 
     // -------------------------------------------------------------------------
     //     Setup Functions

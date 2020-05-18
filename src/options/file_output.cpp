@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -165,7 +165,7 @@ void FileOutputOptions::check_nonexistent_output_files(
                 LOG_WARN << "Warning: Output file already exists: " + fn;
                 LOG_BOLD;
             } else {
-                throw genesis::ExistingFileError( "Output file already exists: " + fn, fn );
+                throw genesis::except::ExistingFileError( "Output file already exists: " + fn, fn );
             }
         }
     }

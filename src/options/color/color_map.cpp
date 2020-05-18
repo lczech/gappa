@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@
 
 #include "options/global.hpp"
 
-#include "genesis/utils/tools/color/diverging_lists.hpp"
-#include "genesis/utils/tools/color/qualitative_lists.hpp"
-#include "genesis/utils/tools/color/sequential_lists.hpp"
+#include "genesis/utils/tools/color/list_diverging.hpp"
+#include "genesis/utils/tools/color/list_qualitative.hpp"
+#include "genesis/utils/tools/color/list_sequential.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -232,16 +232,16 @@ genesis::utils::ColorMap const& ColorMapOptions::color_map() const
 
     // Now resolve the actual color list.
     // Try color list names first.
-    if( contains_ci( diverging_color_list_names(), palette_param_ )) {
-        color_map_.palette( diverging_color_list( palette_param_ ));
+    if( contains_ci( color_list_diverging_names(), palette_param_ )) {
+        color_map_.palette( color_list_diverging( palette_param_ ));
         return color_map_;
     }
-    if( contains_ci( qualitative_color_list_names(), palette_param_ )) {
-        color_map_.palette( qualitative_color_list( palette_param_ ));
+    if( contains_ci( color_list_qualitative_names(), palette_param_ )) {
+        color_map_.palette( color_list_qualitative( palette_param_ ));
         return color_map_;
     }
-    if( contains_ci( sequential_color_list_names(), palette_param_ )) {
-        color_map_.palette( sequential_color_list( palette_param_ ));
+    if( contains_ci( color_list_sequential_names(), palette_param_ )) {
+        color_map_.palette( color_list_sequential( palette_param_ ));
         return color_map_;
     }
 

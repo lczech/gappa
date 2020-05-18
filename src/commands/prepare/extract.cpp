@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/color/qualitative_lists.hpp"
+#include "genesis/utils/tools/color/list_qualitative.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -439,7 +439,10 @@ void write_sample_set(
     #pragma omp parallel for schedule(dynamic)
     for( size_t si = 0; si < sample_set.size(); ++si ) {
         auto const fn = options.jplace_output.file_prefix() + sample_set.name_at( si ) + ".jplace";
-        writer.to_file( sample_set.at( si ), options.jplace_output.out_dir() + fn );
+        writer.write(
+            sample_set.at( si ),
+            genesis::utils::to_file( options.jplace_output.out_dir() + fn )
+        );
     }
 }
 
@@ -661,7 +664,7 @@ void extract_sequences(
                     }
 
                     // Write and clear.
-                    writer.to_stream( clade_seqs, out_stream );
+                    writer.write( clade_seqs, genesis::utils::to_stream( out_stream ));
                     clade_seqs.clear();
                 }
             }
@@ -681,7 +684,7 @@ void extract_sequences(
         }
 
         // Write.
-        writer.to_stream( clade_seqs.second, out_stream );
+        writer.write( clade_seqs.second, genesis::utils::to_stream( out_stream ));
     }
 
     LOG_MSG1 << "Collected " << total_seqs_count << " sequences in " << list.size() << " clades.";

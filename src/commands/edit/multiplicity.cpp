@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -399,7 +399,10 @@ void change_multiplicities( MultiplicityOptions const& options )
 
         // Write sample back to file.
         auto const ofn = options.file_output.file_prefix() + basename + ".jplace";
-        genesis::placement::JplaceWriter().to_file( sample, options.file_output.out_dir() + ofn );
+        genesis::placement::JplaceWriter().write(
+            sample,
+            genesis::utils::to_file( options.file_output.out_dir() + ofn )
+        );
     }
 
     if( not_found > 0 ) {

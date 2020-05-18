@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -185,7 +185,7 @@ void write_chunk_file(
     ;
 
     // Write
-    writer.to_file( chunk, ofn );
+    writer.write( chunk, genesis::utils::to_file( ofn ));
 }
 
 void write_abundance_map_file(

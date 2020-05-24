@@ -71,8 +71,9 @@ in its `fasta` file like this:
     ...
 
 This information can be used here to set multiplicities. The command expects the base name of the
-`fasta` files (that is, without the `.fasta` extension) to be identical to the base name of the
-corresponding `jplace` file, in order to know which multiplicities to use for which sample.
+`fasta` files (that is, without the `.fasta` or `.fasta.gz` extension) to be identical to the base
+name of the corresponding `.jplace` (or `.jplace.gz`) file, in order to know which multiplicities
+to use for which sample.
 
 The following annotation formats are supported:
 

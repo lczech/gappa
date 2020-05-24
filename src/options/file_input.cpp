@@ -146,7 +146,11 @@ std::vector<std::string> FileInputOptions::base_file_names() const
 
     auto paths = file_paths();
     for( auto& path : paths ) {
-        path = file_filename( file_basename( path ));
+        auto fn = file_basename( path );
+        if( ends_with( fn, ".gz" ) ) {
+            fn.erase( fn.size() - 2 );
+        }
+        path = file_filename( fn );
     }
     return paths;
 }
@@ -154,7 +158,11 @@ std::vector<std::string> FileInputOptions::base_file_names() const
 std::string FileInputOptions::base_file_name( size_t index ) const
 {
     using namespace genesis::utils;
-    return file_filename( file_basename( file_path( index )));
+    auto fn = file_basename( file_path( index ));
+    if( ends_with( fn, ".gz" ) ) {
+        fn.erase( fn.size() - 3 );
+    }
+    return file_filename( fn );
 }
 
 void FileInputOptions::print() const

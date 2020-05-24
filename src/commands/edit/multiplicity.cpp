@@ -220,7 +220,7 @@ std::pair<MultiplicityMap, std::vector<std::string>> get_multiplicities_fasta_fi
 ) {
     using namespace genesis;
 
-    // Already checked upon callind this function. Assert again here.
+    // Already checked upon calling this function. Assert again here.
     assert( options.multiplicity_file.empty() );
     assert( options.sequence_input.file_count() > 0 );
 
@@ -390,7 +390,7 @@ void change_multiplicities( MultiplicityOptions const& options )
                     ++not_found;
 
                     // User output.
-                    LOG_MSG2 << "No multilicity value found for pquery '" << pqn.name
+                    LOG_MSG2 << "No multiplicity value found for pquery '" << pqn.name
                              << "' in sample " << basename << " ("
                              << options.jplace_input.file_path( fi ) <<  ").";
                 }

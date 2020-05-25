@@ -47,7 +47,7 @@ inline std::string gappa_header()
      |''   .|' ||   ||    |  ||    | .|' ||     .|'|.  ||     \n\
     '....  '|..'|'. ||...'   ||...'  '|..'|.    '||'    ||:.  \n\
     '....'          ||       ||                               \n\
-                   ''''     ''''    " + gappa_version() + ", (c) 2017-2019\n\
+                   ''''     ''''    " + gappa_version() + ", (c) 2017-2020\n\
                                     by Lucas Czech and Pierre Barbera\n";
 }
 

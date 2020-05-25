@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 /**
  * @brief Callback wrapper function to use for gappa commands.
  *
- * Using this function to generate the callback for CLI commands ensures a consitent interface:
+ * Using this function to generate the callback for CLI commands ensures a consistent interface:
  * It takes the subcommand, so that its options can be printed, as well as the references that
  * need to be cited when running the command. Lastly, it takes the actual callback function,
  * identically to what CLI expects.

@@ -36,7 +36,7 @@ Example:
     ...
 
 This will create a tree with tips labeled `AY842031`, `JQ031957`, etc, and a topology that reflects
-the taxonmic paths.
+the taxonomic paths.
 
 ### `--taxonomy-file`
 

@@ -167,6 +167,11 @@ std::function<void()> gappa_cli_callback(
     // to execute a command to be sure that its citations are correctly set.
     check_citations( citations );
 
+    // If the genesis/gappa citation is not present, add it to the front!
+    if( ! genesis::utils::contains( citations, "Czech2020-genesis-and-gappa" )) {
+        citations.insert( citations.begin(), "Czech2020-genesis-and-gappa" );
+    }
+
     // Add the citations to the list, so that they can be used by the wiki command
     // to automatically generate citation lists at the bottom of each page.
     if( citation_list.count( subcommand ) > 0 ) {
@@ -177,11 +182,6 @@ std::function<void()> gappa_cli_callback(
     }
     if( ! citations.empty() ) {
         citation_list[ subcommand ] = citations;
-    }
-
-    // If the genesis/gappa citation is not present, add it to the front!
-    if( ! genesis::utils::contains( citations, "Czech2020-genesis-and-gappa" )) {
-        citations.insert( citations.begin(), "Czech2020-genesis-and-gappa" );
     }
 
     return [ subcommand, citations, run_function ](){

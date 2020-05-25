@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@
 
 void GlobalOptions::initialize( int const argc, char const* const* argv )
 {
-    // By default, use the hardware threads.
-    opt_threads.value = std::thread::hardware_concurrency();
+    // By default, use the hardware threads, taking hypterthreding into account
+    opt_threads.value = genesis::utils::Options::get().guess_number_of_threads(false);
 
     // If hardware value is not available, just use 1 thread.
-    // This is executed if the call to hardware_concurrency fails.
+    // This is executed if the call to the above function fails.
     if( opt_threads.value == 0 ) {
         opt_threads.value = 1;
     }

@@ -89,6 +89,14 @@ void setup_lwr( CLI::App& app )
         "the memory requirements might be too large. In that case, this option can help."
     )->group( "Settings" );
 
+    // Offer to ignore the check for tree compatibility
+    sub->add_flag(
+        "--no-compat-check",
+        opt->no_compat_check,
+        "If set, disables the check for tree compatibility. Useful if comparing results "
+        "across differing reference trees."
+    )->group( "Settings" );
+
     // Output
     opt->file_output.add_output_dir_opt_to_app( sub );
     opt->file_output.add_file_prefix_opt_to_app( sub, "", "lwr_" );
@@ -160,13 +168,16 @@ void run_lwr( LwrOptions const& options )
 
         // Check whether the tree is the same. This is totally not needed for the calculation,
         // but the case where we want different trees to be summarized sounds more like and error.
-        #pragma omp critical(GAPPA_LWR_TREE)
-        {
-            // Tree
-            if( tree.empty() ) {
-                tree = sample.tree();
-            } else if( ! genesis::placement::compatible_trees( tree, sample.tree() ) ) {
-                throw std::runtime_error( "Input jplace files have differing reference trees." );
+        if( ! options.no_compat_check ) {
+            #pragma omp critical(GAPPA_LWR_TREE)
+            {
+                // Tree
+                if( tree.empty() ) {
+                    tree = sample.tree();
+                } else if( ! genesis::placement::compatible_trees( tree, sample.tree() ) ) {
+                    throw std::runtime_error( "Input jplace files have differing reference trees. "
+                        "(Disable this check using --no-compat-check)" );
+                }
             }
         }
 

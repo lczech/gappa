@@ -40,9 +40,10 @@ class LwrOptions
 {
 public:
 
-    size_t histogram_bins = 25;
-    size_t num_lwrs       = 5;
-    bool   no_list_file   = false;
+    size_t histogram_bins   = 25;
+    size_t num_lwrs         = 5;
+    bool   no_list_file     = false;
+    bool   no_compat_check  = false;
 
     JplaceInputOptions jplace_input;
     FileOutputOptions  file_output;

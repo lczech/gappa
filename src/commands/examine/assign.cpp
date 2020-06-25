@@ -137,7 +137,7 @@ void setup_assign( CLI::App& app )
         opt->resolve_missing_labels,
         "Should the taxon file be incomplete and leave some taxa without taxopaths, fill in the "
         "missing node labels using the closest (in the tree) label.\n"
-        "If not specified, those parts of the tree remain unlabeled, and their placements unassigned."
+        "If not specified, those parts of the tree remain unlabelled, and their placements unassigned."
     )->group("Settings");
 
     // Output
@@ -265,6 +265,7 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
     csv_reader.separator_chars( "\t" );
     std::vector<Taxopath> node_labels( tree.node_count() );
 
+    size_t leafs_assigned = 0;
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( taxon_file ));
     while (it) {
         auto fields = csv_reader.parse_line( it );
@@ -278,11 +279,29 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
 
         auto node_ptr = find_node( tree, name );
 
-        if ( node_ptr == nullptr ) {
-            throw std::runtime_error{"Could not find node with name: " + name};
+        // only set this taxon label into the tree if we actually found a corresponding leaf
+        if ( node_ptr ) {
+            node_labels[ node_ptr->index() ] = tpp.parse( tax_string );
+            if ( is_leaf( *node_ptr ) ) {
+                ++leafs_assigned;
+            }
         }
+    }
 
-        node_labels[ node_ptr->index() ] = tpp.parse( tax_string );
+    if ( leafs_assigned == 0 ) {
+        throw std::runtime_error{
+            "No taxon labels were assigned to the reference tree!\n"
+            "Please check tree leaf label and taxon file taxa name congruency!"
+        };
+    } 
+
+    // since we now allow taxon files that are supersets of the taxa in the tree
+    // we need to make sure that the user knows when there are taxa missing
+    auto const num_leafs = leaf_node_count(tree);
+    if ( leafs_assigned < num_leafs ) {
+        LOG_WARN << "Not all leafs in the reference tree were taxonomically labelled!"
+                 << "(" << std::to_string(leafs_assigned) << " / " << std::to_string(num_leafs) << ")\n"
+                 << "Please check tree leaf label and taxon file taxa name congruency!";
     }
 
     return node_labels;

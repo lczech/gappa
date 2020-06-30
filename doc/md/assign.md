@@ -3,13 +3,23 @@
 The command takes one or more `jplace` files as input and assigns the likelihood weights of each placement to a taxonomic rank, then prints a high level profile of how the total likelihood weight is distributed on the taxonomy (specified by the `--taxon-file`). To achieve this, the command operates in three phases.
 
 First, the tree found in the `jplace` input is labelled according to the information found in the [`taxon-file`](#taxonomic-label-file--taxon-file), beginning at the tip nodes.
-Inner nodes of the tree are labelled according to the most specific taxonomic rank shared by both its child nodes (i.e. if one child is labelled "A;B;C", and the other is labelled "A;B;D", the parent node will be labelled "A;B"). The resulting labelled tree is printed to file as the first intermediate result (filename `labelled_tree.newick`).
+Inner nodes of the tree are labelled by a [consensus](#consensus-threshold---consensus-thresh) of the tips that are descendant of that inner node.
+The resulting labelled tree is printed to file as the first intermediate result (filename `<prefix>labelled_tree.newick`).
 
-Second, the algorithm goes through each placement in the `jplace` input and assigns its likelihood weight to one or more taxonomic ranks, according to the [specified strategy](#distribution-ratio---distribution-ratio). This triggers the second intermediate result, which is a file containing the per-query results of this assignment (filename `per_query.tsv`).
+Second, the algorithm goes through each placement in the `jplace` input and assigns its likelihood weight to one or more taxonomic ranks, according to the [specified strategy](#distribution-ratio---distribution-ratio).
+Assuming the option `--per-query-results` is specified, this triggers the second intermediate result, which is a file containing the per-query results of this assignment (filename `<prefix>per_query.tsv`, off by default as the volume of data can be high).
 
-Third, the command summarizes these assignments by collapsing them into one tabulation, showing information about the total distribution of likelihood weight across the taxonomy ([example](#final-output), filename `profile.tsv`).
+Third, the command summarizes these assignments by collapsing them into one tabulation, showing information about the total distribution of likelihood weight across the taxonomy ([example](#final-output), filename `<prefix>profile.tsv`).
 
 ## Details
+
+### Consensus Threshold (`--consensus-thresh`)
+This argument regulates the threshold by which a majority taxonomic path is chosen while assigning such labels to the inner nodes of the tree.
+
+For example, assuming the consensus threshold is set to `0.5`, then if four descendants of an inner node are labelled "A;B;C", and three are labelled "A;B;D", the inner node will get the label "A;B;C".
+In this same scenario if the threshold is set to `0.6`, the third taxonomic level will not reach a sufficient consensus, and thus the inner node would be labelled "A;B".
+
+The default value is `1.0`, which is equivalent to a strict intersection of the taxopaths of the inner nodes direct children (the default behaviour before this option was introduced).
 
 ### jplace File(s) (`--jplace-path`)
 
@@ -37,9 +47,9 @@ Cow     Eukaryota;Animalia;Chordata;Mammalia;Artiodactyla;Bovidae
 
 ### Resolve missing taxonomic labels (`--resolve-missing-paths`)
 
-The above mentioned Taxonomic Label file may be incomplete, leaving some taxa (tips) of the reference tree without a label. The direct consequence of this is an incompletely labeled reference tree, leaving queries on those branches without a taxonomic assignment.
+The above mentioned Taxonomic Label file may be incomplete, leaving some taxa (tips) of the reference tree without a label. The direct consequence of this is an incompletely labelled reference tree, leaving queries on those branches without a taxonomic assignment.
 
-When specifying the `--resolve-missing-paths` flag, the `assign` algorithm tries to resolve the missing labels. It does so by identifying unlabeled branches, traveling "up" the tree (in direction of the root) until it finds a branch that is labeled. It then labels all branches on that path using this closest label.
+When specifying the `--resolve-missing-paths` flag, the `assign` algorithm tries to resolve the missing labels. It does so by identifying unlabelled branches, traveling "up" the tree (in direction of the root) until it finds a branch that is labelled. It then labels all branches on that path using this closest label.
 
 ### Distribution Ratio (`--distribution-ratio`)
 
@@ -84,7 +94,7 @@ We however usually recommend using the default automatic ratio (that is, do not 
 
 ### Final Output
 
-The final output of the command is a tabulation of the distribution of the total likelihood weight across the taxonomy, which is written to the file `profile.tsv`.
+The final output of the command is a tabulation of the distribution of the total likelihood weight across the taxonomy, which is written to the file `<prefix>profile.tsv`.
 
 The meaning of the column headers are:
 
@@ -109,7 +119,7 @@ The meaning of the column headers are:
  0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
  ```
 
-In addition to this, the command will print a file called `per_query.tsv` containing one assignment profile per input query.
+In addition to this, if the option `--per-query-results` is also passed, the command will print a file called `<prefix>per_query.tsv` containing one assignment profile per input query.
 ```
 name  LWR     fract   aLWR    afract  taxopath
 Carp  0       0       1       1       Eukaryota
@@ -153,7 +163,7 @@ Furthermore, additional output formats are available:
 ### Filtering (`--sub-taxopath`)
 
 Additionally, the tabulated output may be filtered (constrained) to include only a part of the taxonomy.
-This behavior is regulated via the `--sub-taxopath` option, and the result is printed to a file called `profile_filtered.tsv` in the specified output directory.
+This behavior is regulated via the `--sub-taxopath` option, and the result is printed to a file called `<prefix>profile_filtered.tsv` in the specified output directory.
 
 For this output, the normalization of the accumulated LWR and fraction columns only takes the specified subtaxonomy into account.
 This option is hence useful to get a more detailed view at a specific part of the taxonomy.

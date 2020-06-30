@@ -50,7 +50,8 @@ public:
     size_t              max_tax_level;
     JplaceInputOptions  jplace_input;
 
-    double              dist_ratio = -1.0;
+    double              dist_ratio          = -1.0;
+    double              consensus_threshold = 1.0;
 
     FileOutputOptions   file_output;
 

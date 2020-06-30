@@ -58,6 +58,9 @@
 #include "genesis/placement/function/manipulation.hpp"
 
 #include <fstream>
+#include <unordered_map>
+#include <vector>
+#include <limits>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -130,6 +133,13 @@ void setup_assign( CLI::App& app )
         "Ratio by which LWR is split between annotations if an edge has two possible annotations. "
         "Specifies the amount going to the proximal annotation. If not set program will determine "
         "the ratio automatically from the 'distal length' specified per placement."
+    )->check(CLI::Range(0.0,1.0))->group("Settings");
+
+    sub->add_option(
+        "--consensus-thresh",
+        opt->consensus_threshold,
+        "For assignment of taxonomic labels to the reference tree, require this consensus threshold. "
+        "Example: if set to 0.6, and 60% of an inner node's descendants share a taxonomic path, set that path at the inner node."
     )->check(CLI::Range(0.0,1.0))->group("Settings");
 
     sub->add_flag(
@@ -220,23 +230,113 @@ Taxopath intersect( Taxopath const& lhs, Taxopath const& rhs )
     return result;
 }
 
+Taxopath consensus( std::vector<Taxopath> const& node_labels,
+                    std::vector< size_t > node_ids,
+                    double const cons_thresh )
+{
+    Taxopath result;
+
+    double const num_nodes = node_ids.size();
+
+    // get the maximum taxopath level in the set
+    size_t level_end = std::numeric_limits<size_t>::max();
+    for ( auto const id : node_ids ) {
+        auto const& cur_taxpath = node_labels[ id ];
+        level_end = std::min( level_end, cur_taxpath.size() );
+    }
+
+    // go through all taxopath levels
+    for ( size_t level = 0; level < level_end; ++level ) {
+        // find consensus for this level
+        std::unordered_map< std::string, size_t > taxstring_count;
+        for ( auto const id : node_ids ) {
+            auto const& cur_taxpath = node_labels[ id ];
+            auto const& cur_tax = cur_taxpath[ level ];
+            taxstring_count[ cur_tax ] += 1u;
+            // short-abort if the ratio this is the consensus already
+            if ( taxstring_count[ cur_tax ] / num_nodes >= cons_thresh ) {
+                break;
+            }
+        }
+
+        // determine the consensus tax string
+        std::string consensus;
+        for ( auto const& pair : taxstring_count ) {
+            if ( pair.second / num_nodes >= cons_thresh ) {
+                consensus = pair.first;
+            }
+        }
+
+        if ( consensus.empty() ) {
+            // if no consensus on this level, abort as we have found the most specific level possible
+            break;
+        } else {
+            // otherwise add
+            result.push_back( consensus );
+        }
+    }
+
+    return result;
+}
+
+void update_descendants( std::vector< std::vector< size_t > >& leaf_indices_below,
+                         TreeNode const& parent,
+                         TreeNode const& child )
+{
+    auto& cur_descendants   = leaf_indices_below[ parent.index() ];
+    auto& child_descendants = leaf_indices_below[ child.index() ];
+    if ( is_leaf( child ) ) {
+        // if the child is a leaf, take that index
+        cur_descendants.push_back( child.index() );
+    } else {
+        // if its an inner node, add its descendant indices to the current node
+        if ( child_descendants.empty() ) {
+            throw std::runtime_error{"Inner node descendant vector empty."};
+        }
+        cur_descendants.insert( std::end( cur_descendants ),
+                                std::begin( child_descendants ),
+                                std::end( child_descendants ) );
+    }
+}
+
 // go through the tree in postorder fashion and label inner nodes according to the most common taxonomic rank of the children
 // allow empty labels and propagate them up, however any label is always better than no label
 // so intersect should always return the common most specific taxopath, except when one taxopath is fully empty,
 // in which case it should take the nonempty one
-void postorder_label( PlacementTree const& tree, std::vector<Taxopath>& node_labels )
+void postorder_label( PlacementTree const& tree,
+                      std::vector<Taxopath>& node_labels,
+                      double const cons_thresh )
 {
+    std::vector< std::vector< size_t > > leaf_indices_below( tree.node_count() );
+
     for ( auto it : postorder( tree ) ) {
         if( is_inner( it.node() )) {
-            auto const child_1_idx = it.node().link().next().outer().node().index();
-            auto const child_2_idx = it.node().link().next().next().outer().node().index();
+            auto const& parent      = it.node();
+            auto const parent_idx   = parent.index();
 
+            auto const& child_1     = it.node().link().next().outer().node();
+            auto const& child_2     = it.node().link().next().next().outer().node();
+            auto const child_1_idx  = child_1.index();
+            auto const child_2_idx  = child_2.index();
+
+            if ( not leaf_indices_below[ parent_idx ].empty() ) {
+                throw std::runtime_error{"Inner node descendant vector not empty before filling phase."};
+            }
+
+            // keep track of all leaf indices below this inner node, such that we can access them for the consensus mode
+            update_descendants( leaf_indices_below, parent, child_1 );            
+            update_descendants( leaf_indices_below, parent, child_2 );            
+
+            auto& cur_descendants = leaf_indices_below[ parent_idx ];
+
+            // assignment by different strategies
             if ( node_labels[ child_1_idx ].empty() ) {
-                node_labels[ it.node().index() ] = node_labels[ child_2_idx ];
+                node_labels[ parent_idx ] = node_labels[ child_2_idx ];
             } else if ( node_labels[ child_2_idx ].empty() ) {
-                node_labels[ it.node().index() ] = node_labels[ child_1_idx ];
+                node_labels[ parent_idx ] = node_labels[ child_1_idx ];
             } else {
-                node_labels[ it.node().index() ] = intersect( node_labels[ child_1_idx ], node_labels[ child_2_idx ] );
+                node_labels[ parent_idx ] = consensus( node_labels, cur_descendants, cons_thresh );
+                // node_labels[ parent_idx ] = intersect( node_labels[ child_1_idx ], node_labels[ child_2_idx ] );
             }
         }
     }
@@ -1114,7 +1214,7 @@ void run_assign( AssignOptions const& options )
     auto node_labels = assign_leaf_taxopaths(tree, options.taxon_map_file);
 
     // assign taxpaths to inner nodes
-    postorder_label( tree, node_labels );
+    postorder_label( tree, node_labels, options.consensus_threshold );
 
     // label those leaves that didn't come with a taxonomic path assignment
     if ( options.resolve_missing_labels ) {

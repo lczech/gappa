@@ -35,7 +35,7 @@
 // =================================================================================================
 
 // Fasta extensions: https://en.wikipedia.org/wiki/FASTA_format#File_extension
-const std::string SequenceInputOptions::fasta_extensions_ = "fasta|fas|fsa|fna|ffn|faa|frn";
+const std::string SequenceInputOptions::fasta_extensions_ = "fasta|fas|fsa|fna|ffn|faa|frn|afa";
 const std::string SequenceInputOptions::phylip_extensions_ = "phylip|phy";
 
 SequenceInputOptions::SequenceInputOptions()

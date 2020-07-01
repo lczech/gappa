@@ -29,6 +29,7 @@
 #include "commands/prepare.hpp"
 #include "commands/random.hpp"
 #include "commands/tools.hpp"
+#include "commands/sequence.hpp"
 
 #include "options/global.hpp"
 
@@ -112,6 +113,7 @@ int main( int argc, char** argv )
     setup_prepare( app );
     setup_random( app );
     setup_tools( app );
+    setup_sequence( app );
 
     // -------------------------------------------------------------------------
     //     Final Checks and Steps

@@ -407,7 +407,7 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
     return node_labels;
 }
 
-void add_lwr_to_taxonomy(   const double lwr,
+void add_lwr_to_taxonomy(   double const lwr,
                             Taxopath const& path,
                             Taxonomy& taxonomy )
 {
@@ -954,6 +954,31 @@ Taxon& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
     return *subtax;
 }
 
+/*
+    Determine how close, in percentage [0,1] a given <length> is to value
+    <close> as opposed to value <distant>. Return value is capped to [0,1],
+    such that if <length> is below <close> it defaults to 1.0
+ */
+double proximity( double const length, double const close, double const distant )
+{
+    if( close > distant ) {
+        throw std::invalid_argument{"In proximity(): close exceeds distant"};
+    }
+
+    if( length < close ) {
+        return 1.0;
+    } else if( length > distant ) {
+        return 0.0;
+    }
+
+    auto pos        = length - close;
+    auto furthest   = distant - close;
+
+    pos /= furthest;
+
+    return 1 - pos;
+}
+
 static void assign( Sample const& sample,
                     std::vector<Taxopath> const& node_labels,
                     AssignOptions const& options,
@@ -982,6 +1007,10 @@ static void assign( Sample const& sample,
                                             sativa_out_stream );
     }
 
+    // set up stuff to deal with outliers
+    Taxopath outlier_taxopath({ "DISTANT" });
+    auto const outlier_length = diameter( sample.tree() ) / 2.0;
+
     for ( auto const& pq : sample.pqueries() ) {
         Taxonomy per_pq_assignments;
 
@@ -1001,7 +1030,7 @@ static void assign( Sample const& sample,
 
         for ( auto const& p : pq.placements() ) {
             // scale the LWR by the multiplicity
-            auto const lwr = p.like_weight_ratio * multiplicity;
+            auto lwr = p.like_weight_ratio * multiplicity;
             // get its adjacent nodes
             auto const& edge = tree.edge_at( p.edge().index() );
             auto const& proximal_node   = edge.primary_node();
@@ -1013,11 +1042,11 @@ static void assign( Sample const& sample,
 
             double ratio = dist_ratio;
             // determine the ratio
+            auto const attachment_branch_length = edge.data<CommonEdgeData>().branch_length;
             if ( auto_ratio ) {
                 auto const position         = p.proximal_length;
-                auto const branch_length    = edge.data<CommonEdgeData>().branch_length;
                 // in percent, how far toward the distal are we?
-                auto const toward_distal    = (1.0 / branch_length) * position;
+                auto const toward_distal    = (1.0 / attachment_branch_length) * position;
                 // the ratio is effectively "how much lwr mass should go toward the PROXIMAL", so we need to flip it
                 ratio = 1.0 - toward_distal;
 
@@ -1028,6 +1057,18 @@ static void assign( Sample const& sample,
                 assert(ratio >= 0.0);
                 assert(ratio <= 1.0);
             }
+
+            // determine the ratio to account for pendant-length outliers
+            auto const pendant_length = p.pendant_length;
+
+            // how close is the pendant length?
+            double const closeness_ratio = proximity(   pendant_length,
+                                                        attachment_branch_length,
+                                                        outlier_length );
+
+            // sap away LWR based on the distance of the pendant
+            auto pendant_portion = lwr * (1.0 - closeness_ratio);
+            lwr *= closeness_ratio;
 
             // calculate lwr portions
             auto proximal_portion   = lwr * ratio;
@@ -1042,11 +1083,17 @@ static void assign( Sample const& sample,
             if ( per_query_results ) {
                 add_lwr_to_taxonomy( proximal_portion,  proximal_tax,   per_pq_assignments );
                 add_lwr_to_taxonomy( distal_portion,    distal_tax,     per_pq_assignments );
+                if ( pendant_portion > 0.0 ) {
+                    add_lwr_to_taxonomy( pendant_portion, outlier_taxopath, per_pq_assignments );
+                }
             }
 
             // then to the global one
-            add_lwr_to_taxonomy( proximal_portion, proximal_tax, diversity );
-            add_lwr_to_taxonomy( distal_portion, distal_tax, diversity );
+            add_lwr_to_taxonomy( proximal_portion,  proximal_tax,   diversity );
+            add_lwr_to_taxonomy( distal_portion,    distal_tax,     diversity );
+            if ( pendant_portion > 0.0 ) {
+                add_lwr_to_taxonomy( pendant_portion, outlier_taxopath, diversity );
+            }
         }
 
         if ( per_query_results ) {

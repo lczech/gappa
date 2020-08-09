@@ -42,7 +42,6 @@
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/list_sequential.hpp"
-#include "genesis/utils/tools/color/list_sequential.hpp"
 
 #include <fstream>
 #include <stdexcept>

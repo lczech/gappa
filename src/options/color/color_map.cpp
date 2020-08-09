@@ -79,7 +79,7 @@ CLI::Option* ColorMapOptions::add_color_list_opt_to_app(
         [this]( size_t ){
             color_map_.reverse( true );
         },
-        "If set, the --color-list is reversed."
+        "If set, the `--color-list` is reversed."
     )->group( "Color" );
 
     return color_list_option;
@@ -98,8 +98,8 @@ CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub, std::st
         [this]( size_t ){
             color_map_.clip_under( true );
         },
-        "Clip (clamp) values less than min to be inside [ min, max ]. "
-        "If set, --under-color is not used to indicate values out of range."
+        "Clip (clamp) values less than min to be inside `[ min, max ]`. "
+        "If set, `--under-color` is not used to indicate values out of range."
     )->group( "Color" );
 
     // Under Color
@@ -117,8 +117,8 @@ CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub, std::st
             [this]( size_t ){
                 color_map_.clip( true );
             },
-            "Clip (clamp) values to be inside [ min, max ]. "
-            "This option is a shortcut to set --clip-under and --clip-over at once."
+            "Clip (clamp) values to be inside `[ min, max ]`. "
+            "This option is a shortcut to set `--clip-under` and `--clip-over` at once."
         )->group( "Color" );
     }
 
@@ -138,8 +138,8 @@ CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub, std::str
         [this]( size_t ){
             color_map_.clip_over( true );
         },
-        "Clip (clamp) values greater than max to be inside [ min, max ]. "
-        "If set, --over-color is not used to indicate values out of range."
+        "Clip (clamp) values greater than max to be inside `[ min, max ]`. "
+        "If set, `--over-color` is not used to indicate values out of range."
     )->group( "Color" );
 
     // Over Color
@@ -157,8 +157,8 @@ CLI::Option* ColorMapOptions::add_over_color_opt_to_app( CLI::App* sub, std::str
             [this]( size_t ){
                 color_map_.clip( true );
             },
-            "Clip (clamp) values to be inside [ min, max ]. "
-            "This option is a shortcut to set --clip-under and --clip-over at once."
+            "Clip (clamp) values to be inside `[ min, max ]`. "
+            "This option is a shortcut to set `--clip-under` and `--clip-over` at once."
         )->group( "Color" );
     }
 
@@ -242,6 +242,10 @@ genesis::utils::ColorMap const& ColorMapOptions::color_map() const
     }
     if( contains_ci( color_list_sequential_names(), palette_param_ )) {
         color_map_.palette( color_list_sequential( palette_param_ ));
+        return color_map_;
+    }
+    if( contains_ci( color_list_misc_names(), palette_param_ )) {
+        color_map_.palette( color_list_misc( palette_param_ ));
         return color_map_;
     }
 

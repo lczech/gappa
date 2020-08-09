@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <cctype>
@@ -154,8 +155,8 @@ void run_random_placements( RandomPlacementsOptions const& options )
     sim.generate( sample, options.num_pqueries );
 
     // Write result file.
-    JplaceWriter().to_file(
+    JplaceWriter().write(
         sample,
-        options.output.file_prefix() + "random-placements.jplace"
+        genesis::utils::to_file( options.output.file_prefix() + "random-placements.jplace" )
     );
 }

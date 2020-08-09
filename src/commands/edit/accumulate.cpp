@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,9 @@
 #include "genesis/placement/formats/jplace_writer.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/masses.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/iterator/postorder.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <utility>
@@ -230,5 +231,8 @@ void run_accumulate( AccumulateOptions const& options )
 
     // Write the new sample to a file.
     std::string const filename = options.jplace_output.file_prefix() + "accumulated.jplace";
-    JplaceWriter().to_file( sample, options.jplace_output.out_dir() + filename );
+    JplaceWriter().write(
+        sample,
+        genesis::utils::to_file( options.jplace_output.out_dir() + filename )
+    );
 }

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,18 +28,19 @@
 
 #include "CLI/CLI.hpp"
 
-#include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/operators.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/mass_tree/phylo_factor_colors.hpp"
 #include "genesis/tree/mass_tree/phylo_factor.hpp"
-#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/containers/matrix/writer.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/sequential_lists.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/math/regression/dataframe.hpp"
 #include "genesis/utils/math/regression/glm.hpp"
+#include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/list_sequential.hpp"
 
 #include <fstream>
 #include <stdexcept>
@@ -386,8 +387,8 @@ void write_balances_table(
     }
 
     // Write balances of the factors.
-    MatrixWriter<double>().to_file(
-        balances, options.file_output.out_dir() + "factor_balances.csv",
+    MatrixWriter<double>().write(
+        balances, genesis::utils::to_file( options.file_output.out_dir() + "factor_balances.csv" ),
         options.jplace_input.base_file_names(), col_names, "Sample"
     );
 }

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include "genesis/utils/formats/json/iterator.hpp"
 #include "genesis/utils/formats/json/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/hash/md5.hpp"
 #include "genesis/utils/tools/hash/sha1.hpp"
@@ -657,7 +658,9 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
         auto const& sample_name = sample_name_it->get_string();
 
         // We are done with the map/sample. Write it.
-        jplace_writer.to_file( sample, options.file_output.out_dir() + sample_name + ".jplace" );
+        jplace_writer.write( sample, genesis::utils::to_file(
+            options.file_output.out_dir() + sample_name + ".jplace"
+        ));
     }
 
     LOG_MSG1 << "Wrote " << total_seqs_count << " sequences to sample files.";

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,10 +29,11 @@
 
 #include "CLI/CLI.hpp"
 
-#include "genesis/tree/tree.hpp"
 #include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/manipulation.hpp"
+#include "genesis/tree/tree.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <cctype>
@@ -155,5 +156,5 @@ void run_random_tree( RandomTreeOptions const& options )
     // Create a newick tree from it.
     auto nw = CommonTreeNewickWriter();
     auto const fn = options.output.out_dir() + options.output.file_prefix() + "random-tree.newick";
-    nw.to_file( tree, options.output.out_dir() + fn );
+    nw.write( tree, genesis::utils::to_file( options.output.out_dir() + fn ));
 }

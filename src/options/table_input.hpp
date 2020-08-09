@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -200,8 +200,8 @@ protected:
 
 public:
 
-    std::string const name = "";
-    std::string const group = "Table Input";
+    std::string name = "";
+    std::string group = "Table Input";
 
     CliOption<std::string> table_input_opt    = "";
     CliOption<std::string> separator_char_opt = "comma";

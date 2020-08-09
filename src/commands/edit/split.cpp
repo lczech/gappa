@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -467,6 +468,9 @@ void run_split( SplitOptions const& options )
         }
 
         // Write the new sample to a file.
-        JplaceWriter().to_file( target, options.jplace_output.out_dir() + filename );
+        JplaceWriter().write(
+            target,
+            genesis::utils::to_file( options.jplace_output.out_dir() + filename )
+        );
     }
 }

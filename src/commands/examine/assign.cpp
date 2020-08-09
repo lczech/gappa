@@ -42,6 +42,7 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include "genesis/tree/common_tree/functions.hpp"

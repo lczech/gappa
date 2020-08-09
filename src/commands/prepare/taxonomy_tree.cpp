@@ -41,9 +41,10 @@
 #include "genesis/tree/common_tree/newick_writer.hpp"
 
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/formats/csv/input_iterator.hpp"
+#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <cctype>

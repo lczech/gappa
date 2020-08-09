@@ -32,6 +32,7 @@
 #include "genesis/placement/function/tree.hpp"
 #include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -120,8 +121,7 @@ void run_graft( GraftOptions const& options )
 
         // Write output to file.
         tree::CommonTreeNewickWriter().write(
-            tog,
-            genesis::utils::to_file( options.file_output.out_dir() + out_tree_files[i] )
+            tog, genesis::utils::to_file( options.file_output.out_dir() + out_tree_files[i] )
         );
     }
 }

@@ -29,10 +29,11 @@
 
 #include "CLI/CLI.hpp"
 
-#include "genesis/tree/tree.hpp"
 #include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/manipulation.hpp"
+#include "genesis/tree/tree.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <cctype>

@@ -39,6 +39,7 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/hash/md5.hpp"
 #include "genesis/utils/tools/hash/sha1.hpp"

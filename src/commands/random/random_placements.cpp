@@ -40,6 +40,7 @@
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <cctype>

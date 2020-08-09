@@ -31,8 +31,9 @@
 #include "genesis/placement/formats/jplace_writer.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/masses.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/iterator/postorder.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <limits>

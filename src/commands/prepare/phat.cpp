@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -448,7 +448,7 @@ void calculate_entropy( PhatOptions const& options, genesis::taxonomy::Taxonomy&
         }
 
         auto const& counts = t.data<EntropyTaxonData>().counts;
-        t.data<EntropyTaxonData>().entropy = averaged_entropy( counts, false, opt );
+        t.data<EntropyTaxonData>().entropy = average_entropy( counts, false, opt );
     };
     preorder_for_each( tax, calc_entropies );
 }

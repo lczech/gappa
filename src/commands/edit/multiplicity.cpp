@@ -34,6 +34,7 @@
 #include "genesis/sequence/functions/labels.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <algorithm>
 #include <cassert>

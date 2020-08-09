@@ -25,6 +25,7 @@
 
 #include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <iostream>

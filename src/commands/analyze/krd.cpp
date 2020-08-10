@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -131,10 +131,11 @@ void run_krd( KrdOptions const& options )
     LOG_MSG1 << "Calculating pairwise KR distances.";
     auto krd_matrix = earth_movers_distance( mass_trees, options.exponent );
 
-    // Normalize by tree length if necessary.
+    // Normalize by tree diameter if necessary. See https://doi.org/10.1111/j.1467-9868.2011.01018.x
+    // for the rationale to normalize by diameter.
     if( options.normalize ) {
         assert( mass_trees.size() > 0 );
-        auto const len = length( mass_trees[0] );
+        auto const len = diameter( mass_trees[0] );
         for( auto& e : krd_matrix ) {
             e /= len;
         }

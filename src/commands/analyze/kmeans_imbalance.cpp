@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,9 +101,6 @@ void write_ikmeans_cluster_trees(
     auto color_map  = options.color_map.color_map();
     auto color_norm = options.color_norm.get_sequential_norm();
 
-    // Out base file name
-    auto const base_fn = options.file_output.out_dir() + cluster_tree_basepath( options, k );
-
     // As we used the imbalances for the actual clustering, there is no mass tree that
     // we can use here yet. So, we need to add up masses for each cluster.
     // First, prepare storage for these.
@@ -137,13 +134,13 @@ void write_ikmeans_cluster_trees(
 
         // Now, make a color vector and write to files.
         auto const colors = color_map( *color_norm, masses );
-        auto const cntr_fn = base_fn + std::to_string( ci );
         options.tree_output.write_tree_to_files(
             profile.tree,
             colors,
             color_map,
             *color_norm,
-            cntr_fn
+            options.file_output,
+            cluster_tree_infix( k, ci )
         );
     }
 }

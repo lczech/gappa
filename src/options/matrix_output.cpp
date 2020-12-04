@@ -42,9 +42,7 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app(
     bool offer_omit_labels
 ) {
     name_ = name;
-
-    add_output_dir_opt_to_app( sub, name, ".", "Matrix Output" );
-    add_file_prefix_opt_to_app( sub, name, name, "Matrix Output" );
+    std::string const group = "Matrix Output";
 
     // Add output format.
     auto formats = std::set<std::string>{ "matrix", "list" };
@@ -56,7 +54,7 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app(
         format_,
         "Format of the output matrix file.",
         true
-    )->group( "Matrix Output" )
+    )->group( group )
     ->transform(
         CLI::IsMember( formats, CLI::ignore_case )
     );
@@ -67,7 +65,7 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app(
             "--omit-" + name + ( name.empty() ? "" : "-" ) + "matrix-labels",
             omit_labels_,
             "If set, the output matrix is written without column and row labels."
-        )->group( "Matrix Output" );
+        )->group( group );
     }
 }
 
@@ -75,17 +73,8 @@ void MatrixOutputOptions::add_matrix_output_opts_to_app(
 //      Run Functions
 // =================================================================================================
 
-std::string MatrixOutputOptions::output_filename() const
-{
-    return file_prefix() + ( name_.empty() ? "matrix" : name_ ) + ".csv";
-}
-
-void MatrixOutputOptions::check_nonexistent_output_files() const
-{
-    FileOutputOptions::check_nonexistent_output_files({ output_filename() });
-}
-
 void MatrixOutputOptions::write_matrix(
+    std::shared_ptr<genesis::utils::BaseOutputTarget> target,
     genesis::utils::Matrix<double> const& mat,
     std::vector<std::string> const& row_names,
     std::vector<std::string> const& col_names,
@@ -98,7 +87,6 @@ void MatrixOutputOptions::write_matrix(
     // TODO add double presicison
     // TODO add separator char
 
-    auto const filename = out_dir() + output_filename();
     auto writer = MatrixWriter<double>();
 
     // Set output format.
@@ -116,8 +104,8 @@ void MatrixOutputOptions::write_matrix(
 
     // Do the writing
     if( omit_labels_ ) {
-        writer.write( mat, genesis::utils::to_file( filename ));
+        writer.write( mat, target);
     } else {
-        writer.write( mat, genesis::utils::to_file( filename ), row_names, col_names, corner );
+        writer.write( mat, target, row_names, col_names, corner );
     }
 }

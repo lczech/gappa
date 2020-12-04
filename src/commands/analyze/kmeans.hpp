@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,15 +72,8 @@ void setup_kmeans(
     std::string const& file_prefix
 );
 
-std::string assignment_filepath(
-    KmeansOptions const& options,
-    size_t k
-);
-
-std::string cluster_tree_basepath(
-    KmeansOptions const& options,
-    size_t k
-);
+std::string assignment_infix( size_t k );
+std::string cluster_tree_infix( size_t k, size_t cluster_index );
 
 void check_kmeans_output_files(
     KmeansOptions const& options

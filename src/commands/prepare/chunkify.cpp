@@ -134,11 +134,11 @@ void setup_chunkify( CLI::App& app )
     //     Output options
     // -----------------------------------------------------------
 
-    opt->chunk_output.add_output_dir_opt_to_app( sub, "chunks" );
-    opt->chunk_output.add_file_prefix_opt_to_app( sub, "chunk", "chunk_" );
+    opt->chunk_output.set_optionname( "chunks" );
+    opt->chunk_output.add_default_output_opts_to_app( sub );
 
-    opt->abundance_output.add_output_dir_opt_to_app( sub, "abundances" );
-    opt->abundance_output.add_file_prefix_opt_to_app( sub, "abundance", "abundances_" );
+    opt->abundance_output.set_optionname( "abundances" );
+    opt->abundance_output.add_default_output_opts_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -177,16 +177,10 @@ void write_chunk_file(
     auto writer = FastaWriter();
     writer.line_length( 0 );
 
-    // Generate output file name.
-    auto const ofn
-        = options.chunk_output.out_dir()
-        + options.chunk_output.file_prefix()
-        + std::to_string( chunk_count )
-        + ".fasta"
-    ;
-
     // Write
-    writer.write( chunk, genesis::utils::to_file( ofn ));
+    writer.write( chunk, options.chunk_output.get_output_target(
+        "chunk_" + std::to_string( chunk_count ), "fasta"
+    ));
 }
 
 void write_abundance_map_file(
@@ -200,24 +194,19 @@ void write_abundance_map_file(
     auto const base_fn = options.sequence_input.base_file_name( input_file_counter );
 
     // Pprepare a new abundance file
-    auto const fn
-        = options.abundance_output.out_dir()
-        + options.abundance_output.file_prefix()
-        + base_fn
-        + ".json"
-    ;
-    std::ofstream ofs;
-    file_output_stream( fn, ofs );
-    ofs << "{\n";
+    auto ofs = options.abundance_output.get_output_target(
+        "abundances_" + base_fn, "json"
+    );
+    (*ofs) << "{\n";
 
     // Write file metadata.
-    ofs << "  \"sample\": \"" << base_fn << "\",\n";
-    ofs << "  \"gappa\": \"" << gappa_version() << "\",\n";
-    ofs << "  \"invocation\": \"" << global_options.command_line() << "\",\n";
-    ofs << "  \"hash\": \"" << options.hash_function << "\",\n";
+    (*ofs) << "  \"sample\": \"" << base_fn << "\",\n";
+    (*ofs) << "  \"gappa\": \"" << gappa_version() << "\",\n";
+    (*ofs) << "  \"invocation\": \"" << global_options.command_line() << "\",\n";
+    (*ofs) << "  \"hash\": \"" << options.hash_function << "\",\n";
 
     // Write name of the input file for later identification.
-    ofs << "  \"abundances\": [";
+    (*ofs) << "  \"abundances\": [";
 
     // Write abundance information for this file.
     bool is_first_seq = true;
@@ -225,14 +214,14 @@ void write_abundance_map_file(
 
         // Print comma for all but the first entry.
         if( ! is_first_seq ) {
-            ofs << ",";
+            (*ofs) << ",";
         }
         is_first_seq = false;
-        ofs << "\n";
+        (*ofs) << "\n";
 
         // Print sequence data.
-        ofs << "    [ \"" << seq_it->first << "\", ";
-        ofs << seq_it->second.chunk_num << ", {";
+        (*ofs) << "    [ \"" << seq_it->first << "\", ";
+        (*ofs) << seq_it->second.chunk_num << ", {";
 
         // Write per label abundances.
         bool is_first_abun = true;
@@ -240,21 +229,20 @@ void write_abundance_map_file(
 
             // Print comma for all but the first entry.
             if( ! is_first_abun ) {
-                ofs << ",";
+                (*ofs) << ",";
             }
             is_first_abun = false;
-            ofs << "\n";
+            (*ofs) << "\n";
 
-            ofs << "      \"" << label_abun.first << "\": " << label_abun.second;
+            (*ofs) << "      \"" << label_abun.first << "\": " << label_abun.second;
         }
 
-        ofs << "\n    }]";
+        (*ofs) << "\n    }]";
     }
 
     // Finish the file.
-    ofs << "\n  ]\n";
-    ofs << "}\n";
-    ofs.close();
+    (*ofs) << "\n  ]\n";
+    (*ofs) << "}\n";
 }
 
 // =================================================================================================
@@ -393,12 +381,8 @@ void run_chunkify( ChunkifyOptions const& options )
     // -----------------------------------------------------------
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.abundance_output.check_nonexistent_output_files(
-        { options.abundance_output.file_prefix() + ".*\\.json" }
-    );
-    options.chunk_output.check_nonexistent_output_files(
-        { options.chunk_output.file_prefix() + "[0-9]+\\.fasta" }
-    );
+    options.chunk_output.check_output_files_nonexistence( "chunk_*", "fasta" );
+    options.abundance_output.check_output_files_nonexistence( "abundances_*", "json" );
 
     // Print some user output.
     options.sequence_input.print();

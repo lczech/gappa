@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "CLI/CLI.hpp"
 
 #include "options/tree_output/svg.hpp"
+#include "options/file_output.hpp"
 
 #include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/utils/tools/color.hpp"
@@ -93,17 +94,19 @@ public:
      * @brief Write a simple tree with no colors to all formats specified by the user.
      */
     void write_tree_to_files(
-        genesis::tree::CommonTree const&         tree,
-        std::string const&                        file_path_prefix
+        genesis::tree::CommonTree const&          tree,
+        FileOutputOptions const&                  file_output_options,
+        std::string const&                        infix
     ) const;
 
     /**
      * @brief Write a tree with colored branches to all formats specified by the user.
      */
     void write_tree_to_files(
-        genesis::tree::CommonTree const&         tree,
+        genesis::tree::CommonTree const&          tree,
         std::vector<genesis::utils::Color> const& color_per_branch,
-        std::string const&                        file_path_prefix
+        FileOutputOptions const&                  file_output_options,
+        std::string const&                        infix
     ) const;
 
     /**
@@ -111,11 +114,12 @@ public:
      * as well as information about the color scale (with a proper scale in the svg file).
      */
     void write_tree_to_files(
-        genesis::tree::CommonTree const&         tree,
+        genesis::tree::CommonTree const&          tree,
         std::vector<genesis::utils::Color> const& color_per_branch,
         genesis::utils::ColorMap const&           color_map,
         genesis::utils::ColorNormalization const& color_norm,
-        std::string const&                        file_path_prefix
+        FileOutputOptions const&                  file_output_options,
+        std::string const&                        infix
     ) const;
 
     // -------------------------------------------------------------------------

@@ -138,8 +138,8 @@ void setup_split( CLI::App& app )
     //     Output options
     // -----------------------------------------------------------
 
-    options->jplace_output.add_output_dir_opt_to_app( sub );
-    options->jplace_output.add_file_prefix_opt_to_app( sub );
+    options->file_output.add_default_output_opts_to_app( sub );
+    options->file_output.add_file_compress_opt_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -380,11 +380,11 @@ void run_split( SplitOptions const& options )
     }
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    std::vector<std::string> check_files;
+    std::vector<std::pair<std::string, std::string>> check_files;
     for( auto const& sample : otu_table.samples ) {
-        check_files.push_back( options.jplace_output.file_prefix() + sample.name + "\\.jplace" );
+        check_files.push_back({ sample.name, "jplace" });
     }
-    options.jplace_output.check_nonexistent_output_files( check_files );
+    options.file_output.check_output_files_nonexistence( check_files );
 
     // Print some user output.
     options.jplace_input.print();
@@ -431,11 +431,10 @@ void run_split( SplitOptions const& options )
     for( size_t si = 0; si < otu_table.samples.size(); ++si ) {
         auto const& sample_entry = otu_table.samples[si];
 
-        auto const filename = options.jplace_output.file_prefix() + sample_entry.name + ".jplace";
-
         // User output.
-        LOG_MSG2 << "Writing file " << ( ++file_count ) << " of " << otu_table.samples.size()
-                 << ": " << filename;
+        ++file_count;
+        LOG_MSG2 << "Writing file " << file_count << " of " << otu_table.samples.size()
+                 << ": " << options.file_output.get_output_filename( sample_entry.name, "jplace" );
 
         // Create a new sample and fill it with the needed pqueries.
         auto target = Sample( ref_tree );
@@ -470,7 +469,7 @@ void run_split( SplitOptions const& options )
         // Write the new sample to a file.
         JplaceWriter().write(
             target,
-            genesis::utils::to_file( options.jplace_output.out_dir() + filename )
+            options.file_output.get_output_target( sample_entry.name, "jplace" )
         );
     }
 }

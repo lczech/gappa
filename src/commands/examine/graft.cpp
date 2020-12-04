@@ -69,7 +69,7 @@ void setup_graft( CLI::App& app )
     )->group( "Settings" );
 
     // Add output options.
-    opt->file_output.add_output_dir_opt_to_app( sub );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -92,11 +92,11 @@ void run_graft( GraftOptions const& options )
     using namespace genesis::placement;
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    std::vector<std::string> out_tree_files;
+    std::vector<std::pair<std::string, std::string>> out_tree_files;
     for( auto const& bfn : options.jplace_input.base_file_names() ) {
-        out_tree_files.push_back( bfn + ".newick" );
+        out_tree_files.push_back({ bfn, "newick" });
     }
-    options.file_output.check_nonexistent_output_files( out_tree_files );
+    options.file_output.check_output_files_nonexistence( out_tree_files );
 
     // Print some user output.
     options.jplace_input.print();
@@ -121,7 +121,9 @@ void run_graft( GraftOptions const& options )
 
         // Write output to file.
         tree::CommonTreeNewickWriter().write(
-            tog, genesis::utils::to_file( options.file_output.out_dir() + out_tree_files[i] )
+            tog, options.file_output.get_output_target(
+                out_tree_files[i].first, out_tree_files[i].second
+            )
         );
     }
 }

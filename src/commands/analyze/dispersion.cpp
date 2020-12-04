@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,9 +137,10 @@ void setup_dispersion( CLI::App& app )
     options->color_map.add_mask_color_opt_to_app( sub );
 
     // Output files.
+    // options->file_output.set_optionname( "tree" );
+    options->file_output.add_default_output_opts_to_app( sub );
+    // options->file_output.add_default_output_opts_to_app( sub, ".", "dispersion_" );
     options->tree_output.add_tree_output_opts_to_app( sub );
-    options->file_output.add_output_dir_opt_to_app( sub );
-    options->file_output.add_file_prefix_opt_to_app( sub, "tree", "dispersion_" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -220,14 +221,6 @@ std::vector<DispersionVariant> get_variants( DispersionOptions const& options )
     return variants;
 }
 
-std::string output_file_name(
-    DispersionOptions const&   options,
-    std::string const&         prefix
-) {
-    using namespace genesis::utils;
-    return sanitize_filename( options.file_output.file_prefix() + prefix );
-}
-
 // =================================================================================================
 //      Make Color Tree
 // =================================================================================================
@@ -237,7 +230,7 @@ void make_dispersion_color_tree(
     std::vector<double> const& values,
     bool                       log_scaling,
     genesis::tree::Tree const& tree,
-    std::string const&         full_prefix
+    std::string const&         infix
 ) {
     using namespace genesis::utils;
 
@@ -275,7 +268,8 @@ void make_dispersion_color_tree(
         colors,
         color_map,
         *color_norm,
-        options.file_output.out_dir() + output_file_name( options, full_prefix )
+        options.file_output,
+        infix
     );
 }
 
@@ -393,13 +387,13 @@ void run_dispersion( DispersionOptions const& options )
     auto const variants = get_variants( options );
 
     // Check for existing output files.
-    std::vector<std::string> files_to_check;
+    std::vector<std::pair<std::string, std::string>> files_to_check;
     for( auto const& m : variants ) {
         for( auto const& e : options.tree_output.get_extensions() ) {
-            files_to_check.push_back( output_file_name( options, m.name ) + "\\." + e );
+            files_to_check.emplace_back( m.name, e );
         }
     }
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    options.file_output.check_output_files_nonexistence( files_to_check );
 
     // -------------------------------------------------------------------------
     //     Calculations and Output

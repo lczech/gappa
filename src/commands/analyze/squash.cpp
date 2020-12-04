@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,8 +70,8 @@ void setup_squash( CLI::App& app )
     opt->color_map.add_color_list_opt_to_app( sub, "BuPuBk" );
     opt->color_norm.add_log_scaling_opt_to_app( sub );
 
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree_" );
+    // Output options.
+    opt->file_output.add_default_output_opts_to_app( sub );
     opt->tree_output.add_tree_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
@@ -103,14 +103,15 @@ void run_squash( SquashOptions const& options )
     }
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    std::vector<std::string> files_to_check;
-    files_to_check.push_back( "cluster\\.newick" );
+    std::vector<std::pair<std::string, std::string>> files_to_check;
+    files_to_check.push_back({ "cluster", "newick" });
     for( auto const& e : options.tree_output.get_extensions() ) {
-        files_to_check.push_back(
-            options.file_output.file_prefix() + "[0-9]*\\." + e
-        );
+        files_to_check.push_back({ "tree_*", e });
     }
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    options.file_output.check_output_files_nonexistence( files_to_check );
+
+    // User is warned when not using any tree outputs.
+    options.tree_output.check_tree_formats();
 
     // Print some user output.
     options.jplace_input.print();
@@ -138,13 +139,13 @@ void run_squash( SquashOptions const& options )
 
         // Now, make a color vector and write to files.
         auto const colors = color_map( *color_norm, masses );
-        auto const cntr_fn = options.file_output.out_dir() + options.file_output.file_prefix() + std::to_string( index );
         options.tree_output.write_tree_to_files(
             cluster_tree,
             colors,
             color_map,
             *color_norm,
-            cntr_fn
+            options.file_output,
+            "tree_" + std::to_string( index )
         );
     };
 
@@ -155,7 +156,6 @@ void run_squash( SquashOptions const& options )
     LOG_MSG1 << "Writing output files";
 
     // Write output cluster tree to newick.
-    std::ofstream file_clust_tree;
-    utils::file_output_stream( options.file_output.out_dir() + "cluster.newick",  file_clust_tree );
-    file_clust_tree << sc.tree_string( options.jplace_input.base_file_names() );
+    auto file_clust_tree = options.file_output.get_output_target( "cluster", "newick" );
+    (*file_clust_tree) << sc.tree_string( options.jplace_input.base_file_names() );
 }

@@ -121,8 +121,7 @@ void setup_taxonomy_tree( CLI::App& app )
     //     Output Options
     // -----------------------------------------------------------
 
-    opt->output.add_output_dir_opt_to_app( sub );
-    opt->output.add_file_prefix_opt_to_app( sub );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -159,9 +158,7 @@ void run_taxonomy_tree( TaxonomyTreeOptions const& options )
     }
 
     // Check if the output file name already exists. If so, fail early.
-    options.output.check_nonexistent_output_files({
-        options.output.file_prefix() + "taxonomy-tree.newick"
-    });
+    options.file_output.check_output_files_nonexistence( "taxonomy_tree", "newick" );
 
     // If taxonomy is given, read it.
     Taxonomy taxonomy;
@@ -255,6 +252,5 @@ void run_taxonomy_tree( TaxonomyTreeOptions const& options )
     auto nw = CommonTreeNewickWriter();
     nw.enable_branch_lengths( false );
     nw.replace_name_spaces( false );
-    auto const fn = options.output.file_prefix() + "taxonomy-tree.newick";
-    nw.write( tree, genesis::utils::to_file( options.output.out_dir() + fn ));
+    nw.write( tree, options.file_output.get_output_target( "taxonomy_tree", "newick" ));
 }

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,7 +42,6 @@
  * @brief
  */
 class MatrixOutputOptions
-    : public FileOutputOptions
 {
 public:
 
@@ -74,11 +73,8 @@ public:
     //     Run Functions
     // -------------------------------------------------------------------------
 
-    std::string output_filename() const;
-
-    void check_nonexistent_output_files() const;
-
     void write_matrix(
+        std::shared_ptr<genesis::utils::BaseOutputTarget> target,
         genesis::utils::Matrix<double> const& mat,
         std::vector<std::string> const& row_names = {},
         std::vector<std::string> const& col_names = {},
@@ -93,10 +89,9 @@ public:
 
 private:
 
+    std::string name_ = "";
     std::string format_ = "matrix";
     bool omit_labels_ = false;
-
-    std::string name_;
 
 };
 

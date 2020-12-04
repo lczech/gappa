@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,11 +58,8 @@ public:
     double consensus_threshold = 0.5;
 
     // Output options.
-    FileOutputOptions output;
-    std::string consensus_sequence_file = "consensus_sequences.fasta";
+    FileOutputOptions file_output;
     bool write_info_files = false;
-    std::string entropy_info_file = "entropy.tsv";
-    std::string taxonomy_info_file = "taxonomy.tsv";
 
     // SequenceInputOptions sequence_input;
     // FileOutputOptions abundance_output;

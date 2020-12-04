@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,8 +89,7 @@ void setup_random_alignment( CLI::App& app )
     //     Output Options
     // -----------------------------------------------------------
 
-    opt->output.add_output_dir_opt_to_app( sub );
-    opt->output.add_file_prefix_opt_to_app( sub );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // File type fasta.
     auto write_fasta_opt = sub->add_flag(
@@ -165,12 +164,12 @@ void run_random_alignment( RandomAlignmentOptions const& options )
     // Open streams as needed. This fails if the files already exist.
     std::ofstream fasta_os;
     if( options.write_fasta ) {
-        auto const fn = options.output.out_dir() + options.output.file_prefix() + "random-alignment.fasta";
+        auto const fn = options.file_output.get_output_filename( "random-alignment", "fasta" );
         genesis::utils::file_output_stream( fn, fasta_os );
     }
     std::ofstream phylip_os;
     if( options.write_strict_phylip || options.write_relaxed_phylip ) {
-        auto const fn = options.output.out_dir() + options.output.file_prefix() + "random-alignment.phylip";
+        auto const fn = options.file_output.get_output_filename( "random-alignment", "phylip" );
         genesis::utils::file_output_stream( fn, phylip_os );
 
         // Write phylip header.

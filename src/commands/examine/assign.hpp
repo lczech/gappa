@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Pierre Barbera, Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Pierre Barbera, Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,56 +71,5 @@ public:
 
 void setup_assign( CLI::App& app );
 void run_assign( AssignOptions const& options );
-
-// =================================================================================================
-// Weird Classes
-// =================================================================================================
-
-class AssignTaxonData : public genesis::taxonomy::BaseTaxonData
-{
-    // -------------------------------------------------------------------
-    //     Constructor and Rule of Five
-    // -------------------------------------------------------------------
-
-public:
-
-    virtual ~AssignTaxonData() = default;
-
-    // Move ctor and assignment.
-    AssignTaxonData( AssignTaxonData&& )             = delete;
-    AssignTaxonData& operator= ( AssignTaxonData&& ) = delete;
-
-protected:
-
-    AssignTaxonData() = default;
-
-    // Copy ctor and assignment.
-    AssignTaxonData( AssignTaxonData const& )             = default;
-    AssignTaxonData& operator= ( AssignTaxonData const& ) = default;
-
-public:
-
-    static std::unique_ptr< AssignTaxonData > create()
-    {
-        return std::unique_ptr< AssignTaxonData >( new AssignTaxonData() );
-    }
-
-    virtual std::unique_ptr< BaseTaxonData > clone() const override
-    {
-        return std::unique_ptr< AssignTaxonData >( new AssignTaxonData( *this ) );
-    }
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
-
-    double aLWR         = 0.0;
-    double LWR          = 0.0;
-
-    /**
-     * related to the dirty hack in add_taxon_ids(..)
-     */
-    int tmp_id       = -1;
-};
 
 #endif // include guard

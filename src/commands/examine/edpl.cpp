@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,8 +93,7 @@ void setup_edpl( CLI::App& app )
     )->group( "Settings" );
 
     // Output
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "", "edpl_" );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -122,10 +121,10 @@ void run_edpl( EdplOptions const& options )
 
     // TODO does also fail if the list is not written.
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    std::vector<std::string> files_to_check;
-    files_to_check.push_back( options.file_output.file_prefix() + "list\\.csv" );
-    files_to_check.push_back( options.file_output.file_prefix() + "histogram\\.csv" );
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    std::vector<std::pair<std::string, std::string>> files_to_check;
+    files_to_check.push_back({ "edpl_list", "csv" });
+    files_to_check.push_back({ "edpl_histogram", "csv" });
+    options.file_output.check_output_files_nonexistence( files_to_check );
 
     // Print some user output.
     options.jplace_input.print();
@@ -219,21 +218,18 @@ void run_edpl( EdplOptions const& options )
 
     if( ! options.no_list_file ) {
         // Prepare list file
-        auto const list_file_name = options.file_output.out_dir() + options.file_output.file_prefix() + "list.csv";
-        std::ofstream list_ofs;
-        file_output_stream( list_file_name, list_ofs );
+        auto list_ofs = options.file_output.get_output_target( "edpl_list", "csv" );
 
         // Write list file.
-        list_ofs << "Sample,Pquery,Multiplicity,EDPL\n";
+        (*list_ofs) << "Sample,Pquery,Multiplicity,EDPL\n";
         for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
             auto const file_name = options.jplace_input.base_file_name( fi );
 
             for( auto const& entry : edpl_values[fi] ) {
-                list_ofs << file_name << "," << entry.name << "," << entry.mult;
-                list_ofs << "," << entry.edpl << "\n";
+                (*list_ofs) << file_name << "," << entry.name << "," << entry.mult;
+                (*list_ofs) << "," << entry.edpl << "\n";
             }
         }
-        list_ofs.close();
     }
 
     // Get the max value to use for the histogram. Use a warning if needed.
@@ -260,21 +256,18 @@ void run_edpl( EdplOptions const& options )
     }
 
     // Prepare histogram file
-    auto const hist_file_name = options.file_output.out_dir() + options.file_output.file_prefix() + "histogram.csv";
-    std::ofstream hist_ofs;
-    file_output_stream( hist_file_name, hist_ofs );
+    auto hist_ofs = options.file_output.get_output_target( "edpl_histogram", "csv" );
 
     // Write histogram
-    hist_ofs << "Bin,Start,End,Range,Value,Percentage,";
-    hist_ofs << "\"Accumulated Value\",\"Accumulated Percentage\"\n";
+    (*hist_ofs) << "Bin,Start,End,Range,Value,Percentage,";
+    (*hist_ofs) << "\"Accumulated Value\",\"Accumulated Percentage\"\n";
     auto const hist_sum = sum(hist);
     double hist_acc = 0.0;
     for( size_t i = 0; i < hist.bins(); ++i ) {
         hist_acc += hist[i];
-        hist_ofs << i << "," << hist.bin_range(i).first << "," << hist.bin_range(i).second << ",";
-        hist_ofs << "\"[" << hist.bin_range(i).first << ", " << hist.bin_range(i).second << ")\",";
-        hist_ofs << hist[i] << "," << ( hist[i] / hist_sum ) << ",";
-        hist_ofs << hist_acc << "," << ( hist_acc / hist_sum ) << "\n";
+        (*hist_ofs) << i << "," << hist.bin_range(i).first << "," << hist.bin_range(i).second << ",";
+        (*hist_ofs) << "\"[" << hist.bin_range(i).first << ", " << hist.bin_range(i).second << ")\",";
+        (*hist_ofs) << hist[i] << "," << ( hist[i] / hist_sum ) << ",";
+        (*hist_ofs) << hist_acc << "," << ( hist_acc / hist_sum ) << "\n";
     }
-    hist_ofs.close();
 }

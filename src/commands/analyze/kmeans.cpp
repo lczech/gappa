@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ void setup_kmeans(
         "--k",
         opt->ks,
         "Number of clusters to find. Can be a comma-separated list of multiple values or "
-        "ranges for k: 1-5,8,10,12",
+        "ranges for k, such as `\"1-5,8,10,12\"`",
         true
     );
     k_opt->group( "Settings" );
@@ -75,27 +75,22 @@ void setup_kmeans(
     opt->color_norm.add_log_scaling_opt_to_app( app );
 
     // Output files.
+    opt->file_output.add_default_output_opts_to_app( app, ".", file_prefix );
     opt->tree_output.add_tree_output_opts_to_app( app );
-    opt->file_output.add_output_dir_opt_to_app( app );
-    opt->file_output.add_file_prefix_opt_to_app( app, "", file_prefix );
 }
 
 // =================================================================================================
 //      Output Files
 // =================================================================================================
 
-std::string assignment_filepath(
-    KmeansOptions const& options,
-    size_t k
-) {
-    return options.file_output.file_prefix() + "k_" + std::to_string( k ) + "_assignments.csv";
+std::string assignment_infix( size_t k )
+{
+    return "k_" + std::to_string( k ) + "_assignments";
 }
 
-std::string cluster_tree_basepath(
-    KmeansOptions const& options,
-    size_t k
-) {
-    return options.file_output.file_prefix() + "k_" + std::to_string( k ) + "_centroid_";
+std::string cluster_tree_infix( size_t k, size_t cluster_index )
+{
+    return "k_" + std::to_string( k ) + "_centroid_"+ std::to_string( cluster_index );
 }
 
 void check_kmeans_output_files(
@@ -103,13 +98,11 @@ void check_kmeans_output_files(
 ) {
     auto const ks = get_k_values( options );
 
-    std::vector<std::string> files_to_check;
+    std::vector<std::pair<std::string, std::string>> files_to_check;
 
     // Add assignemnt files.
     for( auto k : ks ) {
-        files_to_check.push_back(
-            assignment_filepath( options, k )
-        );
+        files_to_check.push_back({ assignment_infix(k), "csv" });
     }
 
     // Add cluster tree files if specified.
@@ -117,21 +110,20 @@ void check_kmeans_output_files(
     for( auto k : ks ) {
         for( size_t ci = 0; ci < k; ++ci ) {
             for( auto const& e : options.tree_output.get_extensions() ) {
-                files_to_check.push_back(
-                    cluster_tree_basepath( options, k ) + std::to_string( ci ) + "\\." + e
-                );
+                files_to_check.push_back({ cluster_tree_infix( k, ci ), e });
             }
         }
     }
 
     // Add overview file if needed.
     if( options.overview_file ) {
-        files_to_check.push_back(
-            options.file_output.file_prefix() + "overview.csv"
-        );
+        files_to_check.push_back({ "overview", "csv" });
     }
 
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    options.file_output.check_output_files_nonexistence( files_to_check );
+
+    // User is warned when not using any tree outputs.
+    options.tree_output.check_tree_formats();
 }
 
 // =================================================================================================
@@ -185,20 +177,17 @@ void write_assignment_file(
     }
 
     // Prepare assignments file.
-    // TODO check with file overwrite settings
-    auto const assm_fn = options.file_output.out_dir() + assignment_filepath( options, k );
-    std::ofstream assm_os;
-    genesis::utils::file_output_stream( assm_fn, assm_os );
+    auto assm_os = options.file_output.get_output_target( assignment_infix(k), "csv" );
 
     // Write header.
-    assm_os << "Sample\tCluster\tDistance\n";
+    (*assm_os) << "Sample\tCluster\tDistance\n";
 
     // Write assignments
     for( size_t fi = 0; fi < set_size; ++fi ) {
-        assm_os << options.jplace_input.base_file_name( fi );
-        assm_os << "\t" << assignments[fi];
-        assm_os << "\t" << cluster_info.distances[fi];
-        assm_os << "\n";
+        (*assm_os) << options.jplace_input.base_file_name( fi );
+        (*assm_os) << "\t" << assignments[fi];
+        (*assm_os) << "\t" << cluster_info.distances[fi];
+        (*assm_os) << "\n";
     }
 }
 
@@ -267,20 +256,14 @@ void write_overview_file(
         return;
     }
 
-    // Prepare assignments file.
-    // TODO check with file overwrite settings
-    auto const ov_fn
-        = options.file_output.out_dir() + options.file_output.file_prefix()
-        + "overview.csv"
-    ;
-    std::ofstream ov_os;
-    genesis::utils::file_output_stream( ov_fn, ov_os );
+    // Prepare overview file.
+    auto ov_os = options.file_output.get_output_target( "overview", "csv" );
 
     // Write header.
-    ov_os << "k\tDistance\tVariance\n";
+    (*ov_os) << "k\tDistance\tVariance\n";
 
     // Write overview
     for( auto const& l : overview ) {
-        ov_os << l.k << "\t" << l.avg_distance << "\t" << l.avg_variance << "\n";
+        (*ov_os) << l.k << "\t" << l.avg_distance << "\t" << l.avg_variance << "\n";
     }
 }

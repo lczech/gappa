@@ -87,7 +87,13 @@ void setup_krd( CLI::App& app )
     opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Output
-    opt->matrix_output.add_matrix_output_opts_to_app( sub );
+    std::string const matrix_optname = "krd";
+    std::string const matrix_group = "Matrix Output";
+    opt->file_output.set_optionname( matrix_optname );
+    opt->file_output.set_group( matrix_group );
+    opt->file_output.add_default_output_opts_to_app( sub );
+    opt->file_output.add_file_compress_opt_to_app( sub );
+    opt->matrix_output.add_matrix_output_opts_to_app( sub, matrix_optname );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -114,7 +120,8 @@ void run_krd( KrdOptions const& options )
     using namespace genesis::utils;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.matrix_output.check_nonexistent_output_files();
+    std::string const infix = "krd_matrix";
+    options.file_output.check_output_files_nonexistence( infix, "csv" );
 
     // Print some user output.
     options.jplace_input.print();
@@ -144,5 +151,8 @@ void run_krd( KrdOptions const& options )
     // Write output matrix in the specified format
     LOG_MSG1 << "Writing distance matrix.";
     auto const names = options.jplace_input.base_file_names();
-    options.matrix_output.write_matrix( krd_matrix, names, names, "Sample" );
+    options.matrix_output.write_matrix(
+        options.file_output.get_output_target( infix, "csv" ),
+        krd_matrix, names, names, "Sample"
+    );
 }

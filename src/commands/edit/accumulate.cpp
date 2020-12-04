@@ -78,8 +78,7 @@ void setup_accumulate( CLI::App& app )
     //     Output options
     // -----------------------------------------------------------
 
-    options->jplace_output.add_output_dir_opt_to_app( sub );
-    options->jplace_output.add_file_prefix_opt_to_app( sub );
+    options->jplace_output.add_default_output_opts_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -107,9 +106,7 @@ void run_accumulate( AccumulateOptions const& options )
     using namespace genesis::tree;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.jplace_output.check_nonexistent_output_files({
-        options.jplace_output.file_prefix() + "accumulated\\.jplace"
-    });
+    options.jplace_output.check_output_files_nonexistence( "accumulated", "jplace" );
 
     // Print some user output.
     options.jplace_input.print();
@@ -232,9 +229,8 @@ void run_accumulate( AccumulateOptions const& options )
     }
 
     // Write the new sample to a file.
-    std::string const filename = options.jplace_output.file_prefix() + "accumulated.jplace";
     JplaceWriter().write(
         sample,
-        genesis::utils::to_file( options.jplace_output.out_dir() + filename )
+        options.jplace_output.get_output_target( "accumulated", "jplace" )
     );
 }

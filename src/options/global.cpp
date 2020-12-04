@@ -100,10 +100,6 @@ void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
     opt_log_file.option->group( "Global Options" );
 
     // TODO add random seed option
-
-    // TODO in order to run callbacks for certain options, use ther full functional form!
-    // for example, the allow overwrite option (yet to do), or threads or the like can use this.
-    // then, init is no longer needed
 }
 
 // =================================================================================================

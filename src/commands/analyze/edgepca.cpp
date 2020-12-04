@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ void setup_edgepca( CLI::App& app )
     auto opt = std::make_shared<EdgepcaOptions>();
     auto sub = app.add_subcommand(
         "edgepca",
-        "Perform Edge PCA for a set of samples."
+        "Perform Edge PCA (Principal Component Analysis) for a set of samples."
     );
 
     // Add jplace input options.
@@ -86,9 +86,11 @@ void setup_edgepca( CLI::App& app )
     opt->color_map.add_color_list_opt_to_app( sub, "spectral" );
     opt->color_map.add_mask_color_opt_to_app( sub, "#dfdfdf" );
 
-    // Output options
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "", "edgepca_" );
+    // Output options for general files.
+    // opt->file_output.setup();
+    opt->file_output.add_default_output_opts_to_app( sub );
+
+    // Tree output options.
     opt->tree_output.add_tree_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
@@ -114,16 +116,20 @@ void run_edgepca( EdgepcaOptions const& options )
     using namespace genesis::placement;
     using namespace genesis::utils;
 
-    // Check if any of the files we are going to produce already exists. If so, fail early.
-    std::vector<std::string> files_to_check;
-    files_to_check.push_back( options.file_output.file_prefix() + "projection.csv" );
-    files_to_check.push_back( options.file_output.file_prefix() + "transformation.csv" );
+    // Check if any of the general files we are going to produce already exists. If so, fail early.
+    options.file_output.check_output_files_nonexistence({
+        { "projection", "csv" }, { "transformation", "csv" }
+    });
+
+    // Same for tree files.
+    std::vector<std::pair<std::string, std::string>> tree_infixes_and_extensions;
     for( auto const& e : options.tree_output.get_extensions() ) {
-        files_to_check.push_back(
-            options.file_output.file_prefix() + "tree_[0-9]*\\." + e
-        );
+        tree_infixes_and_extensions.emplace_back( "tree_*", e );
     }
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    options.file_output.check_output_files_nonexistence( tree_infixes_and_extensions );
+
+    // User is warned when not using any tree outputs.
+    options.tree_output.check_tree_formats();
 
     // Print some user output.
     options.jplace_input.print();
@@ -147,9 +153,8 @@ void run_edgepca( EdgepcaOptions const& options )
     LOG_MSG1 << "Writing result files";
 
     // Write out projection
-    auto const proj_fn = options.file_output.out_dir() + options.file_output.file_prefix() + "projection.csv";
-    std::ofstream proj_os;
-    genesis::utils::file_output_stream( proj_fn, proj_os );
+    auto proj_target = options.file_output.get_output_target( "projection", "csv" );
+    auto& proj_os = proj_target->ostream();
     for( size_t r = 0; r < epca_data.projection.rows(); ++r ) {
         proj_os << options.jplace_input.base_file_name( r );
         for( size_t c = 0; c < epca_data.projection.cols(); ++c ) {
@@ -157,12 +162,10 @@ void run_edgepca( EdgepcaOptions const& options )
         }
         proj_os << "\n";
     }
-    proj_os.close();
 
     // Eigenvalues and Eigenvectors
-    auto const trans_fn = options.file_output.out_dir() + options.file_output.file_prefix() + "transformation.csv";
-    std::ofstream trans_os;
-    genesis::utils::file_output_stream( trans_fn, trans_os );
+    auto const trans_target = options.file_output.get_output_target( "transformation", "csv" );
+    auto& trans_os = trans_target->ostream();
     for( size_t r = 0; r < epca_data.eigenvalues.size(); ++r ) {
         trans_os << epca_data.eigenvalues[r];
         for( size_t e = 0; e < epca_data.eigenvectors.rows(); ++e ) {
@@ -174,6 +177,9 @@ void run_edgepca( EdgepcaOptions const& options )
     // Trees
     auto const& tree = sample_set.at(0).tree();
     for( size_t c = 0; c < epca_data.projection.cols(); ++c ) {
+        LOG_BOLD;
+        LOG_MSG1 << "Writing tree for component " << c;
+
         auto color_map = options.color_map.color_map();
         auto color_norm = options.color_norm.get_diverging_norm();
 
@@ -195,13 +201,14 @@ void run_edgepca( EdgepcaOptions const& options )
         }
 
         // Write tree
-        auto const tree_fn = options.file_output.out_dir() + options.file_output.file_prefix() + "tree_" + std::to_string( c );
+        auto const tree_infix = "tree_" + std::to_string( c );
         options.tree_output.write_tree_to_files(
             tree,
             color_vector,
             color_map,
             color_norm,
-            tree_fn
+            options.file_output,
+            tree_infix
         );
     }
 }

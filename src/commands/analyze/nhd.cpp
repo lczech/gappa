@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,6 +60,14 @@ void setup_nhd( CLI::App& app )
     // Add common options.
     opt->jplace_input.add_jplace_input_opt_to_app( sub );
     opt->jplace_input.add_point_mass_opt_to_app( sub );
+
+    // Output
+    std::string const matrix_optname = "";
+    std::string const matrix_group = "Matrix Output";
+    opt->file_output.set_optionname( matrix_optname );
+    opt->file_output.set_group( matrix_group );
+    opt->file_output.add_default_output_opts_to_app( sub );
+    opt->file_output.add_file_compress_opt_to_app( sub );
     opt->matrix_output.add_matrix_output_opts_to_app( sub, "nhd" );
 
     // Add custom options.
@@ -93,8 +101,8 @@ void run_nhd( NhdOptions const& options )
     using namespace genesis::utils;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    // TODO this is ugly.
-    options.matrix_output.check_nonexistent_output_files();
+    std::string const infix = "nhd_matrix";
+    options.file_output.check_output_files_nonexistence( infix, "csv" );
 
     // Print some user output.
     options.jplace_input.print();
@@ -141,5 +149,8 @@ void run_nhd( NhdOptions const& options )
     auto const nhd_matrix = node_histogram_distance( hist_vecs );
 
     LOG_MSG1 << "Writing distance matrix.";
-    options.matrix_output.write_matrix( nhd_matrix );
+    options.matrix_output.write_matrix(
+        options.file_output.get_output_target( infix, "csv" ),
+        nhd_matrix
+    );
 }

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,8 @@ void setup_pkmeans( CLI::App& app )
     auto bins_opt = sub->add_option(
         "--bins",
         opt->bins,
-        "Bin the masses per-branch in order to save time and memory. "
+        "Bin the masses per-branch in order to save time and memory, with only minor differences "
+        "in the cluster assignments. "
         "Default is 0, that is, no binning. If set, we recommend to use 50 bins or more.",
         true
     );
@@ -105,9 +106,6 @@ void write_pkmeans_cluster_trees(
     auto color_map  = options.color_map.color_map();
     auto color_norm = options.color_norm.get_sequential_norm();
 
-    // Out base file name
-    auto const base_fn = options.file_output.out_dir() + cluster_tree_basepath( options, k );
-
     // Write all centroid trees
     for( size_t ci = 0; ci < centroids.size(); ++ci ) {
         auto const& centroid = centroids[ci];
@@ -118,13 +116,13 @@ void write_pkmeans_cluster_trees(
 
         // Now, make a color vector and write to files.
         auto const colors = color_map( *color_norm, masses );
-        auto const cntr_fn = base_fn + std::to_string( ci );
         options.tree_output.write_tree_to_files(
             centroid,
             colors,
             color_map,
             *color_norm,
-            cntr_fn
+            options.file_output,
+            cluster_tree_infix( k, ci )
         );
     }
 }

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,15 +56,15 @@ void add_legacy_command(
 std::string format_columns(
     std::string const& left,
     std::string const& right,
-    size_t left_w
+    size_t left_width
 );
 
 void write_columns(
     std::ostream& out,
     std::string const& left,
     std::string const& right,
-    size_t left_w,
-    size_t right_w
+    size_t left_width,
+    size_t right_width
 );
 
 // =================================================================================================
@@ -72,5 +72,20 @@ void write_columns(
 // =================================================================================================
 
 std::string random_indexed_name( size_t index, size_t max );
+
+/**
+ * @brief Alternative for normal `assert()` that allows to specify an error message,
+ * throws an exception instead of terminating, and is always used, also in release mode.
+ */
+inline void internal_check(
+    bool condition,
+    std::string const& error_message
+) {
+    if( ! condition ) {
+        throw std::domain_error(
+            "Internal error: " + error_message
+        );
+    }
+}
 
 #endif // include guard

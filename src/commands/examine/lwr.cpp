@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,8 +98,7 @@ void setup_lwr( CLI::App& app )
     )->group( "Settings" );
 
     // Output
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "", "lwr_" );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -125,10 +124,10 @@ void run_lwr( LwrOptions const& options )
 
     // TODO does also fail if the list is not written.
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    std::vector<std::string> files_to_check;
-    files_to_check.push_back( options.file_output.file_prefix() + "list\\.csv" );
-    files_to_check.push_back( options.file_output.file_prefix() + "histogram\\.csv" );
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    std::vector<std::pair<std::string, std::string>> files_to_check;
+    files_to_check.push_back({ "list", "csv" });
+    files_to_check.push_back({ "histogram", "csv" });
+    options.file_output.check_output_files_nonexistence( files_to_check );
 
     // Print some user output.
     options.jplace_input.print();
@@ -230,76 +229,71 @@ void run_lwr( LwrOptions const& options )
 
     if( ! options.no_list_file ) {
         // Prepare list file
-        auto const list_file_name = options.file_output.out_dir() + options.file_output.file_prefix() + "list.csv";
-        std::ofstream list_ofs;
-        file_output_stream( list_file_name, list_ofs );
+        auto list_ofs = options.file_output.get_output_target( "list", "csv" );
 
         // Write list file.
-        list_ofs << "Sample,Pquery,Multiplicity";
+        (*list_ofs) << "Sample,Pquery,Multiplicity";
         for( size_t i = 0; i < options.num_lwrs; ++i ) {
-            list_ofs << ",\"LWR " << (i+1) << "\"";
+            (*list_ofs) << ",\"LWR " << (i+1) << "\"";
         }
-        list_ofs << "\n";
+        (*list_ofs) << "\n";
 
         for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
             auto const file_name = options.jplace_input.base_file_name( fi );
 
             for( auto const& entry : lwrs_values[fi] ) {
-                list_ofs << file_name << "," << entry.name << "," << entry.mult;
+                (*list_ofs) << file_name << "," << entry.name << "," << entry.mult;
                 for( size_t i = 0; i < options.num_lwrs; ++i ) {
-                    list_ofs << "," << entry.lwr[i] ;
+                    (*list_ofs) << "," << entry.lwr[i] ;
                 }
-                list_ofs << "\n";
+                (*list_ofs) << "\n";
             }
         }
-        list_ofs.close();
     }
 
     // Prepare histogram file
-    auto const hist_file_name = options.file_output.out_dir() + options.file_output.file_prefix() + "histogram.csv";
-    std::ofstream hist_ofs;
-    file_output_stream( hist_file_name, hist_ofs );
+    auto hist_ofs = options.file_output.get_output_target( "histogram", "csv" );
 
     // Write histogram header, and get sum for each of them.
-    hist_ofs << "Bin,Start,End,Range";
+    (*hist_ofs) << "Bin,Start,End,Range";
     auto hist_sums = std::vector<double>( options.num_lwrs, 0.0 );
     auto hist_accs = std::vector<double>( options.num_lwrs, 0.0 );
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        hist_ofs << ",\"Value " << (i+1) << "\"";
+        (*hist_ofs) << ",\"Value " << (i+1) << "\"";
         hist_sums[i] = sum( hists[i] );
     }
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        hist_ofs << ",\"Percentage " << (i+1) << "\"";
+        (*hist_ofs) << ",\"Percentage " << (i+1) << "\"";
     }
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        hist_ofs << ",\"Accumulated Value " << (i+1) << "\"";
+        (*hist_ofs) << ",\"Accumulated Value " << (i+1) << "\"";
     }
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        hist_ofs << ",\"Accumulated Percentage " << (i+1) << "\"";
+        (*hist_ofs) << ",\"Accumulated Percentage " << (i+1) << "\"";
     }
-    hist_ofs << "\n";
+    (*hist_ofs) << "\n";
 
     // Write histogram header
     for( size_t b = 0; b < options.histogram_bins; ++b ) {
-        hist_ofs << b << ",";
-        hist_ofs << hists[0].bin_range(b).first << "," << hists[0].bin_range(b).second;
-        hist_ofs << ",\"[" << hists[0].bin_range(b).first << ", " << hists[0].bin_range(b).second << ")\"";
+        (*hist_ofs) << b << ",";
+        (*hist_ofs) << hists[0].bin_range(b).first << "," << hists[0].bin_range(b).second;
+        (*hist_ofs) << ",\"[" << hists[0].bin_range(b).first << ", ";
+        (*hist_ofs) << hists[0].bin_range(b).second << ")\"";
 
         for( size_t n = 0; n < options.num_lwrs; ++n ) {
             hist_accs[n] += hists[n][b];
-            hist_ofs << "," << hists[n][b];
+            (*hist_ofs) << "," << hists[n][b];
         }
         for( size_t n = 0; n < options.num_lwrs; ++n ) {
-            hist_ofs << "," << ( hists[n][b] / hist_sums[n] );
+            (*hist_ofs) << "," << ( hists[n][b] / hist_sums[n] );
         }
         for( size_t n = 0; n < options.num_lwrs; ++n ) {
-            hist_ofs << "," << hist_accs[n];
+            (*hist_ofs) << "," << hist_accs[n];
         }
         for( size_t n = 0; n < options.num_lwrs; ++n ) {
-            hist_ofs << "," << ( hist_accs[n] / hist_sums[n] );
+            (*hist_ofs) << "," << ( hist_accs[n] / hist_sums[n] );
         }
 
-        hist_ofs << "\n";
+        (*hist_ofs) << "\n";
     }
-    hist_ofs.close();
 }

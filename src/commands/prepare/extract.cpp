@@ -139,10 +139,10 @@ void setup_extract( CLI::App& app )
     color_tree_file_opt->group( "Output" );
 
     // Output files.
-    options->jplace_output.add_output_dir_opt_to_app( sub, "samples", "samples" );
-    // options->jplace_output.add_file_prefix_opt_to_app( sub, "sample", "" );
-    options->sequence_output.add_output_dir_opt_to_app( sub, "sequences", "sequences" );
-    // options->sequence_output.add_file_prefix_opt_to_app( sub, "sequence", "" );
+    options->jplace_output.set_optionname( "samples" );
+    options->jplace_output.add_default_output_opts_to_app( sub, "samples" );
+    options->sequence_output.set_optionname( "sequences" );
+    options->sequence_output.add_default_output_opts_to_app( sub, "sequences" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -438,10 +438,9 @@ void write_sample_set(
     auto writer = JplaceWriter();
     #pragma omp parallel for schedule(dynamic)
     for( size_t si = 0; si < sample_set.size(); ++si ) {
-        auto const fn = options.jplace_output.file_prefix() + sample_set.name_at( si ) + ".jplace";
         writer.write(
             sample_set.at( si ),
-            genesis::utils::to_file( options.jplace_output.out_dir() + fn )
+            options.jplace_output.get_output_target( sample_set.name_at( si ), "jplace" )
         );
     }
 }
@@ -586,17 +585,10 @@ void extract_sequences(
     // User output.
     options.sequence_input.print();
 
-    // Helper: Given a clade name, get the fasta file to write to.
-    auto clade_filename = [&]( std::string const& cladename ){
-        auto path = options.sequence_output.out_dir();
-        path += options.sequence_output.file_prefix() + cladename + ".fasta";
-        return path;
-    };
-
     // Lazy prep: We write empty files first, which makes sure (again) that they do not exist,
     // and that we can later append to them.
     for( auto const& clade : list ) {
-        file_write( "", clade_filename( clade.first ));
+        file_write( "", options.sequence_output.get_output_filename( clade.first, "fasta" ));
     }
 
     // Helpers.
@@ -657,7 +649,9 @@ void extract_sequences(
                 if( clade_seqs.size() >= 1000 ) {
 
                     // Prepare file for appending.
-                    auto const fn = clade_filename( clade_it->first );
+                    auto const fn = options.sequence_output.get_output_filename(
+                        clade_it->first, "fasta"
+                    );
                     std::ofstream out_stream( fn, std::ofstream::app );
                     if( out_stream.fail() ) {
                         throw std::runtime_error( "Cannot append sequences to file " + fn + "." );
@@ -677,7 +671,7 @@ void extract_sequences(
     for( auto const& clade_seqs : clade_sequences ) {
 
         // Prepare file for appending.
-        auto const fn = clade_filename( clade_seqs.first );
+        auto const fn = options.sequence_output.get_output_filename( clade_seqs.first, "fasta" );
         std::ofstream out_stream( fn, std::ofstream::app );
         if( out_stream.fail() ) {
             throw std::runtime_error( "Cannot append sequences to file '" + fn + "'." );
@@ -705,13 +699,9 @@ void run_extract( ExtractOptions const& options )
     using namespace ::genesis::tree;
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    options.jplace_output.check_nonexistent_output_files({
-        options.jplace_output.file_prefix() + ".*\\.jplace"
-    });
+    options.jplace_output.check_output_files_nonexistence( "*", "jplace" );
     if( options.sequence_input.file_count() > 0 ) {
-        options.sequence_output.check_nonexistent_output_files({
-            options.sequence_output.file_prefix() + ".*\\.fasta"
-        });
+        options.sequence_output.check_output_files_nonexistence( "*", "fasta" );
     }
 
     // User output.

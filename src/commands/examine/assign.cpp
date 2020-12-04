@@ -152,8 +152,7 @@ void setup_assign( CLI::App& app )
     )->group("Settings");
 
     // Output
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    opt->file_output.add_file_prefix_opt_to_app( sub, "", "assign_" );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     auto cami_flag = sub->add_flag(
         "--cami",
@@ -202,6 +201,57 @@ void setup_assign( CLI::App& app )
         }
     ));
 }
+
+// =================================================================================================
+//     Helper Classes
+// =================================================================================================
+
+class AssignTaxonData : public genesis::taxonomy::BaseTaxonData
+{
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
+public:
+
+    virtual ~AssignTaxonData() = default;
+
+    // Move ctor and assignment.
+    AssignTaxonData( AssignTaxonData&& )             = delete;
+    AssignTaxonData& operator= ( AssignTaxonData&& ) = delete;
+
+protected:
+
+    AssignTaxonData() = default;
+
+    // Copy ctor and assignment.
+    AssignTaxonData( AssignTaxonData const& )             = default;
+    AssignTaxonData& operator= ( AssignTaxonData const& ) = default;
+
+public:
+
+    static std::unique_ptr< AssignTaxonData > create()
+    {
+        return std::unique_ptr< AssignTaxonData >( new AssignTaxonData() );
+    }
+
+    virtual std::unique_ptr< BaseTaxonData > clone() const override
+    {
+        return std::unique_ptr< AssignTaxonData >( new AssignTaxonData( *this ) );
+    }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    double aLWR         = 0.0;
+    double LWR          = 0.0;
+
+    /**
+     * related to the dirty hack in add_taxon_ids(..)
+     */
+    int tmp_id       = -1;
+};
 
 // =================================================================================================
 //      Run
@@ -325,8 +375,8 @@ void postorder_label( PlacementTree const& tree,
             }
 
             // keep track of all leaf indices below this inner node, such that we can access them for the consensus mode
-            update_descendants( leaf_indices_below, parent, child_1 );            
-            update_descendants( leaf_indices_below, parent, child_2 );            
+            update_descendants( leaf_indices_below, parent, child_1 );
+            update_descendants( leaf_indices_below, parent, child_2 );
 
             auto& cur_descendants = leaf_indices_below[ parent_idx ];
 
@@ -394,7 +444,7 @@ std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
             "No taxon labels were assigned to the reference tree!\n"
             "Please check tree leaf label and taxon file taxa name congruency!"
         };
-    } 
+    }
 
     // since we now allow taxon files that are supersets of the taxa in the tree
     // we need to make sure that the user knows when there are taxa missing
@@ -1003,9 +1053,10 @@ static void assign( Sample const& sample,
 
     std::ofstream sativa_out_stream;
     if ( options.sativa ) {
-        genesis::utils::file_output_stream( options.file_output.out_dir() +
-                                            options.file_output.file_prefix() + "sativa.tsv",
-                                            sativa_out_stream );
+        genesis::utils::file_output_stream(
+            options.file_output.get_output_filename( "sativa", "tsv" ),
+            sativa_out_stream
+        );
     }
 
     // set up stuff to deal with outliers
@@ -1018,9 +1069,10 @@ static void assign( Sample const& sample,
         using PqueryName = genesis::placement::PqueryName;
 
         // take the multiplicity of a PQuery as the sum of all named multiplicites within it
-        auto const multiplicity = std::accumulate(  pq.begin_names(),
-                                                    pq.end_names(),
-                                                    PqueryName("", 0),
+        auto const multiplicity = std::accumulate(
+            pq.begin_names(),
+            pq.end_names(),
+            PqueryName("", 0),
             []( const PqueryName& a, const PqueryName& b ){
                 PqueryName ret;
                 ret.multiplicity = a.multiplicity + b.multiplicity;
@@ -1124,19 +1176,26 @@ static void assign( Sample const& sample,
 
     // ========= OUTPUT =============
 
-    std::string out_path = options.file_output.out_dir() + options.file_output.file_prefix();
-
     // return diversity profile
-    print_taxonomy_table( options, 0, diversity, out_path + "profile.tsv" );
+    print_taxonomy_table(
+        options, 0, diversity,
+        options.file_output.get_output_filename( "profile", "tsv" )
+    );
 
     // print result in CAMI format if desired
     if ( options.cami ) {
-        print_cami( options, diversity, out_path + "cami.profile" );
+        print_cami(
+            options, diversity,
+            options.file_output.get_output_filename( "cami", "profile"  )
+        );
     }
 
     // print result in krona format if desired
     if ( options.krona ) {
-        print_krona( options, diversity, out_path + "krona.profile" );
+        print_krona(
+            options, diversity,
+            options.file_output.get_output_filename( "krona", "profile"  )
+        );
     }
 
     // constrain to subtaxonomy if specified
@@ -1148,7 +1207,10 @@ static void assign( Sample const& sample,
         auto const base_level = taxon_level( subtaxonomy );
 
         // and print to file
-        print_taxonomy_table( options, base_level, subtaxonomy, out_path + "profile_filtered.tsv" );
+        print_taxonomy_table(
+            options, base_level, subtaxonomy,
+            options.file_output.get_output_filename( "profile_filtered", "tsv"  )
+        );
     }
 }
 
@@ -1232,8 +1294,6 @@ void label_undetermined_nodes( PlacementTree const& tree, std::vector<Taxopath>&
 
 void run_assign( AssignOptions const& options )
 {
-    auto out_path = options.file_output.out_dir() + options.file_output.file_prefix();
-
     options.jplace_input.print();
     auto sample = options.jplace_input.merged_samples();
     auto& tree = sample.tree();
@@ -1270,8 +1330,14 @@ void run_assign( AssignOptions const& options )
     }
 
     // print taxonomically labelled tree as intermediate result
-    print_labelled( tree, node_labels, out_path + "labelled_tree.newick" );
+    print_labelled(
+        tree, node_labels,
+        options.file_output.get_output_filename( "labelled_tree", "newick"  )
+    );
 
     // per rank LWR score eval
-    assign( sample, node_labels, options, out_path + "per_query.tsv" );
+    assign(
+        sample, node_labels, options,
+        options.file_output.get_output_filename( "per_query", "tsv"  )
+    );
 }

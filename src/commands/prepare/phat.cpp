@@ -198,7 +198,7 @@ void setup_phat( CLI::App& app )
     //     Output Options
     // -----------------------------------------------------------
 
-    opt->output.add_output_dir_opt_to_app( sub );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // Write info files
     sub->add_flag(
@@ -528,7 +528,9 @@ void generate_consensus_sequences( PhatOptions const& options, genesis::taxonomy
     LOG_MSG1 << "Generating consensus sequences.";
 
     // Helper function.
-    auto write_fasta_sequence = [] ( std::ofstream& out, std::string const& name, std::string const& sites ) {
+    auto write_fasta_sequence = [] (
+        std::ostream& out, std::string const& name, std::string const& sites
+    ) {
         out << ">" << name << "\n";
         for (size_t i = 0; i < sites.length(); i += 80) {
             out << sites.substr(i, 80) << "\n";
@@ -536,10 +538,9 @@ void generate_consensus_sequences( PhatOptions const& options, genesis::taxonomy
     };
 
     // Prepare output.
-    // TODO check with file overwrite settings
-    std::ofstream cons_seq_os;
-    auto const fn = options.output.out_dir() + options.consensus_sequence_file;
-    genesis::utils::file_output_stream( fn, cons_seq_os );
+    auto cons_target = options.file_output.get_output_target(
+         "consensus_sequences", "fasta"
+    );
     auto const tax_gen = TaxopathGenerator();
 
     // Collect taxa that do not have any data
@@ -578,11 +579,10 @@ void generate_consensus_sequences( PhatOptions const& options, genesis::taxonomy
         } else {
             throw CLI::ConversionError( "Unknown consensus method: " + options.consensus_method );
         }
-        write_fasta_sequence( cons_seq_os, name, sites );
+        write_fasta_sequence( cons_target->ostream(), name, sites );
 
     };
     preorder_for_each( tax, make_consensus_sequences );
-    cons_seq_os.close();
 
     // User warning for empty taxa
     if( ! no_data_taxa.empty() ) {
@@ -610,16 +610,12 @@ void write_info_files( PhatOptions const& options, genesis::taxonomy::Taxonomy c
     // TODO check with file overwrite settings
 
     // Prepare entropy output.
-    std::ofstream entropy_os;
-    auto const entropy_fn = options.output.out_dir() + options.entropy_info_file;
-    genesis::utils::file_output_stream( entropy_fn, entropy_os );
-    entropy_os << "Taxon\tStatus\tChild_Taxa\tLowest_Level_Taxa\tTotal_Taxa\tSequences\tEntropy\n";
+    auto entropy_os = options.file_output.get_output_target( "entropy", "tsv" );
+    (*entropy_os) << "Taxon\tStatus\tChild_Taxa\tLowest_Level_Taxa\tTotal_Taxa\tSequences\tEntropy\n";
 
     // Prepare taxonomy output.
-    std::ofstream taxonomy_os;
-    auto const taxonomy_fn = options.output.out_dir() + options.taxonomy_info_file;
-    genesis::utils::file_output_stream( taxonomy_fn, taxonomy_os );
-    taxonomy_os << "Taxon\tChild_Taxa\tLowest_Level_Taxa\tTotal_Taxa\n";
+    auto taxonomy_os = options.file_output.get_output_target( "taxonomy", "tsv" );
+    (*taxonomy_os) << "Taxon\tChild_Taxa\tLowest_Level_Taxa\tTotal_Taxa\n";
 
     // Write to files.
     auto const gen = TaxopathGenerator();
@@ -650,29 +646,25 @@ void write_info_files( PhatOptions const& options, genesis::taxonomy::Taxonomy c
         }
 
         // For all taxa, write out entropy info.
-        entropy_os << name;
-        entropy_os << "\t" << status;
-        entropy_os << "\t" << t.size();
-        entropy_os << "\t" << lowest_chldrn;
-        entropy_os << "\t" << total_chldrn;
-        entropy_os << "\t" << added_seqs;
-        entropy_os << "\t" << entr;
-        entropy_os << "\n";
+        (*entropy_os) << name;
+        (*entropy_os) << "\t" << status;
+        (*entropy_os) << "\t" << t.size();
+        (*entropy_os) << "\t" << lowest_chldrn;
+        (*entropy_os) << "\t" << total_chldrn;
+        (*entropy_os) << "\t" << added_seqs;
+        (*entropy_os) << "\t" << entr;
+        (*entropy_os) << "\n";
 
         // Write all inner and border taxa to the taxnomy file.
         if( t.data<EntropyTaxonData>().status != EntropyTaxonData::PruneStatus::kOutside ) {
-            taxonomy_os << name;
-            taxonomy_os << "\t" << t.size();
-            taxonomy_os << "\t" << lowest_chldrn;
-            taxonomy_os << "\t" << total_chldrn;
-            taxonomy_os << "\n";
+            (*taxonomy_os) << name;
+            (*taxonomy_os) << "\t" << t.size();
+            (*taxonomy_os) << "\t" << lowest_chldrn;
+            (*taxonomy_os) << "\t" << total_chldrn;
+            (*taxonomy_os) << "\n";
         }
     };
     preorder_for_each( tax, print_taxon_info );
-
-    // Wrap up.
-    entropy_os.close();
-    taxonomy_os.close();
 }
 
 // =================================================================================================
@@ -684,13 +676,13 @@ void run_phat( PhatOptions const& options )
     using namespace genesis::utils;
 
     // Check output files
-    options.output.check_nonexistent_output_files({ options.consensus_sequence_file });
+    std::vector<std::pair<std::string, std::string>> files_to_check;
+    files_to_check.push_back({ "consensus_sequences", "fasta" });
     if( options.write_info_files ) {
-        options.output.check_nonexistent_output_files({
-            options.entropy_info_file,
-            options.taxonomy_info_file
-        });
+        files_to_check.push_back({ "entropy", "tsv" });
+        files_to_check.push_back({ "taxonomy", "tsv" });
     }
+    options.file_output.check_output_files_nonexistence( files_to_check );
 
     // Run the whole thing!
     auto taxonomy = read_taxonomy( options );

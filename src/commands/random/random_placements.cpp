@@ -90,8 +90,7 @@ void setup_random_placements( CLI::App& app )
     //     Output Options
     // -----------------------------------------------------------
 
-    opt->output.add_output_dir_opt_to_app( sub );
-    opt->output.add_file_prefix_opt_to_app( sub );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -136,10 +135,7 @@ void run_random_placements( RandomPlacementsOptions const& options )
     using namespace ::genesis::placement;
 
     // Check if the output file name already exists. If so, fail early.
-    options.output.check_nonexistent_output_files({
-        options.output.file_prefix() + "random-placements.jplace"
-    });
-
+    options.file_output.check_output_files_nonexistence( "random-placements", "jplace" );
 
     // Get an empty sample with the reference tree.
     auto sample = get_empty_sample( options );
@@ -157,6 +153,6 @@ void run_random_placements( RandomPlacementsOptions const& options )
     // Write result file.
     JplaceWriter().write(
         sample,
-        genesis::utils::to_file( options.output.file_prefix() + "random-placements.jplace" )
+        options.file_output.get_output_target( "random-placements", "jplace" )
     );
 }

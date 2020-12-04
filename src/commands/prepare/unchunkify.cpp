@@ -182,7 +182,7 @@ void setup_unchunkify( CLI::App& app )
     //     Output options
     // -----------------------------------------------------------
 
-    opt->file_output.add_output_dir_opt_to_app( sub );
+    opt->file_output.add_default_output_opts_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -663,7 +663,7 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
         // We are done with the map/sample. Write it.
         jplace_writer.write(
             sample,
-            genesis::utils::to_file( options.file_output.out_dir() + sample_name + ".jplace" )
+            options.file_output.get_output_target( sample_name, "jplace" )
         );
     }
 
@@ -684,7 +684,7 @@ void run_unchunkify( UnchunkifyOptions const& options )
     // -----------------------------------------------------------
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({ ".*\\.jplace" });
+    options.file_output.check_output_files_nonexistence( "*", "jplace" );
 
     // Print some user output.
     options.abundance_map_input.print();

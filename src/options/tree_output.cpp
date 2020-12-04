@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "genesis/utils/tools/color/helpers.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 
@@ -97,54 +98,78 @@ std::vector<std::string> TreeOutputOptions::get_extensions() const
 }
 
 void TreeOutputOptions::write_tree_to_files(
-    genesis::tree::CommonTree const&         tree,
-    std::string const&                        file_path_prefix
+    genesis::tree::CommonTree const&          tree,
+    FileOutputOptions const&                  file_output_options,
+    std::string const&                        infix
 ) const {
     using namespace genesis::tree;
 
+    // Currently, this tree output class uses the file output options only to get the file names,
+    // but writes to them using different functions. Hence, we need to make sure that we do not
+    // accidentally write to gz files (gappa commands that write tree files should never activate
+    // this options as of now, so here we check that this is true).
+    // In the future, once the genesis shortcut functions for writing trees that we use here are
+    // refactored to use an output target instead of a file name, we can also allow to write
+    // compressed trees. But not for now.
+    assert( file_output_options.compress_option == nullptr );
+    assert( !file_output_options.compress() );
+
     if( write_newick_tree_ ) {
-        write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
+        write_tree_to_newick_file( tree, file_output_options.get_output_filename( infix, "newick" ));
     }
 
     if( write_nexus_tree_ ) {
-        write_tree_to_nexus_file( tree, file_path_prefix + ".nexus" );
+        write_tree_to_nexus_file( tree, file_output_options.get_output_filename( infix, "nexus" ));
     }
 
     if( write_phyloxml_tree_ ) {
-        write_tree_to_phyloxml_file( tree, file_path_prefix + ".phyloxml" );
+        write_tree_to_phyloxml_file( tree, file_output_options.get_output_filename( infix, "phyloxml" ));
     }
 
     if( write_svg_tree_ ) {
         write_tree_to_svg_file(
             tree,
             svg_tree_output.layout_parameters(),
-            file_path_prefix + ".svg"
+            file_output_options.get_output_filename( infix, "svg" )
         );
     }
 }
 
 void TreeOutputOptions::write_tree_to_files(
-    genesis::tree::CommonTree const&         tree,
+    genesis::tree::CommonTree const&          tree,
     std::vector<genesis::utils::Color> const& color_per_branch,
-    std::string const&                        file_path_prefix
+    FileOutputOptions const&                  file_output_options,
+    std::string const&                        infix
 ) const {
     using namespace genesis::tree;
 
-    if( write_newick_tree_ ) {
-        LOG_WARN << "Warning: Option --write-newick-tree is set, but the output contains colors, "
-                 << "which are not available in the Newick format. "
-                 << "The Newick tree only contains the topology of the tree with names and branch lengths. "
-                 << "Use another format to get a colored tree!";
+    // See above for reasoning of these assertions.
+    assert( file_output_options.compress_option == nullptr );
+    assert( !file_output_options.compress() );
 
-        write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
+    if( write_newick_tree_ ) {
+        if( !( write_nexus_tree_ || write_phyloxml_tree_ || write_svg_tree_ )) {
+            LOG_WARN << "Warning: Option --write-newick-tree is set, but the output contains colors, "
+                     << "which are not available in the Newick format. The Newick tree only "
+                     << "contains the topology of the tree with names and branch lengths. "
+                     << "Use another format such as nexus, phyloxml, or svg to get a colored tree!";
+        }
+
+        write_tree_to_newick_file(
+            tree, file_output_options.get_output_filename( infix, "newick" )
+        );
     }
 
     if( write_nexus_tree_ ) {
-        write_color_tree_to_nexus_file( tree, color_per_branch, file_path_prefix + ".nexus" );
+        write_color_tree_to_nexus_file(
+            tree, color_per_branch, file_output_options.get_output_filename( infix, "nexus" )
+        );
     }
 
     if( write_phyloxml_tree_ ) {
-        write_color_tree_to_phyloxml_file( tree, color_per_branch, file_path_prefix + ".phyloxml" );
+        write_color_tree_to_phyloxml_file(
+            tree, color_per_branch, file_output_options.get_output_filename( infix, "phyloxml" )
+        );
     }
 
     if( write_svg_tree_ ) {
@@ -152,41 +177,54 @@ void TreeOutputOptions::write_tree_to_files(
             tree,
             svg_tree_output.layout_parameters(),
             color_per_branch,
-            file_path_prefix + ".svg"
+            file_output_options.get_output_filename( infix, "svg" )
         );
     }
 }
 
 void TreeOutputOptions::write_tree_to_files(
-    genesis::tree::CommonTree const&         tree,
+    genesis::tree::CommonTree const&          tree,
     std::vector<genesis::utils::Color> const& color_per_branch,
     genesis::utils::ColorMap const&           color_map,
     genesis::utils::ColorNormalization const& color_norm,
-    std::string const&                        file_path_prefix
+    FileOutputOptions const&                  file_output_options,
+    std::string const&                        infix
 ) const {
     using namespace genesis::tree;
     using namespace genesis::utils;
+
+    // See above for reasoning of these assertions.
+    assert( file_output_options.compress_option == nullptr );
+    assert( !file_output_options.compress() );
 
     // In case we output a non svg tree, we need to report colors and tickmarks,
     // as they are not available in the other formats.
     bool print_legend = false;
 
     if( write_newick_tree_ ) {
-        LOG_WARN << "Warning: Option --write-newick-tree is set, but the output contains colors, "
-                 << "which are not available in the Newick format. "
-                 << "The Newick tree only contains the topology of the tree with names and branch lengths. "
-                 << "Use another format to get a colored tree!";
+        if( !( write_nexus_tree_ || write_phyloxml_tree_ || write_svg_tree_ )) {
+            LOG_WARN << "Warning: Option --write-newick-tree is set, but the output contains colors, "
+                     << "which are not available in the Newick format. The Newick tree only "
+                     << "contains the topology of the tree with names and branch lengths. "
+                     << "Use another format such as nexus, phyloxml, or svg to get a colored tree!";
+        }
 
-        write_tree_to_newick_file( tree, file_path_prefix + ".newick" );
+        write_tree_to_newick_file(
+            tree, file_output_options.get_output_filename( infix, "newick" )
+        );
     }
 
     if( write_nexus_tree_ ) {
-        write_color_tree_to_nexus_file( tree, color_per_branch, file_path_prefix + ".nexus" );
+        write_color_tree_to_nexus_file(
+            tree, color_per_branch, file_output_options.get_output_filename( infix, "nexus" )
+        );
         print_legend = true;
     }
 
     if( write_phyloxml_tree_ ) {
-        write_color_tree_to_phyloxml_file( tree, color_per_branch, file_path_prefix + ".phyloxml" );
+        write_color_tree_to_phyloxml_file(
+            tree, color_per_branch, file_output_options.get_output_filename( infix, "phyloxml" )
+        );
         print_legend = true;
     }
 
@@ -197,7 +235,7 @@ void TreeOutputOptions::write_tree_to_files(
             color_per_branch,
             color_map,
             color_norm,
-            file_path_prefix + ".svg"
+            file_output_options.get_output_filename( infix, "svg" )
         );
     }
 
@@ -206,10 +244,10 @@ void TreeOutputOptions::write_tree_to_files(
         auto const tickmarks = color_tickmarks( color_norm, 5 );
 
         LOG_MSG1 << "Output options --write-nexus-tree and --write-phyloxml-tree produce trees "
-                 << "with colored branches these formats are however not able to store the legend, "
-                 << "that is, which color represents which value. "
-                 << "Thus, use to following positions to create a legend. "
-                 << "These positions range from 0.0 (lowest) to 1.0 (heighest), and are labelled "
+                 << "with colored branches. These formats are however not able to store the legend, "
+                 << "that is, which color represents which value. Thus, use to following positions "
+                 << "to create a legend (with linear color interpolation between the positions). "
+                 << "These positions range from 0.0 (lowest) to 1.0 (heighest), and are labeled "
                  << "with the values and colors represented by those positions.";
 
         for( auto const& tick : tickmarks ) {
@@ -230,5 +268,6 @@ void TreeOutputOptions::write_tree_to_files(
 
         LOG_MSG1 << "Alternatively, use the option --write-svg-tree to create an Svg file "
                  << "from which the color legend can be copied.";
+        LOG_BOLD;
     }
 }

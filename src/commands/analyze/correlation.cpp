@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,9 +137,10 @@ void setup_correlation( CLI::App& app )
     options->color_map.add_mask_color_opt_to_app( sub );
 
     // Output files.
+    // options->file_output.set_optionname( "tree" );
+    options->file_output.add_default_output_opts_to_app( sub );
+    // options->file_output.add_default_output_opts_to_app( sub, ".", "correlation_" );
     options->tree_output.add_tree_output_opts_to_app( sub );
-    options->file_output.add_output_dir_opt_to_app( sub );
-    options->file_output.add_file_prefix_opt_to_app( sub, "tree", "correlation_" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -204,10 +205,14 @@ genesis::utils::Dataframe get_metadata( CorrelationOptions const& options )
 
     // Check if the sorting actually fits.
     if( ! options.metadata_input.check_row_names( df, options.jplace_input.base_file_names() )) {
+        LOG_ERR << "Metadata row names: " << genesis::utils::join( df.row_names(), ", " );
+        LOG_ERR << "Jplace file names: " << genesis::utils::join(
+            options.jplace_input.base_file_names(), ", "
+        );
         throw std::runtime_error(
             "The first column of the metadata file contains different row names "
             "than the input jplace file names. There needs to be exaclty one metadata line per "
-            "input jplace file, using the file name (without the extension .jplace) as identifier."
+            "input jplace file, using the file name (without the extension .jplace[.gz]) as identifier."
         );
     }
 
@@ -228,23 +233,11 @@ void check_jplace_input( CorrelationOptions const& options )
 
     if( std::adjacent_find( fns.begin(), fns.end() ) != fns.end() ) {
         throw std::runtime_error(
-            "The file names of the input jplace files (without the extension .jplace) are not "
+            "The file names of the input jplace files (without the extension .jplace[.gz]) are not "
             "unique and can thus not used as identifiers for metadata rows. "
             "Make sure that you use unique sample names."
         );
     }
-}
-
-/**
- * @brief Get a standard form for output file names to use within this command.
- */
-std::string output_file_name(
-    CorrelationOptions const& options,
-    std::string const&        prefix,
-    std::string const&        metadata_field
-) {
-    using namespace genesis::utils;
-    return sanitize_filename( options.file_output.file_prefix() + metadata_field + "_" + prefix );
 }
 
 // =================================================================================================
@@ -255,8 +248,7 @@ void make_correlation_color_tree(
     CorrelationOptions const&  options,
     std::vector<double> const& values,
     genesis::tree::Tree const& tree,
-    std::string const&         full_prefix,
-    std::string const&         metadata_field
+    std::string const&         infix
 ) {
     using namespace genesis::utils;
 
@@ -276,7 +268,8 @@ void make_correlation_color_tree(
         colors,
         color_map,
         color_norm,
-        options.file_output.out_dir() + output_file_name( options, full_prefix, metadata_field )
+        options.file_output,
+        infix
     );
 }
 
@@ -318,6 +311,21 @@ void run_with_matrix(
         for( auto const& meta_col : df ) {
             auto const& meta_dbl = meta_col.as<double>();
 
+            // User output
+            std::string corrname;
+            switch( variant.correlation_value ) {
+                case CorrelationVariant::kPearson: {
+                    corrname = "Pearson";
+                    break;
+                }
+                case CorrelationVariant::kSpearman: {
+                    corrname = "Spearman";
+                    break;
+                }
+            }
+            LOG_MSG1 << "Writing " << corrname << " correlation with meta-data column "
+                     << meta_col.name() << ".";
+
             // Prepare a vector for the correlation coefficients of all edges.
             auto corr_vec = std::vector<double>( tree.edge_count() );
 
@@ -346,7 +354,9 @@ void run_with_matrix(
             }
 
             // Make a tree using the data vector and name of the variant and field.
-            make_correlation_color_tree( options, corr_vec, tree, variant.name, meta_col.name() );
+            make_correlation_color_tree(
+                options, corr_vec, tree,  meta_col.name() + "_" + variant.name
+            );
         }
     }
 }
@@ -383,15 +393,15 @@ void run_correlation( CorrelationOptions const& options )
     auto const variants = get_variants( options );
 
     // Check for existing output files.
-    std::vector<std::string> files_to_check;
+    std::vector<std::pair<std::string, std::string>> infixes_and_extensions;
     for( auto const& m : variants ) {
         for( auto const& f : df.col_names() ) {
             for( auto const& e : options.tree_output.get_extensions() ) {
-                files_to_check.push_back( output_file_name( options, m.name, f ) + "\\." + e );
+                infixes_and_extensions.emplace_back( f + "_" + m.name, e );
             }
         }
     }
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    options.file_output.check_output_files_nonexistence( infixes_and_extensions );
 
     // -------------------------------------------------------------------------
     //     Calculations and Output
@@ -400,15 +410,19 @@ void run_correlation( CorrelationOptions const& options )
     // Get the data. Read all samples and calcualte the matrices.
     auto const profile = options.jplace_input.placement_profile();
 
-    LOG_MSG2 << "Calculating correlations and writing files.";
+    LOG_MSG1 << "Calculating correlations and writing files.";
 
     // Calculate things as needed.
     if(( options.edge_values == "both" ) || ( options.edge_values == "masses" )) {
+        LOG_BOLD;
+        LOG_MSG1 << "Calculating corrlation with masses.";
         run_with_matrix(
             options, variants, profile.edge_masses, df, CorrelationVariant::kMasses, profile.tree
         );
     }
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
+        LOG_BOLD;
+        LOG_MSG1 << "Calculating corrlation with imbalances.";
         run_with_matrix(
             options, variants, profile.edge_imbalances, df, CorrelationVariant::kImbalances, profile.tree
         );

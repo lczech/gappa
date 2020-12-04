@@ -122,8 +122,8 @@ void setup_multiplicity( CLI::App& app )
     write_multiplicity_file_opt->excludes( fasta_file_opt );
     write_multiplicity_file_opt->excludes( multiplicity_file_opt );
 
-    options->file_output.add_output_dir_opt_to_app( sub );
-    options->file_output.add_file_prefix_opt_to_app( sub );
+    options->file_output.add_default_output_opts_to_app( sub );
+    options->file_output.add_file_compress_opt_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback
@@ -348,11 +348,11 @@ void change_multiplicities( MultiplicityOptions const& options )
 {
     // Check if any of the files we are going to produce already exists. If so, fail early.
     auto const bfns = options.jplace_input.base_file_names();
-    std::vector<std::string> check_files;
+    std::vector<std::pair<std::string, std::string>> check_files;
     for( auto const& bfn : bfns ) {
-        check_files.push_back( options.file_output.file_prefix() + bfn + "\\.jplace" );
+        check_files.push_back({ bfn, "jplace" });
     }
-    options.file_output.check_nonexistent_output_files( check_files );
+    options.file_output.check_output_files_nonexistence( check_files );
 
     // Get all multiplicites. That might need some memory, but for now, easier that way.
     auto multips = get_multiplicities( options );
@@ -399,10 +399,9 @@ void change_multiplicities( MultiplicityOptions const& options )
         }
 
         // Write sample back to file.
-        auto const ofn = options.file_output.file_prefix() + basename + ".jplace";
         genesis::placement::JplaceWriter().write(
             sample,
-            genesis::utils::to_file( options.file_output.out_dir() + ofn )
+            options.file_output.get_output_target( basename, "jplace" )
         );
     }
 
@@ -418,9 +417,7 @@ void change_multiplicities( MultiplicityOptions const& options )
 void write_multiplicities( MultiplicityOptions const& options )
 {
     // Check if the produced file already exists. If so, fail early.
-    options.file_output.check_nonexistent_output_files({
-        options.file_output.file_prefix() + "multiplicities\\.csv"
-    });
+    options.file_output.check_output_files_nonexistence( "multiplicities", "csv" );
 
     // Store the multiplicites.
     SortedMultiplicityMap multips;
@@ -475,28 +472,21 @@ void write_multiplicities( MultiplicityOptions const& options )
         LOG_WARN << "Warning: There were " << duplicate_sample_cnt << " duplicate sample names.";
     }
 
-    // Prepare file.
-    auto const filename
-        = options.file_output.out_dir()
-        + options.file_output.file_prefix()
-        + "multiplicities.csv"
-    ;
-
     // User output
-    LOG_MSG1 << "Writing multiplicity file: " << filename;
+    LOG_MSG1 << "Writing multiplicity file: " << options.file_output.get_output_filename(
+        "multiplicities", "csv"
+    );
 
     // TODO proper escaping! use csv writer class, if we add one to genesis.
     // TODO use the separator char here as well!
 
     // Write the multiplicity file.
-    std::ofstream ofs;
-    genesis::utils::file_output_stream( filename, ofs );
+    auto ofs = options.file_output.get_output_target( "multiplicities", "csv" );
     for( auto const& sample : multips ) {
         for( auto const& pquery : sample.second ) {
-            ofs << sample.first << "\t" << pquery.first << "\t" << pquery.second << "\n";
+            (*ofs) << sample.first << "\t" << pquery.first << "\t" << pquery.second << "\n";
         }
     }
-    ofs.close();
 }
 
 // =================================================================================================

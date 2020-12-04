@@ -130,8 +130,7 @@ void setup_placement_factorization( CLI::App& app )
     // opt->color_map.add_color_list_opt_to_app( sub, "viridis" );
     // opt->color_norm.add_log_scaling_opt_to_app( sub );
 
-    opt->file_output.add_output_dir_opt_to_app( sub );
-    // opt->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree_" );
+    opt->file_output.add_default_output_opts_to_app( sub );
     opt->tree_output.add_tree_output_opts_to_app( sub );
 
     // sub->add_option(
@@ -283,7 +282,7 @@ void write_factor_tree(
     auto all_edge_cols = phylo_factor_clade_colors( tree, factors, 0, clade_cols );
 
     options.tree_output.write_tree_to_files(
-        tree, all_edge_cols, options.file_output.out_dir() + "factors_tree"
+        tree, all_edge_cols, options.file_output, "factors_tree"
     );
     // write_color_tree_to_svg_file(
     //     tree, options.tree_output.svg_tree_output_opt().layout_parameters(),
@@ -301,7 +300,7 @@ void write_factor_edges(
         auto edge_cols = phylo_factor_single_factor_colors( tree, factors, i );
 
         options.tree_output.write_tree_to_files(
-            tree, edge_cols, options.file_output.out_dir() + "factor_edges_" + std::to_string( i+1 )
+            tree, edge_cols, options.file_output, "factor_edges_" + std::to_string( i+1 )
         );
     }
 }
@@ -325,7 +324,7 @@ void write_factor_objective_values(
 
         options.tree_output.write_tree_to_files(
             tree, edge_cols, cm, cn,
-            options.file_output.out_dir() + "objective_values_" + std::to_string( i+1 )
+            options.file_output, "objective_values_" + std::to_string( i+1 )
         );
     }
 }
@@ -338,9 +337,7 @@ void write_factor_taxa(
     using namespace genesis::tree;
     using namespace genesis::utils;
 
-    std::ofstream factor_taxa_of;
-    file_output_stream( options.file_output.out_dir() + "factor_taxa.txt", factor_taxa_of );
-
+    auto factor_taxa_of = options.file_output.get_output_target( "factor_taxa", "txt" );
     auto write_taxa_list = [&]( std::unordered_set<size_t> indices ) {
         std::unordered_set<std::string> edge_names;
         for( auto const ei : indices ) {
@@ -350,21 +347,20 @@ void write_factor_taxa(
             }
         }
         for( auto const& en : edge_names ) {
-            factor_taxa_of << en << "\n";
+            (*factor_taxa_of) << en << "\n";
         }
-        factor_taxa_of << "\n";
+        (*factor_taxa_of) << "\n";
     };
 
     for( size_t i = 0; i < factors.size(); ++i ) {
         auto const& factor = factors[i];
 
-        factor_taxa_of << "Factor " << (i+1) << ", root side:\n";
+        (*factor_taxa_of) << "Factor " << (i+1) << ", root side:\n";
         write_taxa_list( factor.edge_indices_primary );
 
-        factor_taxa_of << "Factor " << (i+1) << ", non-root side:\n";
+        (*factor_taxa_of) << "Factor " << (i+1) << ", non-root side:\n";
         write_taxa_list( factor.edge_indices_secondary );
     }
-    factor_taxa_of.close();
 }
 
 void write_balances_table(
@@ -388,9 +384,9 @@ void write_balances_table(
     }
 
     // Write balances of the factors.
+    auto target = options.file_output.get_output_target( "factor_balances", "csv" );
     MatrixWriter<double>().write(
-        balances, genesis::utils::to_file( options.file_output.out_dir() + "factor_balances.csv" ),
-        options.jplace_input.base_file_names(), col_names, "Sample"
+        balances, target, options.jplace_input.base_file_names(), col_names, "Sample"
     );
 }
 
@@ -407,17 +403,23 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
     // -------------------------------------------------------------------------
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    // std::vector<std::string> files_to_check;
-    // files_to_check.push_back( "cluster\\.newick" );
-    // for( auto const& e : options.tree_output.get_extensions() ) {
-    //     files_to_check.push_back(
-    //         options.file_output.file_prefix() + "[0-9]*\\." + e
-    //     );
-    // }
-    // options.file_output.check_nonexistent_output_files( files_to_check );
+    std::vector<std::pair<std::string, std::string>> files_to_check;
+    for( auto const& e : options.tree_output.get_extensions() ) {
+        files_to_check.push_back({ "factors_tree", e });
+        for( size_t i = 0; i < options.factors.value; ++i ) {
+            files_to_check.push_back({ "factor_edges_" + std::to_string( i+1 ), e });
+            files_to_check.push_back({ "objective_values_" + std::to_string( i+1 ), e });
+        }
+    }
+    files_to_check.push_back({ "factor_taxa", "txt" });
+    files_to_check.push_back({ "factor_balances", "csv" });
+    options.file_output.check_output_files_nonexistence( files_to_check );
 
     // Print some user output.
     options.jplace_input.print();
+
+    // User is warned when not using any tree outputs.
+    options.tree_output.check_tree_formats();
 
     // -------------------------------------------------------------------------
     //     Read Data

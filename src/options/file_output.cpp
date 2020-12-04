@@ -29,100 +29,192 @@
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include "tools/misc.hpp"
+
 #include <algorithm>
+#include <cassert>
 #include <stdexcept>
 
 // =================================================================================================
-//      Setup Functions
+//      File Type/Name Setup Functions
 // =================================================================================================
+
+void FileOutputOptions::set_optionname( std::string const& optionname )
+{
+    internal_check(
+        ! out_dir_option && ! prefix_option && ! suffix_option && ! compress_option,
+        "Have to call set_optionname() before adding any option."
+    );
+    optionname_ = optionname;
+}
+
+void FileOutputOptions::set_group( std::string const& group )
+{
+    internal_check(
+        ! out_dir_option && ! prefix_option && ! suffix_option && ! compress_option,
+        "Have to call set_group() before adding any option."
+    );
+    group_ = group;
+}
+
+// =================================================================================================
+//      Extra Setup Functions
+// =================================================================================================
+
+void FileOutputOptions::add_default_output_opts_to_app(
+    CLI::App* sub,
+    std::string const& output_dir_initial_value,
+    std::string const& prefix_initial_value,
+    std::string const& suffix_initial_value
+) {
+    add_output_dir_opt_to_app( sub, output_dir_initial_value );
+    add_file_prefix_opt_to_app( sub, prefix_initial_value );
+    add_file_suffix_opt_to_app( sub, suffix_initial_value );
+}
 
 CLI::Option* FileOutputOptions::add_output_dir_opt_to_app(
     CLI::App* sub,
-    std::string const& name,
-    std::string const& initial_value,
-    std::string const& group
+    std::string const& initial_value
 ) {
     // Correct setup check.
-    if( out_dir_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same FileOutputOptions object multiple times." );
-    }
+    internal_check(
+        out_dir_option == nullptr,
+        "Cannot use the same FileOutputOptions object multiple times."
+    );
 
     // Setup.
-    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "out-dir";
-    name_ = name;
+    auto const optname = "--" + optionname_ + ( optionname_.empty() ? "" : "-" ) + "out-dir";
     out_dir_ = initial_value;
 
     // Add option
     out_dir_option = sub->add_option(
         optname,
         out_dir_,
-        "Directory to write " + name + ( name.empty() ? "" : " " ) + "files to",
+        "Directory to write " + optionname_ + ( optionname_.empty() ? "" : " " ) + "files to",
         true
     );
     // out_dir_option->check( CLI::ExistingDirectory );
-    out_dir_option->group( group );
-
-    // TODO add function to overwrite files, which sets the genesis option for this. add this to global!
+    out_dir_option->group( group_ );
 
     return out_dir_option;
 }
 
 CLI::Option* FileOutputOptions::add_file_prefix_opt_to_app(
     CLI::App* sub,
-    std::string const& name,
+    std::string const& initial_value
+) {
+    return add_filefix_opt_( sub, initial_value, "prefix", prefix_option, prefix_ );
+}
+
+CLI::Option* FileOutputOptions::add_file_suffix_opt_to_app(
+    CLI::App* sub,
+    std::string const& initial_value
+) {
+    return add_filefix_opt_( sub, initial_value, "suffix", suffix_option, suffix_ );
+}
+
+CLI::Option* FileOutputOptions::add_filefix_opt_(
+    CLI::App* sub,
     std::string const& initial_value,
-    std::string const& group
+    std::string const& fixname,
+    CLI::Option* target_opt,
+    std::string& target_var
 ) {
     // Correct setup check.
-    if( prefix_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same FileOutputOptions object multiple times." );
-    }
+    internal_check(
+        target_opt == nullptr,
+        "Cannot use the same FileOutputOptions object multiple times."
+    );
 
     // Setup.
-    auto const optname = "--" + name + ( name.empty() ? "" : "-" ) + "file-prefix";
-    prefix_ = initial_value;
+    auto const optname = "--" + optionname_ + ( optionname_.empty() ? "" : "-" ) + "file-" + fixname;
+    target_var = initial_value;
 
     // Add option
-    prefix_option = sub->add_option(
+    target_opt = sub->add_option(
         optname,
-        prefix_,
-        "File prefix for " + ( name.empty() ? "output" : name ) + " files",
+        target_var,
+        "File " + fixname + " for " + ( optionname_.empty() ? "output" : optionname_ ) + " files",
         true
     );
-    prefix_option->check([]( std::string const& prefix ){
-        if( ! genesis::utils::is_valid_filename( prefix ) ) {
+    target_opt->check([fixname]( std::string const& fix ){
+        if( ! genesis::utils::is_valid_filename( fix ) ) {
             return std::string(
-                "File prefix contains invalid characters (<>:\"\\/|?*) or surrounding whitespace."
+                "File " + fixname + " contains invalid characters (`<>:\"\\/|?*`), non-printable " +
+                "characters, or surrounding whitespace."
             );
         }
         return std::string();
     });
-    prefix_option->group( group );
+    target_opt->group( group_ );
 
-    return prefix_option;
+    return target_opt;
+}
+
+CLI::Option* FileOutputOptions::add_file_compress_opt_to_app(
+    CLI::App* sub
+) {
+    // Correct setup check.
+    internal_check(
+        compress_option == nullptr,
+        "Cannot use the same FileOutputOptions object multiple times."
+    );
+
+    // Setup.
+    auto const optname = "--" + optionname_ + ( optionname_.empty() ? "" : "-" ) + "compress";
+
+    // TODO add optinal arguments for this: none, fastest, smallest, balanced, plus additonal
+    // "block" or "multithreaded" or "parallelized" keyword --> make this a hidden option?
+
+    // Add option
+    compress_option = sub->add_flag(
+        optname,
+        compress_,
+        "If set, compress the " + ( optionname_.empty() ? "output" : optionname_ ) +
+        " files using gzip. Output file extensions are automatically extended by `.gz`."
+    );
+    compress_option->group( group_ );
+    return compress_option;
 }
 
 // =================================================================================================
-//      Run Functions
+//      Output Filenames
 // =================================================================================================
 
-std::string FileOutputOptions::out_dir() const
-{
-    // Create dir if needed. This might create the dir also in cases were something failes later,
-    // so we end up with an empty dir. This is however common in many other programs as well,
-    // so let's not bother with this.
-    genesis::utils::dir_create( out_dir_, true );
+std::string FileOutputOptions::get_output_filename(
+    std::string const& infix, std::string const& extension, bool with_dir
+) const {
+    // Get the normalized output dir (with trailing slash) and extenion (with leading dot,
+    // so that empty extensions also work without introducing extra dots).
+    // We then simply assert that the extension has no further dots, which we can do,
+    // as we are the only ones setting extensions in this program (the user cannot chose them).
+    auto const dir = ( with_dir ? genesis::utils::dir_normalize_path( out_dir_ ) : "" );
+    auto const ext = ( extension.empty() || extension[0] == '.' ) ? extension : "." + extension;
+    internal_check( ext.size() < 2 || ext[1] != '.', "Extension contains multiple leading dots." );
 
-    return genesis::utils::dir_normalize_path( out_dir_ );
+    return dir + prefix_ + infix + suffix_ + ext + ( compress_ ? ".gz" : "" );
 }
 
-std::string FileOutputOptions::file_prefix() const
-{
-    return prefix_;
+void FileOutputOptions::check_output_files_nonexistence(
+    std::string const& infix, std::string const& extension
+) const {
+    check_output_files_nonexistence(
+        std::vector<std::pair<std::string, std::string>>{{ infix, extension }}
+    );
 }
 
-void FileOutputOptions::check_nonexistent_output_files(
-    std::vector<std::string> const& filenames
+void FileOutputOptions::check_output_files_nonexistence(
+    std::string const& infix, std::vector<std::string> const& extensions
+) const {
+    std::vector<std::pair<std::string, std::string>> list;
+    for( auto const& ext : extensions ) {
+        list.emplace_back( infix, ext );
+    }
+    check_output_files_nonexistence( list );
+}
+
+void FileOutputOptions::check_output_files_nonexistence(
+    std::vector<std::pair<std::string, std::string>> const& infixes_and_extensions
 ) const {
     using namespace genesis::utils;
 
@@ -133,58 +225,58 @@ void FileOutputOptions::check_nonexistent_output_files(
         return;
     }
 
-    // Get basic strings
-    auto const optname = "--" + name_ + ( name_.empty() ? "" : "-" ) + "out-dir";
+    // Helper function for reporting existing files
+    auto report_file_ = [&]( std::string const& path ){
+        // If we allow overwriting, only warn about the files.
+        if( genesis::utils::Options::get().allow_file_overwriting() ) {
+            LOG_WARN << "Warning: Output file already exists: " + path;
+            // LOG_BOLD;
+        } else {
+            throw genesis::except::ExistingFileError( "Output file already exists: " + path, path );
+        }
+    };
 
-    // Check if any of the files exists. Old version without regex.
-    // std::string const dir = dir_normalize_path( out_dir_ );
-    // for( auto const& file : filenames ) {
-    //     if( file_exists( dir + file ) ) {
-    //         throw CLI::ValidationError(
-    //             "--out-dir (" + out_dir_ +  ")", "Output file already exists: " + file
-    //         );
-    //     }
-    // }
+    // Get all files in the output dir.
+    auto const dir_cont = dir_list_contents( out_dir_, false );
 
-    // TODO if file overwrite option is added, this check should become a warning!
+    // Go through all filenames without dir names that we want to check.
+    // We use this as the outer loop to avoid recomputing file names.
+    for( auto const& in_ex : infixes_and_extensions ) {
 
-    // TODO using regexes gives weird user output if any of the files already exists.
-    // for example, dispersion_imbalances_sd\.svg
-    // better use normal wildcarts, and use some string replacement here before calling
-    // dir list contents.
+        // Get the file path for the current entry.
+        auto const path = get_output_filename( in_ex.first, in_ex.second, false );
 
-    // Check if any of the files exists.
-    for( auto const& file : filenames ) {
-        auto const dir_cont = dir_list_contents( out_dir_, true, file );
-        if( ! dir_cont.empty() ) {
-            auto fn = genesis::utils::replace_all( file, "\\.", "." );
-            // fn = genesis::utils::replace_all( fn, ".", "*" );
+        // Check if it exists, report/throw if so. We do not use the dir list regex here,
+        // as this would interfere with our automatic file names (parenthesis, dots, etc
+        // that are all valid filename AND regex characters...). Instead, we do simple wildcards.
+        for( auto const& dirfile : dir_cont ) {
+            if( match_wildcards( dirfile, path ) ) {
 
-            // If we allow overwriting, only warn about the files.
-            if( genesis::utils::Options::get().allow_file_overwriting() ) {
-                LOG_WARN << "Warning: Output file already exists: " + fn;
-                LOG_BOLD;
-            } else {
-                throw genesis::except::ExistingFileError( "Output file already exists: " + fn, fn );
+                // If we have a match, report with a nice full file name with directory.
+                auto const dir = genesis::utils::dir_normalize_path( out_dir_ );
+                report_file_( get_output_filename( in_ex.first, in_ex.second ));
             }
         }
     }
+}
 
-    // Check if any file name is duplicated.
-    // If so, we will have a problem after the first file has been written.
-    auto cpy = filenames;
-    std::sort( cpy.begin(), cpy.end() );
-    auto const adj = std::adjacent_find( cpy.begin(), cpy.end() ) ;
-    if( adj != cpy.end() ) {
-        auto fn = genesis::utils::replace_all( *adj, "\\.", "." );
-        // fn = genesis::utils::replace_all( fn, ".", "*" );
-        throw CLI::ValidationError(
-            optname, "Output file name used multiple times: " + fn +
-            "\nThis will lead to the output being overwritten while producing it."
-        );
-    }
+// =================================================================================================
+//      Output Targets
+// =================================================================================================
 
-    // TODO there is a change that multiple named output dirs are set to the same real dir,
-    // and that then files with the same names are written. well, this would be comples to
-    // check, so not now...
+std::shared_ptr<genesis::utils::BaseOutputTarget> FileOutputOptions::get_output_target(
+    std::string const& infix, std::string const& extension
+) const {
+    using namespace genesis::utils;
+
+    // Create dir if needed. This might create the dir also in cases were something fails later,
+    // so we end up with an empty dir. This is however common in many other programs as well,
+    // so let's not bother with this.
+    dir_create( out_dir_, true );
+
+    // Make an output target, optionally using gzip compression.
+    return to_file(
+        get_output_filename( infix, extension ),
+        compress_ ? GzipCompressionLevel::kDefaultCompression : GzipCompressionLevel::kNoCompression
+    );
 }

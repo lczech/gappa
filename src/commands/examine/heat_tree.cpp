@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,9 +73,8 @@ void setup_heat_tree( CLI::App& app )
     options->color_map.add_mask_color_opt_to_app( sub );
 
     // Output files.
+    options->file_output.add_default_output_opts_to_app( sub );
     options->tree_output.add_tree_output_opts_to_app( sub );
-    options->file_output.add_output_dir_opt_to_app( sub );
-    options->file_output.add_file_prefix_opt_to_app( sub, "tree", "tree" );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -99,11 +98,14 @@ void run_heat_tree( HeatTreeOptions const& options )
     using namespace genesis::tree;
 
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    std::vector<std::string> files_to_check;
+    std::vector<std::pair<std::string, std::string>> files_to_check;
     for( auto const& e : options.tree_output.get_extensions() ) {
-        files_to_check.push_back( options.file_output.file_prefix() + "\\." + e );
+        files_to_check.push_back({ "tree", e });
     }
-    options.file_output.check_nonexistent_output_files( files_to_check );
+    options.file_output.check_output_files_nonexistence( files_to_check );
+
+    // User is warned when not using any tree outputs.
+    options.tree_output.check_tree_formats();
 
     // User output.
     options.jplace_input.print();
@@ -219,6 +221,7 @@ void run_heat_tree( HeatTreeOptions const& options )
         colors,
         color_map,
         *color_norm,
-        options.file_output.out_dir() + options.file_output.file_prefix()
+        options.file_output,
+        "tree"
     );
 }

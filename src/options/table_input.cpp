@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -166,7 +166,7 @@ genesis::utils::Dataframe TableInputOptions::read_double_dataframe(
 
     // Prepare a reader that can convert anything to double.
     // We filter out later.
-    DataframeReader<double> reader;
+    auto reader = DataframeReader<double>( csv_reader() );
     reader.parse_value_functor( []( std::string const& cell ){
         double v;
         try{
@@ -297,6 +297,7 @@ genesis::utils::CsvReader TableInputOptions::csv_reader() const
     reader.separator_chars( separator_char() );
     return reader;
 }
+
 bool TableInputOptions::check_row_names(
     genesis::utils::Dataframe const& df,
     std::vector<std::string> const&          row_names

@@ -65,7 +65,7 @@ The table is tab-separated. The first line (header) contains the names of the sa
 here, two output files `smpl_a.jplace` and `smpl_b.jplace` are produced.
 The first column lists the pquery names as they occur in the input `jplace` file.
 
-OTU tables are typically quite spare, that is, they contain mostly zeros.
+OTU tables are typically quite sparse, that is, they contain mostly zeros.
 In order to efficiently process such tables, the command does not keep the whole table in memory,
 but only the non-zero entries. This should allow to process large tables on typical desktop
 computers.

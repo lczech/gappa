@@ -148,7 +148,7 @@ std::vector<std::string> FileInputOptions::base_file_names() const
     for( auto& path : paths ) {
         auto fn = file_basename( path );
         if( ends_with( fn, ".gz" ) ) {
-            fn.erase( fn.size() - 2 );
+            fn.erase( fn.size() - 3 );
         }
         path = file_filename( fn );
     }

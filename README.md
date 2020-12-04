@@ -46,8 +46,9 @@ cd gappa
 make
 ~~~
 
-You can also use the green "Clone and download" button to get the source.
-Still, call `make` in the main directory to build everything.
+You can also use the green "Code" button above or
+[click here](https://github.com/lczech/gappa/archive/master.zip) to download the source as a zip
+archive. Unpack, and call `make` in the main directory to build everything.
 
 Requirements:
 

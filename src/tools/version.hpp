@@ -47,13 +47,14 @@ inline std::string gappa_header()
      |''   .|' ||   ||    |  ||    | .|' ||     .|'|.  ||     \n\
     '....  '|..'|'. ||...'   ||...'  '|..'|.    '||'    ||:.  \n\
     '....'          ||       ||                               \n\
-                   ''''     ''''    " + gappa_version() + ", (c) 2017-2020\n\
-                                    by Lucas Czech and Pierre Barbera\n";
+                   ''''     ''''   " + gappa_version() + " (c) 2017-2020\n\
+                                   by Lucas Czech and Pierre Barbera\n";
 }
 
 inline std::string gappa_title()
 {
-    return "gappa - Genesis Applications for Phylogenetic Placement Analysis";
+    return "gappa - a toolkit for analyzing and visualizing phylogenetic (placement) data";
+    // return "gappa - Genesis Applications for Phylogenetic Placement Analysis";
 }
 
 #endif // include guard

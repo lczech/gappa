@@ -134,7 +134,7 @@ void setup_dispersion( CLI::App& app )
 
     // Color.
     options->color_map.add_color_list_opt_to_app( sub, "viridis" );
-    options->color_map.add_mask_color_opt_to_app( sub );
+    options->color_map.add_mask_color_opt_to_app( sub, "#dfdfdf" );
 
     // Output files.
     // options->file_output.set_optionname( "tree" );

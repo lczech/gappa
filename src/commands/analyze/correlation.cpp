@@ -134,7 +134,7 @@ void setup_correlation( CLI::App& app )
 
     // Color. We allow max, but not min, as this is always 0.
     options->color_map.add_color_list_opt_to_app( sub, "spectral" );
-    options->color_map.add_mask_color_opt_to_app( sub );
+    options->color_map.add_mask_color_opt_to_app( sub, "#dfdfdf" );
 
     // Output files.
     // options->file_output.set_optionname( "tree" );

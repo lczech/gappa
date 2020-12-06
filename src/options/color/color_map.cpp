@@ -177,7 +177,7 @@ CLI::Option* ColorMapOptions::add_mask_color_opt_to_app( CLI::App* sub, std::str
     mask_color_option = sub->add_option(
         "--mask-color",
         mask_color_param_,
-        "Color used to indicate masked values.",
+        "Color used to indicate masked or invalid values.",
         true
     )->group( "Color" );
 
@@ -188,8 +188,10 @@ CLI::Option* ColorMapOptions::add_mask_color_opt_to_app( CLI::App* sub, std::str
 //      Helper Functions
 // =================================================================================================
 
-genesis::utils::Color ColorMapOptions::resolve_color_string( std::string color_str, std::string const& param_name ) const
-{
+genesis::utils::Color ColorMapOptions::resolve_color_string_(
+    std::string const& color_str,
+    std::string const& param_name
+) const {
     try {
         return genesis::utils::resolve_color_string( color_str );
     } catch( std::exception& ex ) {
@@ -200,14 +202,14 @@ genesis::utils::Color ColorMapOptions::resolve_color_string( std::string color_s
     }
 }
 
-std::vector<genesis::utils::Color> ColorMapOptions::resolve_color_list(
+std::vector<genesis::utils::Color> ColorMapOptions::resolve_color_list_(
     std::vector<std::string> const& list,
     std::string const& param_name
 ) const {
     std::vector<genesis::utils::Color> result;
 
     for( auto const& color_str : list ) {
-        result.push_back( resolve_color_string( color_str, param_name ));
+        result.push_back( resolve_color_string_( color_str, param_name ));
     }
 
     return result;
@@ -227,9 +229,9 @@ genesis::utils::ColorMap const& ColorMapOptions::color_map() const
     }
 
     // Resolve special colors.
-    color_map_.under_color( resolve_color_string( under_color_param_, "--under-color" ) );
-    color_map_.over_color( resolve_color_string( over_color_param_, "--over-color" ) );
-    color_map_.mask_color( resolve_color_string( mask_color_param_, "--mask-color" ) );
+    color_map_.under_color( resolve_color_string_( under_color_param_, "--under-color" ));
+    color_map_.over_color(  resolve_color_string_( over_color_param_,  "--over-color"  ));
+    color_map_.mask_color(  resolve_color_string_( mask_color_param_,  "--mask-color"  ));
 
     // Now resolve the actual color list.
     // Try color list names first.
@@ -253,12 +255,12 @@ genesis::utils::ColorMap const& ColorMapOptions::color_map() const
     // Now check if it is a file with colors.
     if( is_file( palette_param_ ) ) {
         auto const list = split( file_read( palette_param_ ), "\n\r", true );
-        color_map_.palette( resolve_color_list( list, "--color-list" ));
+        color_map_.palette( resolve_color_list_( list, "--color-list" ));
         return color_map_;
     }
 
     // Finally, treat it as a comma separated list of colors.
     auto const list = split( palette_param_, ",", true );
-    color_map_.palette( resolve_color_list( list, "--color-list" ));
+    color_map_.palette( resolve_color_list_( list, "--color-list" ));
     return color_map_;
 }

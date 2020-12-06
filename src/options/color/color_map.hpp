@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,8 +76,8 @@ public:
     );
 
     CLI::Option* add_under_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
-    CLI::Option* add_over_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
-    CLI::Option* add_mask_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
+    CLI::Option* add_over_color_opt_to_app(  CLI::App* sub, std::string const& default_color = "" );
+    CLI::Option* add_mask_color_opt_to_app(  CLI::App* sub, std::string const& default_color = "" );
 
     // -------------------------------------------------------------------------
     //     Run Functions
@@ -100,15 +100,15 @@ private:
      * @brief Helper function that wraps the genesis function of the same name,
      * but offers a nicer error feedback.
      */
-    genesis::utils::Color resolve_color_string(
-        std::string color_str,
+    genesis::utils::Color resolve_color_string_(
+        std::string const& color_str,
         std::string const& param_name
     ) const;
 
     /**
-     * @brief Same as resolve_color_string(), but for a whole list of colors.
+     * @brief Same as resolve_color_string_(), but for a whole list of colors.
      */
-    std::vector<genesis::utils::Color> resolve_color_list(
+    std::vector<genesis::utils::Color> resolve_color_list_(
         std::vector<std::string> const& list,
         std::string const& param_name
     ) const;

@@ -86,8 +86,10 @@ CLI::Option* ColorMapOptions::add_color_list_opt_to_app(
     return color_list_option;
 }
 
-CLI::Option* ColorMapOptions::add_under_color_opt_to_app( CLI::App* sub, std::string const& default_color )
-{
+CLI::Option* ColorMapOptions::add_under_color_opt_to_app(
+    CLI::App* sub,
+    std::string const& default_color
+) {
     // Default color
     if( ! default_color.empty() ) {
         under_color_param_ = default_color;

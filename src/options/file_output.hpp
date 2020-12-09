@@ -159,27 +159,33 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    std::string const& optionname() const{
+    std::string const& optionname() const
+    {
         return optionname_;
     }
 
-    std::string const& group() const{
+    std::string const& group() const
+    {
         return group_;
     }
 
-    std::string const& out_dir() const{
+    std::string const& out_dir() const
+    {
         return out_dir_;
     }
 
-    std::string const& prefix() const{
+    std::string const& prefix() const
+    {
         return prefix_;
     }
 
-    std::string const& suffix() const{
+    std::string const& suffix() const
+    {
         return suffix_;
     }
 
-    bool compress() const{
+    bool compress() const
+    {
         return compress_;
     }
 

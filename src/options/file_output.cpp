@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include "options/global.hpp"
 #include "tools/misc.hpp"
 
 #include <algorithm>
@@ -229,10 +230,14 @@ void FileOutputOptions::check_output_files_nonexistence(
     auto report_file_ = [&]( std::string const& path ){
         // If we allow overwriting, only warn about the files.
         if( genesis::utils::Options::get().allow_file_overwriting() ) {
-            LOG_WARN << "Warning: Output file already exists: " + path;
+            LOG_WARN << "Warning: Output file already exists and will be overwritten: " + path;
             // LOG_BOLD;
         } else {
-            throw genesis::except::ExistingFileError( "Output file already exists: " + path, path );
+            throw genesis::except::ExistingFileError(
+                "Output file already exists: " + path + "\nUse " + allow_file_overwriting_flag +
+                " to allow gappa to overwrite the file.",
+                path
+            );
         }
     };
 

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,7 +69,8 @@ void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 {
     // Allow to overwrite files.
     opt_allow_file_overwriting = subcommand.add_flag(
-        "--allow-file-overwriting",
+        // "--allow-file-overwriting",
+        allow_file_overwriting_flag,
         opt_allow_file_overwriting.value,
         "Allow to overwrite existing output files instead of aborting the command."
     );
@@ -162,3 +163,5 @@ std::string GlobalOptions::command_line() const
  * @brief Instanciation of the global options object. This is alive during the whole program run.
  */
 GlobalOptions global_options;
+
+std::string const allow_file_overwriting_flag = "--allow-file-overwriting";

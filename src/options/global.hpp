@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -103,5 +103,13 @@ private:
  * It is alive during the whole run of the program, so that all commands have access to it.
  */
 extern GlobalOptions global_options;
+
+/**
+ * @brief Store the option name for the flag that allows gappa to overwrite files.
+ *
+ * We do this in order to have this name available to other parts of the program,
+ * for exmple to give a nice and helpful error message when a file already exists.
+ */
+extern std::string const allow_file_overwriting_flag;
 
 #endif // include guard

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+# Copyright (C) 2017-2021 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,11 +22,11 @@
 # Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 
 ####################################################################################################
-#    This script checks whether the include guards of the headers in ./lib are what they
+#    This script checks whether the include guards of the headers in ./src are what they
 #    should be according to their path and file name.
 ####################################################################################################
 
-# Change to top level of git repo and then to /lib
+# Change to top level of git repo and then to /src
 # This ensures that the script can be called from any directory.
 cd `git rev-parse --show-toplevel`
 cd src/

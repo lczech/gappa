@@ -1,5 +1,5 @@
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+# Copyright (C) 2017-2021 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 # --------------------------------------------------------------------------------------------------
 #     This makefile wraps around CMake in order to make the use straight forward.
-#     A simple call to "make" suffices to build the whole of guppy.
+#     A simple call to "make" suffices to build the whole of gappa.
 #
 #     This script is mainly intended for fast development, as it 'misuses' CMake
 #     directly as a build system instead of a build system _generator_.

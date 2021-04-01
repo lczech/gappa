@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ void setup_license( CLI::App& app )
 std::string license_short()
 {
     return R"geronimo(gappa - Genesis Applications for Phylogenetic Placement Analysis
-Copyright (C) 2017-2019 Lucas Czech, Pierre Barbera, and HITS gGmbH
+Copyright (C) 2017-2021 Lucas Czech, Pierre Barbera, and HITS gGmbH
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

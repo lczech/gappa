@@ -10,15 +10,15 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="5659.5029"
-   height="1757.2609"
+   width="5650.1904"
+   height="1746.8992"
    id="svg2"
    version="1.1"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="logo.svg"
    inkscape:export-filename="/home/lucas/Dropbox/GitHub/gappa/doc/logo/logo_readme.png"
-   inkscape:export-xdpi="6.1065435"
-   inkscape:export-ydpi="6.1065435">
+   inkscape:export-xdpi="6.1166081"
+   inkscape:export-ydpi="6.1166081">
   <defs
      id="defs4">
     <linearGradient
@@ -79,11 +79,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.12374369"
-     inkscape:cx="2678.1745"
-     inkscape:cy="-176.84862"
+     inkscape:zoom="0.087500002"
+     inkscape:cx="4787.8977"
+     inkscape:cy="593.46797"
      inkscape:document-units="px"
-     inkscape:current-layer="g3870"
+     inkscape:current-layer="layer6"
      showgrid="false"
      fit-margin-top="20"
      fit-margin-left="20"
@@ -102,8 +102,8 @@
        visible="true"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       originx="5142.9578"
-       originy="3258.2296"
+       originx="5133.6452"
+       originy="3247.8679"
        spacingx="1"
        spacingy="1" />
   </sodipodi:namedview>
@@ -124,7 +124,7 @@
      id="layer5"
      inkscape:label="blackbg"
      style="display:none"
-     transform="translate(12.534226)">
+     transform="translate(3.2216044)">
     <rect
        style="display:inline;fill:#161616;fill-opacity:1;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke markers fill"
        id="rect4850"
@@ -137,8 +137,8 @@
      inkscape:label="logo"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(5142.9578,-2553.3312)"
-     style="display:inline">
+     transform="translate(5133.6452,-2553.3312)"
+     style="display:none">
     <flowRoot
        xml:space="preserve"
        id="flowRoot3860"
@@ -174,10 +174,63 @@
   </g>
   <g
      inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="newpath"
+     transform="translate(-9.3126216)"
+     style="display:inline">
+    <g
+       transform="matrix(1.0229551,0,0,1.0229551,-425.68038,-2279.0805)"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;font-family:Tangerine;-inkscape-font-specification:'Tangerine Bold';letter-spacing:0px;word-spacing:0px;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-width:16.51907158;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none;enable-background:accumulate"
+       id="flowRoot3013-3">
+      <path
+         inkscape:connector-curvature="0"
+         d="m 1209.0425,2811.986 c 0,-36 -31.68,-61.92 -77.76,-61.92 -105.1199,0 -151.20002,82.08 -175.68,128.16 -57.59994,-21.6 -90.72004,-28.8 -135.36,-28.8 -164.15984,0 -296.64,113.7601 -296.64,256.32 0,83.5199 38.88008,151.2 116.64,204.48 -96.4799,31.6799 -141.12,76.32 -141.12,144 0,57.5999 31.68007,95.04 105.12,120.96 -106.55989,40.3199 -151.2,86.4 -151.2,156.96 0,105.1199 152.64021,175.68 365.76,175.68 233.2798,0 384.48,-92.1602 384.48,-233.28 0,-142.5599 -125.2801,-164.16 -217.44,-177.12 l -275.04,-37.44 c -64.79994,-8.64 -93.6,-25.9201 -93.6,-59.04 0,-25.92 24.48004,-54.7201 66.24,-76.32 57.59994,18.72 86.40005,23.04 135.36,23.04 237.5998,0 302.4,-148.3201 302.4,-241.92 0,-79.1999 -44.6401,-154.0801 -119.52,-204.48 28.8,-43.2 51.84,-61.92 76.32,-61.92 27.36,0 38.88,27.36 76.32,27.36 31.68,0 54.72,-23.0401 54.72,-54.72 m -234.72,286.56 c 0,110.8799 -30.24012,203.04 -151.2,203.04 -102.2399,0 -152.64,-66.2402 -152.64,-204.48 0,-126.7199 57.6001,-201.6 156.96,-201.6 99.3599,0 146.88,66.2401 146.88,203.04 m 128.16,622.08 c 0,53.2799 -59.0402,133.92 -283.68,133.92 -165.59983,0 -279.36,-56.1601 -279.36,-136.8 0,-54.72 41.76008,-100.8001 119.52,-129.6 l 295.2,36 c 106.5599,12.96 148.32,40.32 148.32,96.48"
+         style="letter-spacing:0px;fill:#000000;stroke:#ffffff;stroke-width:16.51907158;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none"
+         id="path3024-6" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 2050.0925,3517.586 -27.36,-37.44 c -24.48,21.5999 -40.32,28.8 -64.8,28.8 -79.1999,0 -80.64,-72.0001 -80.64,-141.12 v -305.28 c 0,-172.7999 -159.8401,-213.12 -276.48,-213.12 -141.1199,0 -313.92,72.0001 -313.92,182.88 0,34.5599 31.68,63.36 69.12,63.36 40.32,0 73.44,-33.1201 73.44,-73.44 l -1.44,-40.32 c 0,-41.76 64.8001,-74.88 145.44,-74.88 102.2399,0 167.04,50.4001 167.04,129.6 v 115.2 c -149.7599,15.84 -485.28,40.3202 -485.28,243.36 0,103.6799 93.6001,178.56 221.76,178.56 96.4799,0 167.0401,-30.2401 263.52,-110.88 27.36,77.7599 76.3201,110.88 161.28,110.88 60.4799,0 108,-17.2801 148.32,-56.16 m -309.6,-119.52 c -80.6399,76.3199 -141.1201,106.56 -213.12,106.56 -69.1199,0 -125.28,-54.7201 -125.28,-123.84 0,-96.4799 120.9602,-159.84 338.4,-178.56 v 195.84"
+         style="font-weight:normal;font-size:1440px;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum';letter-spacing:-39.10240173px;fill:#000000;stroke:#ffffff;stroke-width:16.51907158;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none"
+         id="path3026-7" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 2840.5426,3207.986 c 0,-182.8798 -112.3202,-358.56 -313.92,-358.56 -95.0399,0 -169.9201,34.56 -234.72,108 v -95.04 h -48.96 c -83.5199,15.84 -128.1601,21.6 -213.12,28.8 v 43.2 l 30.24,2.88 c 74.8799,7.2 95.04,33.1201 95.04,119.52 v 666.72 c 0,77.7599 -25.9201,113.76 -89.28,119.52 l -36,2.88 v 43.2 h 387.36 v -43.2 l -36,-2.88 c -63.36,-5.76 -89.28,-41.7601 -89.28,-119.52 v -223.2 c 66.2399,50.3999 136.8001,73.44 227.52,73.44 182.8798,0 321.12,-158.4002 321.12,-365.76 m -146.88,17.28 c 0,164.1598 -89.2801,283.68 -210.24,283.68 -71.9999,0 -136.8001,-27.3601 -191.52,-79.2 v -400.32 c 60.4799,-80.6399 116.6401,-115.2 190.08,-115.2 128.1599,0 211.68,122.4002 211.68,311.04"
+         style="font-weight:normal;font-size:1440px;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum';letter-spacing:-39.10240173px;fill:#000000;stroke:#ffffff;stroke-width:16.51907158;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none"
+         id="path3028-5" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 3693.0027,3207.986 c 0,-182.8798 -112.3202,-358.56 -313.92,-358.56 -95.0399,0 -169.9201,34.56 -234.72,108 v -95.04 h -48.96 c -83.52,15.84 -128.1601,21.6 -213.12,28.8 v 43.2 l 30.24,2.88 c 74.8799,7.2 95.04,33.1201 95.04,119.52 v 666.72 c 0,77.7599 -25.9201,113.76 -89.28,119.52 l -36,2.88 v 43.2 h 387.36 v -43.2 l -36,-2.88 c -63.36,-5.76 -89.28,-41.7601 -89.28,-119.52 v -223.2 c 66.2399,50.3999 136.8001,73.44 227.52,73.44 182.8798,0 321.12,-158.4002 321.12,-365.76 m -146.88,17.28 c 0,164.1598 -89.2802,283.68 -210.24,283.68 -72,0 -136.8001,-27.3601 -191.52,-79.2 v -400.32 c 60.4799,-80.6399 116.64,-115.2 190.08,-115.2 128.1598,0 211.68,122.4002 211.68,311.04"
+         style="font-weight:normal;font-size:1440px;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum';letter-spacing:-39.10240173px;fill:#000000;stroke:#ffffff;stroke-width:16.51907158;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none"
+         id="path3030-3" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 4551.2229,3517.586 -27.36,-37.44 c -24.48,21.5999 -40.3201,28.8 -64.8,28.8 -79.1999,0 -80.64,-72.0001 -80.64,-141.12 v -305.28 c 0,-172.7999 -159.8401,-213.12 -276.48,-213.12 -141.1199,0 -313.92,72.0001 -313.92,182.88 0,34.5599 31.68,63.36 69.12,63.36 40.3199,0 73.44,-33.1201 73.44,-73.44 l -1.44,-40.32 c 0,-41.76 64.8001,-74.88 145.44,-74.88 102.2399,0 167.04,50.4001 167.04,129.6 v 115.2 c -149.7599,15.84 -485.28,40.3202 -485.28,243.36 0,103.6799 93.6001,178.56 221.76,178.56 96.4799,0 167.0401,-30.2401 263.52,-110.88 27.3599,77.7599 76.3201,110.88 161.28,110.88 60.4799,0 108,-17.2801 148.32,-56.16 m -309.6,-119.52 c -80.6399,76.3199 -141.1201,106.56 -213.12,106.56 -69.12,0 -125.28,-54.7201 -125.28,-123.84 0,-96.4799 120.9602,-159.84 338.4,-178.56 v 195.84"
+         style="font-weight:normal;font-size:1440px;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum';letter-spacing:-39.10240173px;fill:#000000;stroke:#ffffff;stroke-width:16.51907158;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none"
+         id="path3032-5" />
+    </g>
+    <g
+       transform="matrix(1.395017,0,0,1.1389228,7175.9943,-3828.6794)"
+       id="g3868-6"
+       style="display:inline;fill:#ffc824;fill-opacity:1">
+      <g
+         transform="matrix(0.97402597,0,0,0.97402597,-3810.1156,3345.9089)"
+         id="g3870-2"
+         style="fill:#ffc824;fill-opacity:1">
+        <path
+           style="font-style:normal;font-weight:normal;font-size:2050.27807617px;font-family:'Times New Roman';fill:#ffc824;fill-opacity:1;stroke:none"
+           d="m 4392.25,20 c -177.7452,0.001 -266.625,122.17455 -266.625,366.5 h 48.9688 c 8.1618,-139.19118 69.3601,-208.81162 183.625,-208.8125 69.8281,8.8e-4 123.5835,32.59715 161.2187,97.75 37.6343,65.15441 74.3347,172.85913 110.1563,323.15625 35.8205,150.29804 63.7359,278.76003 83.6874,385.375 -101.5691,171.76865 -152.3754,314.66825 -152.375,428.68745 -4e-4,87.3647 34.453,131.0621 103.375,131.0626 95.22,-5e-4 142.8431,-104.0466 142.8438,-312.0938 -7e-4,-74.7787 -6.804,-162.1421 -20.4062,-262.09375 l 116.375,-199.25 309.1874,773.18755 h 414.6876 V 1502.375 C 5498.1931,1499.4135 5394.8327,1457.9615 5316.8438,1378 L 4997.6562,608.34375 5332.1875,35.5625 h -280.2187 l -277.5,777.375 C 4721.8701,481.98691 4670.6581,267.09191 4620.7812,168.25 4570.9033,69.409872 4494.7252,20.001033 4392.25,20 Z"
+           transform="matrix(0.7359528,0,0,0.90143658,-1360.2498,16.178503)"
+           id="path3876-9"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="icon"
      style="display:none"
-     transform="translate(12.534226)">
+     transform="translate(3.2216044)">
     <g
        id="g4135"
        transform="translate(-2537.1429,-560)">
@@ -235,7 +288,7 @@
      id="layer3"
      inkscape:label="tests"
      style="display:none"
-     transform="translate(12.534226)">
+     transform="translate(3.2216044)">
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 242.04676,-3859.4721 c 0,0 20,-70 50,-70 55,0 140,165 140,230 0,60 -30,90 -80,90 -55,0 110,-320 110,-320 h 60 c 0,0 -190,295 -160,295 30,0 50,-55 40,-85 -10,-30 -80,-175 -110,-175 -16.4992,0 -30,20 -35,35 -2.2361,6.7083 -15,0 -15,0 z"
@@ -335,7 +388,7 @@
      id="layer2"
      inkscape:label="paths"
      style="display:none"
-     transform="translate(12.534226)">
+     transform="translate(3.2216044)">
     <g
        id="g3832"
        transform="matrix(1.0713337,0,0,0.8746606,6960.5954,-5206.7055)">

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,10 +34,6 @@
 
 void setup_version( CLI::App& app )
 {
-    // Good place to check citations. This is executed every time with gappa,
-    // so we never miss the check when editing the citation list.
-    check_all_citations();
-
     // Create the options and subcommand objects.
     auto options = std::make_shared<VersionOptions>();
     auto sub = app.add_subcommand(

@@ -2,7 +2,7 @@
 
 The auxiliary command prints references that need to be cited when using gappa. By default, it simply prints the genesis/gappa reference itself.
 
-It can however also be used to print other references used by commands in gappa. Each reference has a citation key (similar to how BibTeX uses them). If such `keys` are listed after the command, only the specificed references are printed:
+It can however also be used to print other references used by commands in gappa. Each reference has a citation key (similar to how BibTeX uses them). If such `keys` are listed after the command, only the specified references are printed:
 
     gappa tools citation Czech2020-genesis-and-gappa
 

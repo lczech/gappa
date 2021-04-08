@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ void setup_krd( CLI::App& app )
     auto opt = std::make_shared<KrdOptions>();
     auto sub = app.add_subcommand(
         "krd",
-        "Calcualte the pairwise Kantorovich-Rubinstein (KR) distance matrix between samples."
+        "Calculate the pairwise Kantorovich-Rubinstein (KR) distance matrix between samples."
     );
 
     // File input

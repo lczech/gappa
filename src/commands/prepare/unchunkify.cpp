@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ void setup_unchunkify( CLI::App& app )
     auto opt = std::make_shared<UnchunkifyOptions>();
     auto sub = app.add_subcommand(
         "unchunkify",
-        "Unchunkify a set of jplace files using abundace map files and create per-sample jplace files."
+        "Unchunkify a set of jplace files using abundance map files and create per-sample jplace files."
     );
 
     // -----------------------------------------------------------

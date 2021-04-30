@@ -13,7 +13,7 @@ Both of them can be given at the same time, in which case the taxonomic informat
 See below for details on the expected formats.
 
 The output of the command is a tree in Newick format, written to a file named `taxonomy-tree.newick`
-(additionally using the `--file-prefix` if provided).
+(additionally using the `--file-prefix` and `--file-suffix` if provided).
 
 ## Details
 

@@ -4,12 +4,12 @@ The command takes one or more `jplace` files as input and assigns the likelihood
 
 First, the tree found in the `jplace` input is labelled according to the information found in the [`taxon-file`](#taxonomic-label-file--taxon-file), beginning at the tip nodes.
 Inner nodes of the tree are labelled by a [consensus](#consensus-threshold---consensus-thresh) of the tips that are descendant of that inner node.
-The resulting labelled tree is printed to file as the first intermediate result (filename `<prefix>labelled_tree.newick`).
+The resulting labelled tree is printed to file as the first intermediate result (filename `<prefix>labelled_tree<suffix>.newick`).
 
 Second, the algorithm goes through each placement in the `jplace` input and assigns its likelihood weight to one or more taxonomic ranks, according to the [specified strategy](#distribution-ratio---distribution-ratio).
-Assuming the option `--per-query-results` is specified, this triggers the second intermediate result, which is a file containing the per-query results of this assignment (filename `<prefix>per_query.tsv`, off by default as the volume of data can be high).
+Assuming the option `--per-query-results` is specified, this triggers the second intermediate result, which is a file containing the per-query results of this assignment (filename `<prefix>per_query<suffix>.tsv`, off by default as the volume of data can be high).
 
-Third, the command summarizes these assignments by collapsing them into one tabulation, showing information about the total distribution of likelihood weight across the taxonomy ([example](#final-output), filename `<prefix>profile.tsv`).
+Third, the command summarizes these assignments by collapsing them into one tabulation, showing information about the total distribution of likelihood weight across the taxonomy ([example](#final-output), filename `<prefix>profile<suffix>.tsv`).
 
 ## Details
 
@@ -94,7 +94,7 @@ We however usually recommend using the default automatic ratio (that is, do not 
 
 ### Final Output
 
-The final output of the command is a tabulation of the distribution of the total likelihood weight across the taxonomy, which is written to the file `<prefix>profile.tsv`.
+The final output of the command is a tabulation of the distribution of the total likelihood weight across the taxonomy, which is written to the file `<prefix>profile<suffix>.tsv`.
 
 The meaning of the column headers are:
 
@@ -119,7 +119,7 @@ The meaning of the column headers are:
  0.51    0.255   0.51    0.255   Eukaryota;Animalia;Chordata;Mammalia;Rodentia;Muridae
  ```
 
-In addition to this, if the option `--per-query-results` is also passed, the command will print a file called `<prefix>per_query.tsv` containing one assignment profile per input query.
+In addition to this, if the option `--per-query-results` is also passed, the command will print a file called `<prefix>per_query<suffix>.tsv` containing one assignment profile per input query.
 ```
 name  LWR     fract   aLWR    afract  taxopath
 Carp  0       0       1       1       Eukaryota
@@ -163,7 +163,7 @@ Furthermore, additional output formats are available:
 ### Filtering (`--sub-taxopath`)
 
 Additionally, the tabulated output may be filtered (constrained) to include only a part of the taxonomy.
-This behavior is regulated via the `--sub-taxopath` option, and the result is printed to a file called `<prefix>profile_filtered.tsv` in the specified output directory.
+This behavior is regulated via the `--sub-taxopath` option, and the result is printed to a file called `<prefix>profile_filtered<suffix>.tsv` in the specified output directory.
 
 For this output, the normalization of the accumulated LWR and fraction columns only takes the specified subtaxonomy into account.
 This option is hence useful to get a more detailed view at a specific part of the taxonomy.

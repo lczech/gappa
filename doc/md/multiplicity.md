@@ -30,7 +30,8 @@ appeared in the original data, its multiplicity can be set accordingly in the `j
 
 The command edits the multiplicity for pqueries by setting them to given values.
 No other data of the input `jplace` files is changed. The files are *not* edited in place,
-but new files are written to the `--out-dir`, potentially prefixed by `--file-prefix`.
+but new files are written to the `--out-dir`, potentially prefixed by `--file-prefix` and
+`--file-suffix`.
 
 ### `--multiplicity-file`
 
@@ -101,7 +102,7 @@ is written. That is, no new `jplace` files are produced.
 The values in the file can then be changed as needed, and the file can be used as input to
 `--multiplicity-file` for actually changing the multiplicities in the `jplace` files.
 The file always uses the three columns format as explained above;
-the file is named `multiplicities.csv`, potentially prefixed by `--file-prefix`.
+the file is named `multiplicities.csv`, potentially prefixed by `--file-prefix` and `--file-suffix`.
 
 ## See Also
 

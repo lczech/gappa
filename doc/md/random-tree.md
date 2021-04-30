@@ -5,4 +5,5 @@ The taxa are named with simple letter combinations, going `a, ..., z, aa, ..., a
 and are randomly distributed over the tree.
 The branch lengths are randomly chosen in the unit interval.
 
-The output file is `random-tree.newick`, potentially using the `--file-prefix` if provided.
+The output file is `random-tree.newick`, potentially using the `--file-prefix` and `--file-suffix`
+if provided.

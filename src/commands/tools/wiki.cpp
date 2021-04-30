@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -433,7 +433,7 @@ void make_wiki_sidebar( WikiOptions const& options )
 
     // Add standard entries
     os << "[Home](../wiki)\n\n";
-    os << "[General Usage](../wiki/General-Usage)\n\n";
+    // os << "[General Usage](../wiki/General-Usage)\n\n";
     os << "[Phylogenetic Placement](../wiki/Phylogenetic-Placement)\n\n";
 
     // Add submodule lists.

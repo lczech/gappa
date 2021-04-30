@@ -6,7 +6,7 @@
 [![Downloads](https://img.shields.io/conda/dn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 [![Build Status](https://travis-ci.org/lczech/gappa.svg?branch=master)](https://travis-ci.org/lczech/gappa)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
-[![Softwipe Score](https://img.shields.io/badge/softwipe-8.6-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
+[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 [![Platforms](https://img.shields.io/conda/pn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 

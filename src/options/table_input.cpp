@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -247,7 +247,7 @@ genesis::utils::Dataframe TableInputOptions::read_string_dataframe(
     using namespace genesis::utils;
 
     // Do the reading.
-    DataframeReader<std::string> reader;
+    auto reader = DataframeReader<std::string>( csv_reader() );
     auto df = reader.read( from_file( table_input_opt.value ));
 
     // Filter columns.

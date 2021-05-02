@@ -87,13 +87,14 @@ void setup_krd( CLI::App& app )
     opt->jplace_input.add_ignore_multiplicities_opt_to_app( sub );
 
     // Output
-    std::string const matrix_optname = "krd";
+    // std::string const matrix_optname = "krd";
     std::string const matrix_group = "Matrix Output";
-    opt->file_output.set_optionname( matrix_optname );
+    // opt->file_output.set_optionname( matrix_optname );
     opt->file_output.set_group( matrix_group );
     opt->file_output.add_default_output_opts_to_app( sub );
     opt->file_output.add_file_compress_opt_to_app( sub );
-    opt->matrix_output.add_matrix_output_opts_to_app( sub, matrix_optname );
+    opt->matrix_output.add_matrix_output_opts_to_app( sub );
+    // opt->matrix_output.add_matrix_output_opts_to_app( sub, matrix_optname );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.

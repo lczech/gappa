@@ -103,6 +103,7 @@ void setup_random_placements( CLI::App& app )
     // -----------------------------------------------------------
 
     opt->file_output.add_default_output_opts_to_app( sub );
+    opt->file_output.add_file_compress_opt_to_app( sub );
 
     // -----------------------------------------------------------
     //     Callback

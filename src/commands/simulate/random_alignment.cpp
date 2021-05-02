@@ -90,6 +90,7 @@ void setup_random_alignment( CLI::App& app )
     // -----------------------------------------------------------
 
     opt->file_output.add_default_output_opts_to_app( sub );
+    opt->file_output.add_file_compress_opt_to_app( sub );
 
     // File type fasta.
     auto write_fasta_opt = sub->add_flag(
@@ -162,18 +163,16 @@ void run_random_alignment( RandomAlignmentOptions const& options )
     }
 
     // Open streams as needed. This fails if the files already exist.
-    std::ofstream fasta_os;
+    std::shared_ptr<genesis::utils::BaseOutputTarget> fasta_os;
     if( options.write_fasta ) {
-        auto const fn = options.file_output.get_output_filename( "random-alignment", "fasta" );
-        genesis::utils::file_output_stream( fn, fasta_os );
+        fasta_os = options.file_output.get_output_target( "random-alignment", "fasta" );
     }
-    std::ofstream phylip_os;
+    std::shared_ptr<genesis::utils::BaseOutputTarget> phylip_os;
     if( options.write_strict_phylip || options.write_relaxed_phylip ) {
-        auto const fn = options.file_output.get_output_filename( "random-alignment", "phylip" );
-        genesis::utils::file_output_stream( fn, phylip_os );
+        phylip_os = options.file_output.get_output_target( "random-alignment", "phylip" );
 
         // Write phylip header.
-        phylip_os << options.num_sequences << " " << options.len_sequences << "\n";
+        (*phylip_os) << options.num_sequences << " " << options.len_sequences << "\n";
     }
 
     // Write sequences. We do not use our sequence classes of the fasta or phylip writers,
@@ -183,7 +182,7 @@ void run_random_alignment( RandomAlignmentOptions const& options )
         // Write sequence name header.
         auto const name = random_indexed_name( s, options.num_sequences );
         if( options.write_fasta ) {
-            fasta_os << ">" << name << "\n";
+            (*fasta_os) << ">" << name << "\n";
         }
         if( options.write_strict_phylip ) {
             if( name.size() > 10 ) {
@@ -193,10 +192,10 @@ void run_random_alignment( RandomAlignmentOptions const& options )
                     "Cannot handle this many sequences in strict phylip format."
                 );
             }
-            phylip_os << name << std::string( 10 - name.size(), ' ' );
+            (*phylip_os) << name << std::string( 10 - name.size(), ' ' );
         }
         if( options.write_relaxed_phylip ) {
-            phylip_os << name << " ";
+            (*phylip_os) << name << " ";
         }
 
         // Write content.
@@ -205,29 +204,29 @@ void run_random_alignment( RandomAlignmentOptions const& options )
             // Write new line ever so often, except for the stupid strict phylip format.
             if( l > 0 && l % 80 == 0 ) {
                 if( options.write_fasta ) {
-                    fasta_os << "\n";
+                    (*fasta_os) << "\n";
                 }
                 if( options.write_relaxed_phylip ) {
-                    phylip_os << "\n";
+                    (*phylip_os) << "\n";
                 }
             }
 
             // Get a random char from the set and write it.
             auto const c = options.characters[ std::rand() % options.characters.size() ];
             if( options.write_fasta ) {
-                fasta_os << c;
+                (*fasta_os) << c;
             }
             if( options.write_strict_phylip || options.write_relaxed_phylip ) {
-                phylip_os << c;
+                (*phylip_os) << c;
             }
         }
 
         // Write final new line.
         if( options.write_fasta ) {
-            fasta_os << "\n";
+            (*fasta_os) << "\n";
         }
         if( options.write_strict_phylip || options.write_relaxed_phylip ) {
-            phylip_os << "\n";
+            (*phylip_os) << "\n";
         }
     }
 }

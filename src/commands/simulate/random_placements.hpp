@@ -1,9 +1,9 @@
-#ifndef GAPPA_COMMANDS_RANDOM_H_
-#define GAPPA_COMMANDS_RANDOM_H_
+#ifndef GAPPA_COMMANDS_SIMULATE_RANDOM_PLACEMENTS_H_
+#define GAPPA_COMMANDS_SIMULATE_RANDOM_PLACEMENTS_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,37 +26,34 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/random/random_alignment.hpp"
-#include "commands/random/random_placements.hpp"
-#include "commands/random/random_tree.hpp"
-
-#include "options/global.hpp"
-#include "tools/cli_setup.hpp"
+#include "options/file_input.hpp"
+#include "options/file_output.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class RandomPlacementsOptions
+{
+public:
+
+    // Input data.
+    std::string input_tree;
+    size_t num_pqueries;
+    int subtree = -1;
+
+    // Output options.
+    FileOutputOptions file_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-inline void setup_random( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "random",
-        "Commands for random generation of phylogenetic and placement data."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_random_alignment( *sub );
-    setup_random_placements( *sub );
-    setup_random_tree( *sub );
-
-    // Add the global options to each of the above subcommands.
-    global_options.add_to_module( *sub );
-    set_module_help_group( *sub );
-}
+void setup_random_placements( CLI::App& app );
+void run_random_placements( RandomPlacementsOptions const& options );
 
 #endif // include guard

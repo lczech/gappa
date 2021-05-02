@@ -1,9 +1,9 @@
-#ifndef GAPPA_COMMANDS_RANDOM_RANDOM_PLACEMENTS_H_
-#define GAPPA_COMMANDS_RANDOM_RANDOM_PLACEMENTS_H_
+#ifndef GAPPA_COMMANDS_SIMULATE_RANDOM_ALIGNMENT_H_
+#define GAPPA_COMMANDS_SIMULATE_RANDOM_ALIGNMENT_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,23 +36,27 @@
 //      Options
 // =================================================================================================
 
-class RandomPlacementsOptions
+class RandomAlignmentOptions
 {
 public:
 
     // Input data.
-    std::string input_tree;
-    size_t num_pqueries;
+    size_t num_sequences;
+    size_t len_sequences;
+    std::string characters = "-ACGT";
 
     // Output options.
     FileOutputOptions file_output;
+    bool write_fasta = false;
+    bool write_strict_phylip = false;
+    bool write_relaxed_phylip = false;
 };
 
 // =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_random_placements( CLI::App& app );
-void run_random_placements( RandomPlacementsOptions const& options );
+void setup_random_alignment( CLI::App& app );
+void run_random_alignment( RandomAlignmentOptions const& options );
 
 #endif // include guard

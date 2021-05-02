@@ -1,9 +1,9 @@
-#ifndef GAPPA_COMMANDS_RANDOM_RANDOM_TREE_H_
-#define GAPPA_COMMANDS_RANDOM_RANDOM_TREE_H_
+#ifndef GAPPA_COMMANDS_SIMULATE_H_
+#define GAPPA_COMMANDS_SIMULATE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,33 +26,37 @@
 
 #include "CLI/CLI.hpp"
 
-#include "options/file_input.hpp"
-#include "options/file_output.hpp"
-#include "options/tree_output.hpp"
+#include "commands/simulate/random_alignment.hpp"
+#include "commands/simulate/random_placements.hpp"
+#include "commands/simulate/random_tree.hpp"
+
+#include "options/global.hpp"
+#include "tools/cli_setup.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
-//      Options
-// =================================================================================================
-
-class RandomTreeOptions
-{
-public:
-
-    // Input data.
-    size_t num_leaves;
-
-    // Output options.
-    FileOutputOptions file_output;
-};
-
-// =================================================================================================
 //      Functions
 // =================================================================================================
 
-void setup_random_tree( CLI::App& app );
-void run_random_tree( RandomTreeOptions const& options );
+inline void setup_simulate( CLI::App& app )
+{
+    // Create the module subcommand objects.
+    auto sub = app.add_subcommand(
+        "simulate",
+        "Commands for random generation of phylogenetic and placement data."
+    );
+    sub->require_subcommand( 1 );
+
+    // Add module subcommands.
+    setup_random_alignment( *sub );
+    setup_random_placements( *sub );
+    setup_random_tree( *sub );
+
+    // Add the global options to each of the above subcommands.
+    global_options.add_to_module( *sub );
+    set_module_help_group( *sub );
+}
 
 #endif // include guard

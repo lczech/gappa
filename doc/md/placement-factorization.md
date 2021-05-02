@@ -1,6 +1,6 @@
 ## Description
 
-The command runs [Placement-Factorization](https://www.biorxiv.org/content/10.1101/346353v3)
+The command runs [Placement-Factorization](https://doi.org/10.1371/journal.pone.0217050)
 on a set of `jplace` input samples.
 
 ## Details

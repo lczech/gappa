@@ -1,6 +1,6 @@
 ## Description
 
-The command extracts the queries that are placed in specified clades of the reference tree and writes per-clade `jplace` files. It is mainly intended for the multilevel placement approach as explained [here](https://www.biorxiv.org/content/early/2018/04/11/299792). It can of course also be used for other purposes where one is interested in just working with placements in a specific clade.
+The command extracts the queries that are placed in specified clades of the reference tree and writes per-clade `jplace` files. It is mainly intended for the multilevel placement approach as explained [here](https://doi.org/10.1093/bioinformatics/bty767). It can of course also be used for other purposes where one is interested in just working with placements in a specific clade.
 
 ![Multilevel placement extraction workflow.](https://github.com/lczech/gappa/blob/master/doc/png/workflow_multilevel.png?raw=true)
 

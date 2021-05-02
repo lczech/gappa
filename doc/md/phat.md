@@ -1,6 +1,6 @@
 ## Description
 
-Given a set of sequences and a fitting taxonomy, the command produces consensus sequences representing taxonomic clades, according to our PhAT method as described [here](https://www.biorxiv.org/content/early/2018/04/11/299792).
+Given a set of sequences and a fitting taxonomy, the command produces consensus sequences representing taxonomic clades, according to our PhAT method as described [here](https://doi.org/10.1093/bioinformatics/bty767).
 The main inputs are `--sequence-file` and `--taxonomy-file`, which provide the input data, as well as the `--target-size` of how many consensus sequences to build.
 
 ![PhAT workflow.](https://github.com/lczech/gappa/blob/master/doc/png/workflow_phat.png?raw=true)

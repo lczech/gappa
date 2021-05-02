@@ -1,6 +1,6 @@
 ## Description
 
-The command is one of the steps of our data preprocessing pipeline for phylogenetic placements as described [here](https://www.biorxiv.org/content/early/2018/04/11/299792). It takes one or more fasta files as input, e.g., each representing an environmental sample. It then writes out numbered chunks files of equal size, containing the unique sequences of the input. For each input file, it also writes an abundance map file, which stores the per-sequence abundances in the input. In order to identify unique sequences, it uses a hash value of the sequence data, which is also assigned as a new name to the sequences in the chunks.
+The command is one of the steps of our data preprocessing pipeline for phylogenetic placements as described [here](https://doi.org/10.1093/bioinformatics/bty767). It takes one or more fasta files as input, e.g., each representing an environmental sample. It then writes out numbered chunks files of equal size, containing the unique sequences of the input. For each input file, it also writes an abundance map file, which stores the per-sequence abundances in the input. In order to identify unique sequences, it uses a hash value of the sequence data, which is also assigned as a new name to the sequences in the chunks.
 
 ![Chunkify and Unchunkify Workflow.](https://github.com/lczech/gappa/blob/master/doc/png/workflow_chunkify.png?raw=true)
 

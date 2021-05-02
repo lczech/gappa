@@ -1,6 +1,6 @@
 ## Description
 
-The command reverses the effects of the [chunkify](../wiki/Subcommand:-chunkify) command (see there for details on the workflow). That is, it takes the abundance map files and the per-chunk placement files as input, and creates a placement file for each of the original input sequences files, with all abundances and sequences names correctly restored. The command is thus one of the steps of our data preprocessing pipeline for phylogenetic placements as described [here](https://www.biorxiv.org/content/early/2018/04/11/299792).
+The command reverses the effects of the [chunkify](../wiki/Subcommand:-chunkify) command (see there for details on the workflow). That is, it takes the abundance map files and the per-chunk placement files as input, and creates a placement file for each of the original input sequences files, with all abundances and sequences names correctly restored. The command is thus one of the steps of our data preprocessing pipeline for phylogenetic placements as described [here](https://doi.org/10.1093/bioinformatics/bty767).
 
 The easiest way to input the placement files to the command is the `--jplace-path` option, which takes a list of files or a directory containing `.jplace` files. This option works in all cases, and can even handle cases where sequences were moved around between chunks, or chunks that were merged later, and so on. It simply uses the hash names of the sequences to identify them.
 

@@ -86,6 +86,37 @@ void setup_wiki( CLI::App& app )
 // =================================================================================================
 
 // -------------------------------------------------------------------------
+//     Markdown Helpers
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Take a markdown text and replace all pairs of backticks by html code environments.
+ */
+std::string codify_markdown( std::string const& text )
+{
+    // Replace pairs of backticks.
+    auto result = text;
+    size_t pos = 0;
+    size_t cnt = 0;
+    while( pos < result.size() ) {
+        if( result[pos] == '`' ) {
+            result.replace( pos, 1, cnt % 2 == 0 ? "<code>" : "</code>" );
+            ++cnt;
+        }
+        ++pos;
+    }
+
+    // We are calling this function only internally, and independent of user input,
+    // so we have control over what arguments we call it with. Let's hence be on the safe side,
+    // and only replace stuff that we know is good.
+    if( cnt % 2 != 0 ) {
+        throw std::runtime_error( "Invalid markdown with uneven number of backticks." );
+    }
+
+    return result;
+}
+
+// -------------------------------------------------------------------------
 //     App Subcommand Helpers
 // -------------------------------------------------------------------------
 
@@ -226,12 +257,13 @@ void make_options_table( CLI::App const& command, std::ostream& os )
             tmp_os << " <code>" << genesis::utils::trim( opt_str ) << "</code><br>";
         }
 
-        // Add description
+        // Add description. Replace backticks by html code elements here, as markdown
+        // does not replace them automatically within html environments.
         auto descr = opt->get_description();
         if( descr.substr( 0, 10 ) == "Required. " ) {
             descr = descr.substr( 10 );
         }
-        tmp_os << " " << descr << "</td></tr>\n";
+        tmp_os << " " << codify_markdown( descr ) << "</td></tr>\n";
         // tmp_os << " " << opt->get_description() << " |\n";
         // tmp_os << "| " << opt->get_description() << " |\n";
 

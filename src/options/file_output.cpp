@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
+#include <unordered_set>
 
 // =================================================================================================
 //      File Type/Name Setup Functions
@@ -226,12 +227,21 @@ void FileOutputOptions::check_output_files_nonexistence(
         return;
     }
 
+    // Collect names for which we have already printed a warning, to keep user output nice.
+    std::unordered_set<std::string> warned_names;
+
     // Helper function for reporting existing files
     auto report_file_ = [&]( std::string const& path ){
         // If we allow overwriting, only warn about the files.
         if( genesis::utils::Options::get().allow_file_overwriting() ) {
-            LOG_WARN << "Warning: Output file already exists and will be overwritten: " + path;
-            // LOG_BOLD;
+            if( warned_names.count( path ) == 0 ) {
+                if( count_substring_occurrences( path, "*" ) > 0 ) {
+                    LOG_WARN << "Warning: Output files already exist and will be overwritten: " + path;
+                } else {
+                    LOG_WARN << "Warning: Output file already exists and will be overwritten: " + path;
+                }
+                warned_names.emplace( path );
+            }
         } else {
             throw genesis::except::ExistingFileError(
                 "Output file already exists: " + path + "\nUse " + allow_file_overwriting_flag +

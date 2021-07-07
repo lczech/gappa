@@ -29,6 +29,7 @@
 #include "options/jplace_input.hpp"
 #include "options/file_input.hpp"
 #include "options/file_output.hpp"
+#include "options/sequence_input.hpp"
 
 #include <string>
 #include <vector>
@@ -49,6 +50,7 @@ public:
     JplaceInputOptions jplace_input;
     FileInputOptions   abundance_map_input;
     FileOutputOptions  file_output;
+    SequenceInputOptions sequence_input;
 };
 
 // =================================================================================================

@@ -4,6 +4,8 @@ The command reverses the effects of the [chunkify](../wiki/Subcommand:-chunkify)
 
 The easiest way to input the placement files to the command is the `--jplace-path` option, which takes a list of files or a directory containing `.jplace` files. This option works in all cases, and can even handle cases where sequences were moved around between chunks, or chunks that were merged later, and so on. It simply uses the hash names of the sequences to identify them.
 
+Optionally, when sequence file(s) containing the _chunked_ data (with hashed sequence names) are supplied to `--sequence-path`, per sample sequence files are additionally written to the output folder.
+
 ## Details
 
 For large datasets, using the `--jplace-path` option might need too much memory, as all files have to be scanned for the sequence hash names first. This is necessary if the jplace files do not correspond exactly to the chunk files. However, if each jplace file was created from one chunk file, there is no need to scan for hashes in other files. Thus, we offer two memory- and time-saving alternatives:

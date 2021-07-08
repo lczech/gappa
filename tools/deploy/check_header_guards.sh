@@ -70,7 +70,7 @@ for header in `find . -name "*.hpp"`; do
 
     contains_element "${guard}" "${unique_guards[@]}"
     result=$?
-    if [[ ${result} == 0 ]]; then
+    if [[ ${result} -eq 0 ]]; then
         echo "Header guard '${guard}' is not unique!"
     fi
     unique_guards+=("${guard}")

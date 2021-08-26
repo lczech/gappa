@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,6 +124,14 @@ void print_option_values( CLI::App const* subcommand )
 
         // Do not add help option.
         if( option->get_name() == "-h,--help" || option->get_name() == "--help" ) {
+            continue;
+        }
+
+        // Do not add options in the hidden group, using two ways to specify this.
+        if(
+            option->get_group().empty() ||
+            genesis::utils::to_lower( option->get_group() ) == "hidden"
+        ) {
             continue;
         }
 
@@ -253,7 +261,9 @@ void check_subcommand_names( CLI::App const& app )
 
     // Also check all its options.
     for( auto option : app.get_options()) {
-        if( option->get_name().empty() ) {
+        // TODO For some weird reason, options in the hidden empty group do also have an empty
+        // name here... seems like a CLI11 bug to me, but let's just work around for now.
+        if( option->get_name().empty() && ! option->get_group().empty() ) {
             throw std::runtime_error( "Empty option name in " + app.get_name()  );
         }
         if( option->get_description().empty() ) {

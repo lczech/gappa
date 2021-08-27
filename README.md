@@ -42,7 +42,14 @@ However, being written in C++, our gappa is much faster and needs less memory fo
 Setup
 -------------------
 
-To run gappa on your machine, simply get it, and build it:
+There are two ways to get gappa:
+
+1. Install it via [conda](https://anaconda.org/bioconda/gappa).
+2. Build it from source.
+
+While conda will only give you proper releases,
+building from source will give you the latest (development) version.
+For that, simply get it, and build it:
 
 ~~~.sh
 git clone --recursive https://github.com/lczech/gappa.git
@@ -75,6 +82,15 @@ and have no [deeper meaning](https://en.wikipedia.org/wiki/42_%28answer%29). -->
 
 See [**the Wiki pages**](https://github.com/lczech/gappa/wiki)
 for the full list of all subcommands and their documentation.
+
+For **bug reports and feature requests** of gappa, please
+[open an issue on GitHub](https://github.com/lczech/gappa/issues).
+
+For **user support**, please see our
+[Phylogenetic Placement Google Group](https://groups.google.com/forum/#!forum/phylogenetic-placement).
+It is intended for discussions about phylogenetic placement,
+and for user support for our software tools, such as [EPA-ng](https://github.com/Pbdas/epa-ng),
+[gappa](https://github.com/lczech/gappa), and [genesis](https://github.com/lczech/genesis).
 
 Citation
 -------------------

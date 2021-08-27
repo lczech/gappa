@@ -56,8 +56,8 @@ void setup_lwr_distribution( CLI::App& app )
     auto opt = std::make_shared<LwrDistributionOptions>();
     auto sub = app.add_subcommand(
         "lwr-distribution",
-        "Print a summary table of the (accumulated) distribution of the likelihood weight ratios (LWRs) "
-        "of all pqueries that can be shown as a stacked area plot."
+        "Print a summary table that represents the distribution "
+        "of the likelihood weight ratios (LWRs) of all pqueries."
     );
 
     // File input
@@ -71,8 +71,8 @@ void setup_lwr_distribution( CLI::App& app )
         "--num-entries",
         opt->num_entries,
         "Number of entries representing the pqueries. This is the length of the output table, "
-        "representing the n-th quantiles of the pquery LWR distribution. If the input has fewer "
-        "pqueries that this number, all of the pqueries will be in the output table.",
+        "representing the pquery LWR distribution. If set to 0, or if the input has fewer "
+        "pqueries that the given number, the output table will contain all pqueries.",
         true
     )->group( "Settings" );
 
@@ -81,8 +81,8 @@ void setup_lwr_distribution( CLI::App& app )
         "--num-lwrs",
         opt->num_lwrs,
         "Number of LWRs per pquery to output (the most likely, second most likely, etc); "
-        "all remaining LWRs are put into the Remainder column. "
-        "This is the number of columns of the output table.",
+        "all remaining LWRs are accumulated into the Remainder column. "
+        "This is the number of LWR columns of the output table.",
         true
     )->group( "Settings" );
 
@@ -137,15 +137,25 @@ void run_lwr_distribution( LwrDistributionOptions const& options )
     // Print some user output.
     options.jplace_input.print();
 
-    // Prepare intermediate data. We need to store all LWRs...
-    // We have a vector representing all LWRs, where each entry is a pair with the sort value first
-    // (which is only used when we do not use numerical sort... bit of a waste in that case,
-    // but much faster in the default case compared to re-computing the sort value every time),
-    // and the list of LWRs second, with that list containing the n most likely LWRs and the
-    // accumulated remainder of all LWRs above n.
+    // Prepare intermediate data.
     Tree tree;
     size_t file_count = 0;
-    using LwrEntry = std::pair<double, std::vector<double>>;
+
+    // Prepare collection of all LWRs, for each pquery.
+    struct LwrEntry
+    {
+        // We only store the index to the name,
+        // in order to not have repeated string allocations all over the place.
+        size_t              sample_index;
+        std::string         pquery_name;
+
+        // Store the weighted sum sort value. Only used for sorting if numerical_sort is false.
+        double              sort_value;
+
+        // The actual list of LWRs of this pquery, containing the n most likely LWRs and the
+        // accumulated remainder of all LWRs above n as an additional last entry.
+        std::vector<double> lwrs;
+    };
     auto collection = std::vector<LwrEntry>();
 
     // Read all jplace files.
@@ -192,7 +202,7 @@ void run_lwr_distribution( LwrDistributionOptions const& options )
 
         // The main accumulation is single threaded.
         // We could optimize more, but seriously, it is fast enough already.
-        for( auto const& pquery : sample ) {
+        for( auto& pquery : sample ) {
 
             // Prepare the vector with all top n LWRs, and the remainder.
             // Also, compute the sort value for our default sort order.
@@ -215,11 +225,21 @@ void run_lwr_distribution( LwrDistributionOptions const& options )
             {
                 // Add the values as often as the pquery has names,
                 // as each of them represents a different pquery.
-                // We need to make copies of lwr here, so that we can do this step multiple times.
-                for( size_t i = 0; i < pquery.name_size(); ++i ) {
-                    collection.emplace_back( sort_value, lwrs );
+                LwrEntry entry;
+                entry.sample_index = fi;
+                entry.sort_value = sort_value;
+                entry.lwrs = std::move(lwrs);
+                for( auto const& name : pquery.names() ) {
+                    entry.pquery_name = name.name;
+                    collection.emplace_back( entry );
                 }
             }
+
+            // We are done with this pquery, and will never need it again.
+            // Let's free its memory, because we just did more or less a full copy of its memory
+            // footprint, so let's save that!
+            pquery.clear_placements();
+            pquery.clear_names();
         }
     }
     LOG_MSG1 << "Found " << collection.size() << " pqueries";
@@ -230,15 +250,15 @@ void run_lwr_distribution( LwrDistributionOptions const& options )
         std::sort(
             collection.begin(), collection.end(),
             []( LwrEntry const& lhs, LwrEntry const& rhs ){
-                assert( lhs.second.size() == rhs.second.size() );
+                assert( lhs.lwrs.size() == rhs.lwrs.size() );
 
                 // Sort by LWR, starting with the most likely one.
                 // If those are identical, compare the second most likely, and so forth,
                 // until we find one that differs and which then gives the sort order.
                 // We sort by largest LWR first.
-                for( size_t i = 0; i < lhs.second.size(); ++i ) {
-                    if( lhs.second[i] != rhs.second[i] ) {
-                        return lhs.second[i] > rhs.second[i];
+                for( size_t i = 0; i < lhs.lwrs.size(); ++i ) {
+                    if( lhs.lwrs[i] != rhs.lwrs[i] ) {
+                        return lhs.lwrs[i] > rhs.lwrs[i];
                     }
                 }
                 return false;
@@ -250,28 +270,39 @@ void run_lwr_distribution( LwrDistributionOptions const& options )
             []( LwrEntry const& lhs, LwrEntry const& rhs ){
                 // Simply sort by the pre-computed sort value.
                 // We sort by largest LWR sort value first.
-                return lhs.first > rhs.first;
+                return lhs.sort_value > rhs.sort_value;
             }
         );
     }
 
+    // Get the number of rows to write. In the normal case, we write `num_entries` many rows,
+    // picking them at the respective relative position in the sorted collection.
+    // If there are not that many pqueries, we only write as many as there are;
+    // if the number of output entries set by the user is 0, we also write all that there are.
+    auto const max_e
+        = ( options.num_entries == 0 || collection.size() < options.num_entries )
+        ? collection.size()
+        : options.num_entries
+    ;
+
     // User output
-    LOG_MSG1 << "Writing output table";
+    if( max_e == collection.size() ) {
+        LOG_MSG1 << "Writing output table with all " << max_e << " pqueries";
+    } else {
+        LOG_MSG1 << "Writing output table with " << max_e << " representative pqueries";
+    }
 
     // Prepare file
     auto ofs = options.file_output.get_output_target( "lwr-distribution", "csv" );
 
-    // Write header
-    (*ofs) << "Index";
+    // Write header, using an R-friendly format with dots as delimiters in column names.
+    (*ofs) << "Index,Sample,PqueryName";
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
         (*ofs) << ",LWR." << (i+1);
     }
     (*ofs) << ",Remainder\n";
 
-    // Write data rows. We write `num_entries` many rows (unless there are not that many pqueries,
-    // in which case we only write all that there are), picking them
-    // at the respective relative position in the sorted collection.
-    auto const max_e = collection.size() < options.num_entries ? collection.size() : options.num_entries;
+    // Write data rows.
     for( size_t e = 0; e < max_e; ++e ) {
 
         // Get the index of the pquery that sits at the e/max_e position in the collection.
@@ -283,11 +314,13 @@ void run_lwr_distribution( LwrDistributionOptions const& options )
             static_cast<double>( max_e - 1 )
         );
         assert( index < collection.size() );
-        assert( collection[index].second.size() == options.num_lwrs + 1 );
+        assert( collection[index].lwrs.size() == options.num_lwrs + 1 );
 
         // Print the entry with all its LWRs.
         (*ofs) << (index + 1);
-        for( auto const& v : collection[index].second ) {
+        (*ofs) << "," << options.jplace_input.base_file_name( collection[index].sample_index );
+        (*ofs) << "," << collection[index].pquery_name;
+        for( auto const& v : collection[index].lwrs ) {
             (*ofs) << "," << v;
         }
         (*ofs) << "\n";

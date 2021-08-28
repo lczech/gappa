@@ -7,7 +7,7 @@ in the output file `lwr-distribution.csv`.
 We provide an
 [R script to plot this distribution](https://github.com/lczech/gappa/blob/master/scripts/plot-lwr-distribution.R) in a stacked area plot, see below for examples.
 This serves as a quality control check of the placement process, to visualize if the pqueries
-could be confidently placed on the reference tree.
+were confidently placed on the reference tree.
 
 ## Details
 

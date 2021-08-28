@@ -26,13 +26,17 @@ in the list, which serve as representatives of the total LWR distribution of all
 This is the length of the output list; the higher this value, the more detail can be visualized.
 
 The columns of the table contain the sorting `Index` of each representative pquery, the `Sample`
-that the pquery is from, its `PqueryName`,
+that the pquery is from (i.e., the base name of the input `jplace` file), its `PqueryName`,
 as well as the LWR entries, sorted from most likely to least likely placement location,
 named `LWR.1` to `LWR.n`, with `--num-lwrs` of the most likely LWRs,
 followed by a `Remainder` column that contains the accumulated sum of all remaining LWRs
 that are present in the input file for the given pquery.
 
-Using the [R script to plot the resulting table](https://github.com/lczech/gappa/blob/master/scripts/plot-lwr-distribution.R), we get a stacked area plot showing the LWR distribution, as shown in the examples below.
+Using the [R script](https://github.com/lczech/gappa/blob/master/scripts/plot-lwr-distribution.R)
+to plot the resulting table, we get a stacked area plot showing the LWR distribution,
+as shown in the examples below.
+The script expects the table file name and an output file base name (without extension)
+as arguments.
 
 ### Exemplary Visualization 1
 

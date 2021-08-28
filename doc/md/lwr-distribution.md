@@ -26,7 +26,7 @@ in the list, which serve as representatives of the total LWR distribution of all
 This is the length of the output list; the higher this value, the more detail can be visualized.
 
 The columns of the table contain the sorting `Index` of each representative pquery, the `Sample`
-that the pquery is frmo, its `PqueryName`,
+that the pquery is from, its `PqueryName`,
 as well as the LWR entries, sorted from most likely to least likely placement location,
 named `LWR.1` to `LWR.n`, with `--num-lwrs` of the most likely LWRs,
 followed by a `Remainder` column that contains the accumulated sum of all remaining LWRs

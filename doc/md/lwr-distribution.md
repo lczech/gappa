@@ -1,7 +1,8 @@
 ## Description
 
 The command takes one or more `jplace` files, sorts all their pqueries by their likelihood weight
-ratios (LWRs), and prints a summary table representing the distribution of LWRs.
+ratios (LWRs), and produces a comma-separated summary table representing the distribution of LWRs
+in the output file `lwr-distribution.csv`.
 
 We provide an
 [R script to plot this distribution](https://github.com/lczech/gappa/blob/master/scripts/plot-lwr-distribution.R) in a stacked area plot, see below for examples.

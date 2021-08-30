@@ -13,7 +13,7 @@ The output contains columns for the absolute values (summed multiplicities of al
 the particular bin), relative values (as percentages), as well as accumulated absolute and relative
 values.
 
-We provide an [R script to plot these histograms](https://github.com/lczech/gappa/blob/master/scripts/plot-lwr-histogram.R), which can for example be visualized like this:
+We provide an [R script to plot these histograms](https://github.com/lczech/gappa/blob/master/scripts/plot-lwr-histogram.R), which for example visualizes a histogram like this:
 
 ![Example of the LWR histograms for the first three most likely LWRs.](https://github.com/lczech/gappa/blob/master/doc/png/lwr-histogram-small.png?raw=true)
 

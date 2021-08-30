@@ -32,7 +32,8 @@
 #include "commands/examine/heat_tree.hpp"
 #include "commands/examine/info.hpp"
 #include "commands/examine/lwr_distribution.hpp"
-#include "commands/examine/lwr.hpp"
+#include "commands/examine/lwr_histogram.hpp"
+#include "commands/examine/lwr_list.hpp"
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"
@@ -60,11 +61,15 @@ inline void setup_examine( CLI::App& app )
     setup_heat_tree( *sub );
     setup_info( *sub );
     setup_lwr_distribution( *sub );
-    setup_lwr( *sub );
+    setup_lwr_histogram( *sub );
+    setup_lwr_list( *sub );
 
     // Add the global options to each of the above subcommands.
     global_options.add_to_module( *sub );
     set_module_help_group( *sub );
+
+    // Add legacy commands.
+    add_legacy_command( *sub, "lwr", "examine lwr-histogram" );
 }
 
 #endif // include guard

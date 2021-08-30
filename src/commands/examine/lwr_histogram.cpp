@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "commands/examine/lwr.hpp"
+#include "commands/examine/lwr_histogram.hpp"
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"
@@ -47,13 +47,13 @@
 //      Setup
 // =================================================================================================
 
-void setup_lwr( CLI::App& app )
+void setup_lwr_histogram( CLI::App& app )
 {
     // Create the options and subcommand objects.
-    auto opt = std::make_shared<LwrOptions>();
+    auto opt = std::make_shared<LwrHistogramOptions>();
     auto sub = app.add_subcommand(
-        "lwr",
-        "Print histograms of the likelihood weight ratios (LWRs) of all pqueries."
+        "lwr-histogram",
+        "Print a table with histograms of the likelihood weight ratios (LWRs) of all pqueries."
     );
 
     // File input
@@ -66,7 +66,8 @@ void setup_lwr( CLI::App& app )
     sub->add_option(
         "--histogram-bins",
         opt->histogram_bins,
-        "Number of histogram bins for binning the LWR values.",
+        "Number of histogram bins for binning the LWR values. "
+        "This is the number of rows of the output table.",
         true
     )->group( "Settings" );
 
@@ -75,27 +76,18 @@ void setup_lwr( CLI::App& app )
         "--num-lwrs",
         opt->num_lwrs,
         "Number of histograms to print. That is, how many of the LWRs per pquery to output "
-        "(most likely, second most likely, etc), or in other words, how many LWRs columns "
+        "(most likely, second most likely, etc), or in other words, how many LWR columns "
         "the output table should have.",
         true
     )->group( "Settings" );
 
-    // Offer to skip list file
-    sub->add_flag(
-        "--no-list-file",
-        opt->no_list_file,
-        "If set, do not write out the LWRs per pquery, but just the histogram file. "
-        "As the list needs to keep all pquery names in memory (to get the correct order), "
-        "the memory requirements might be too large. In that case, this option can help."
-    )->group( "Settings" );
-
-    // Offer to ignore the check for tree compatibility
-    sub->add_flag(
-        "--no-compat-check",
-        opt->no_compat_check,
-        "If set, disables the check for tree compatibility. Useful if comparing results "
-        "across differing reference trees."
-    )->group( "Settings" );
+    // // Offer to ignore the check for tree compatibility
+    // sub->add_flag(
+    //     "--no-compatibility-check",
+    //     opt->no_compat_check,
+    //     "If set, disables the check for tree compatibility when multiple jplace files are provided. "
+    //     "Useful if comparing results across differing reference trees."
+    // )->group( "Settings" );
 
     // Output
     opt->file_output.add_default_output_opts_to_app( sub );
@@ -106,7 +98,7 @@ void setup_lwr( CLI::App& app )
         sub,
         {},
         [ opt ]() {
-            run_lwr( *opt );
+            run_lwr_histogram( *opt );
         }
     ));
 }
@@ -115,19 +107,15 @@ void setup_lwr( CLI::App& app )
 //      Run
 // =================================================================================================
 
-void run_lwr( LwrOptions const& options )
+void run_lwr_histogram( LwrHistogramOptions const& options )
 {
     using namespace genesis;
     using namespace genesis::placement;
     using namespace genesis::tree;
     using namespace genesis::utils;
 
-    // TODO does also fail if the list is not written.
     // Prepare output file names and check if any of them already exists. If so, fail early.
-    std::vector<std::pair<std::string, std::string>> files_to_check;
-    files_to_check.push_back({ "list", "csv" });
-    files_to_check.push_back({ "histogram", "csv" });
-    options.file_output.check_output_files_nonexistence( files_to_check );
+    options.file_output.check_output_files_nonexistence( "lwr-histogram", "csv" );
 
     // Print some user output.
     options.jplace_input.print();
@@ -135,23 +123,9 @@ void run_lwr( LwrOptions const& options )
     // Prepare intermediate data.
     Tree tree;
     size_t file_count = 0;
-    auto hists = std::vector<Histogram>( options.num_lwrs, { options.histogram_bins, 0.0, 1.0 });
-
-    // Helper for expressiveness and conciseness.
-    // Stores LWR values for a pquery name.
-    struct NameLWRs
-    {
-        std::string         name;
-        double              mult;
-        std::vector<double> lwr;
-    };
-
-    // Prepare result. The outer vector is indexed by samples, the inner lists the pquery names
-    // and their edpl per pquery. That is, pqueries with multiple names get multiple entries here.
-    // We store this first so that the result file is written in the correct order.
-    // Not nice, but the data size should be okay. If this ever leads to memory issues,
-    // we need to re-think the parallelization scheme...
-    auto lwrs_values = std::vector<std::vector<NameLWRs>>( options.jplace_input.file_count() );
+    size_t pquery_count = 0;
+    size_t name_count = 0;
+    auto hists = std::vector<Histogram>( options.num_lwrs + 1, { options.histogram_bins, 0.0, 1.0 });
 
     // Read all jplace files.
     #pragma omp parallel for schedule(dynamic)
@@ -174,8 +148,10 @@ void run_lwr( LwrOptions const& options )
                 if( tree.empty() ) {
                     tree = sample.tree();
                 } else if( ! genesis::placement::compatible_trees( tree, sample.tree() ) ) {
-                    throw std::runtime_error( "Input jplace files have differing reference trees. "
-                        "(Disable this check using --no-compat-check)" );
+                    throw std::runtime_error(
+                        "Input jplace files have differing reference trees. "
+                        // "(Disable this check using --no-compat-check)"
+                    );
                 }
             }
         }
@@ -185,115 +161,73 @@ void run_lwr( LwrOptions const& options )
         #pragma omp critical(GAPPA_LWR_HIST_ACC)
         {
             for( auto const& pquery : sample ) {
+                ++pquery_count;
+                name_count += pquery.name_size();
                 auto const mult = total_multiplicity( pquery );
                 auto const max_n = std::min( options.num_lwrs, pquery.placement_size() );
                 for( size_t n = 0; n < max_n; ++n ) {
                     hists[n].accumulate( pquery.placement_at( n ).like_weight_ratio, mult );
                 }
-            }
-        }
-
-        // Store the LWRs for the sample and store it per pquery name.
-        // We reserve entries for each pquery. If there are pqueries with multiple names,
-        // this will lead to reallocation, but in the standard case, this is faster.
-        // Also, we later copy the entries to the result, to make sure we do not store more data
-        // than necessary.
-        if( ! options.no_list_file ) {
-            auto temp = std::vector<NameLWRs>();
-            temp.reserve( sample.size() );
-
-            for( auto const& pquery : sample ) {
-                for( auto const& name : pquery.names() ) {
-                    temp.push_back({ name.name, name.multiplicity, {} });
-                    for( size_t n = 0; n < options.num_lwrs; ++n ) {
-
-                        // We always write a value, so that the number of columns is constant.
-                        // Uses extra space... Could be optimized.
-                        if( n < pquery.placement_size() ) {
-                            temp.back().lwr.push_back( pquery.placement_at( n ).like_weight_ratio );
-                        } else {
-                            temp.back().lwr.push_back( 0.0 );
-                        }
-                    }
+                for( size_t n = max_n; n < pquery.placement_size(); ++n ) {
+                    hists.back().accumulate( pquery.placement_at( n ).like_weight_ratio, mult );
                 }
             }
-
-            // Store result.
-            assert( fi < lwrs_values.size() && lwrs_values[fi].empty() );
-            lwrs_values[fi] = temp;
         }
     }
 
     // User output
-    LOG_MSG1 << "Writing output files.";
-
-    if( ! options.no_list_file ) {
-        // Prepare list file
-        auto list_ofs = options.file_output.get_output_target( "list", "csv" );
-
-        // Write list file.
-        (*list_ofs) << "Sample,Pquery,Multiplicity";
-        for( size_t i = 0; i < options.num_lwrs; ++i ) {
-            (*list_ofs) << ",\"LWR " << (i+1) << "\"";
-        }
-        (*list_ofs) << "\n";
-
-        for( size_t fi = 0; fi < options.jplace_input.file_count(); ++fi ) {
-            auto const file_name = options.jplace_input.base_file_name( fi );
-
-            for( auto const& entry : lwrs_values[fi] ) {
-                (*list_ofs) << file_name << "," << entry.name << "," << entry.mult;
-                for( size_t i = 0; i < options.num_lwrs; ++i ) {
-                    (*list_ofs) << "," << entry.lwr[i] ;
-                }
-                (*list_ofs) << "\n";
-            }
-        }
-    }
+    LOG_MSG1 << "Writing output table.";
 
     // Prepare histogram file
-    auto hist_ofs = options.file_output.get_output_target( "histogram", "csv" );
+    auto hist_ofs = options.file_output.get_output_target( "lwr-histogram", "csv" );
 
-    // Write histogram header, and get sum for each of them.
+    // Write histogram header, and get sum for each of them
+    // so that we can later use them for normalization.
     (*hist_ofs) << "Bin,Start,End,Range";
-    auto hist_sums = std::vector<double>( options.num_lwrs, 0.0 );
-    auto hist_accs = std::vector<double>( options.num_lwrs, 0.0 );
+    auto hist_sums = std::vector<double>( options.num_lwrs + 1, 0.0 );
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        (*hist_ofs) << ",\"Value " << (i+1) << "\"";
+        (*hist_ofs) << ",Value." << (i+1);
         hist_sums[i] = sum( hists[i] );
     }
+    (*hist_ofs) << ",Value.Remainder";
+    hist_sums.back() = sum( hists.back() );
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        (*hist_ofs) << ",\"Percentage " << (i+1) << "\"";
+        (*hist_ofs) << ",Percentage." << (i+1);
     }
+    (*hist_ofs) << ",Percentage.Remainder";
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        (*hist_ofs) << ",\"Accumulated Value " << (i+1) << "\"";
+        (*hist_ofs) << ",AccumulatedValue." << (i+1);
     }
+    (*hist_ofs) << ",AccumulatedValue.Remainder";
     for( size_t i = 0; i < options.num_lwrs; ++i ) {
-        (*hist_ofs) << ",\"Accumulated Percentage " << (i+1) << "\"";
+        (*hist_ofs) << ",AccumulatedPercentage." << (i+1);
     }
+    (*hist_ofs) << ",AccumulatedPercentage.Remainder";
     (*hist_ofs) << "\n";
 
     // Write histogram header
+    auto hist_accs = std::vector<double>( options.num_lwrs + 1, 0.0 );
     for( size_t b = 0; b < options.histogram_bins; ++b ) {
         (*hist_ofs) << b << ",";
         (*hist_ofs) << hists[0].bin_range(b).first << "," << hists[0].bin_range(b).second;
         (*hist_ofs) << ",\"[" << hists[0].bin_range(b).first << ", ";
         (*hist_ofs) << hists[0].bin_range(b).second << ")\"";
 
-        for( size_t n = 0; n < options.num_lwrs; ++n ) {
+        for( size_t n = 0; n < options.num_lwrs + 1; ++n ) {
             hist_accs[n] += hists[n][b];
             (*hist_ofs) << "," << hists[n][b];
         }
-        for( size_t n = 0; n < options.num_lwrs; ++n ) {
+        for( size_t n = 0; n < options.num_lwrs + 1; ++n ) {
             (*hist_ofs) << "," << ( hists[n][b] / hist_sums[n] );
         }
-        for( size_t n = 0; n < options.num_lwrs; ++n ) {
+        for( size_t n = 0; n < options.num_lwrs + 1; ++n ) {
             (*hist_ofs) << "," << hist_accs[n];
         }
-        for( size_t n = 0; n < options.num_lwrs; ++n ) {
+        for( size_t n = 0; n < options.num_lwrs + 1; ++n ) {
             (*hist_ofs) << "," << ( hist_accs[n] / hist_sums[n] );
         }
-
         (*hist_ofs) << "\n";
     }
+
+    LOG_MSG << "Wrote " << pquery_count << " pqueries with " << name_count << " names";
 }

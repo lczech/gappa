@@ -92,7 +92,7 @@ void setup_lwr_distribution( CLI::App& app )
         opt->numerical_sort,
         "By default, we sort the entries in the output table using a weighted sum of the LWRs "
         "of each pquery, with weight 1 for the most likely LWR, "
-        "weight 1/2 for the second most likely LWR, weight 1/3 for the third most likely, etc."
+        "weight 1/2 for the second most likely LWR, weight 1/3 for the third most likely, etc. "
         "If this option is set however, the entries in the output table are sorted by "
         "the most likely LWR first, then sorting identical entries by the second most "
         "likely LWR, and so forth."

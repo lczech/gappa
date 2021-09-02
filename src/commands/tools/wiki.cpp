@@ -465,7 +465,7 @@ void make_wiki_sidebar( WikiOptions const& options )
 
     // Add standard entries
     os << "[Home](../wiki)\n\n";
-    // os << "[General Usage](../wiki/General-Usage)\n\n";
+    os << "[General Usage](../wiki/General-Usage)\n\n";
     os << "[Phylogenetic Placement](../wiki/Phylogenetic-Placement)\n\n";
 
     // Add submodule lists.

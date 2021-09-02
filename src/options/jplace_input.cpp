@@ -214,8 +214,10 @@ genesis::placement::SampleSet JplaceInputOptions::sample_set() const
 //      Covenience Functions
 // =================================================================================================
 
-JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool force_imbal_norm ) const
-{
+JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile(
+    bool with_imbalances,
+    bool force_imbal_norm
+) const {
     using namespace genesis;
     using namespace genesis::placement;
     using namespace genesis::utils;
@@ -235,7 +237,11 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
         // This is the part that can trivially be done in parallel.
         auto const smpl = sample( fi );
         auto const edge_masses = placement_mass_per_edges_with_multiplicities( smpl );
-        auto const edge_imbals = epca_imbalance_vector( smpl, force_imbal_norm || mass_norm_relative() );
+        auto const edge_imbals
+            = with_imbalances
+            ? epca_imbalance_vector( smpl, force_imbal_norm || mass_norm_relative() )
+            : std::vector<double>()
+        ;
 
         // The main merging is single threaded.
         // Could be done in parallel if we make sure that the matrices are initialized first.
@@ -253,7 +259,7 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
             if( result.edge_masses.empty() ) {
                 result.edge_masses = Matrix<double>( file_count(), result.tree.edge_count() );
             }
-            if( result.edge_imbalances.empty() ) {
+            if( with_imbalances && result.edge_imbalances.empty() ) {
                 result.edge_imbalances = Matrix<double>( file_count(), result.tree.edge_count() );
             }
 
@@ -266,7 +272,7 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
             if(
                 edge_masses.size() != edge_imbals.size()            ||
                 edge_masses.size() != result.edge_masses.cols()     ||
-                edge_imbals.size() != result.edge_imbalances.cols()
+                ( with_imbalances && edge_imbals.size() != result.edge_imbalances.cols() )
             ) {
                 throw std::runtime_error(
                     "Internal Error: Placement profile matrices have wrong number of columns."
@@ -274,8 +280,10 @@ JplaceInputOptions::PlacementProfile JplaceInputOptions::placement_profile( bool
             }
 
             // Fill the matrices.
-            result.edge_masses.row( fi )     = edge_masses;
-            result.edge_imbalances.row( fi ) = edge_imbals;
+            result.edge_masses.row( fi ) = edge_masses;
+            if( with_imbalances ) {
+                result.edge_imbalances.row( fi ) = edge_imbals;
+            }
         }
     }
 

@@ -13,11 +13,11 @@
    height="272.5"
    id="svg2"
    version="1.1"
-   inkscape:version="0.92.3 (unknown)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="workflow_multilevel.svg"
-   inkscape:export-filename="/home/lucas/github/gappa/doc/img/png/workflow_multilevel.png"
-   inkscape:export-xdpi="136.4467"
-   inkscape:export-ydpi="136.4467">
+   inkscape:export-filename="/home/lucas/Dropbox/GitHub/gappa/doc/png/workflow_multilevel.png"
+   inkscape:export-xdpi="165.68527"
+   inkscape:export-ydpi="165.68527">
   <defs
      id="defs4">
     <marker
@@ -167,18 +167,18 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="2.1273319"
-     inkscape:cx="154.40679"
+     inkscape:cx="63.682818"
      inkscape:cy="85.917245"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     showgrid="true"
+     showgrid="false"
      inkscape:window-width="1694"
-     inkscape:window-height="1388"
-     inkscape:window-x="51"
-     inkscape:window-y="24"
+     inkscape:window-height="1384"
+     inkscape:window-x="56"
+     inkscape:window-y="28"
      inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-nodes="true"
@@ -205,7 +205,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>

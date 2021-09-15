@@ -13,11 +13,11 @@
    height="272.49994"
    id="svg2"
    version="1.1"
-   inkscape:version="0.92.3 (unknown)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="workflow_chunkify.svg"
-   inkscape:export-filename="/home/lucas/github/gappa/doc/img/png/workflow_chunkify.png"
-   inkscape:export-xdpi="115.36481"
-   inkscape:export-ydpi="115.36481">
+   inkscape:export-filename="/home/lucas/Dropbox/GitHub/gappa/doc/png/workflow_chunkify.png"
+   inkscape:export-xdpi="140.08583"
+   inkscape:export-ydpi="140.08583">
   <defs
      id="defs4">
     <marker
@@ -183,18 +183,18 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.1273319"
-     inkscape:cx="213.94415"
-     inkscape:cy="107.94567"
+     inkscape:zoom="1.063666"
+     inkscape:cx="183.29583"
+     inkscape:cy="193.31165"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     showgrid="true"
-     inkscape:window-width="1694"
-     inkscape:window-height="1388"
-     inkscape:window-x="51"
-     inkscape:window-y="24"
+     showgrid="false"
+     inkscape:window-width="1692"
+     inkscape:window-height="1384"
+     inkscape:window-x="56"
+     inkscape:window-y="28"
      inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-nodes="true"
@@ -221,7 +221,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>

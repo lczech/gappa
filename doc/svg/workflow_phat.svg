@@ -13,11 +13,11 @@
    height="112.5"
    id="svg2"
    version="1.1"
-   inkscape:version="0.92.3 (unknown)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="workflow_phat.svg"
-   inkscape:export-filename="/home/lucas/github/gappa/doc/png/workflow_phat.png"
-   inkscape:export-xdpi="110.75402"
-   inkscape:export-ydpi="110.75402">
+   inkscape:export-filename="/home/lucas/Dropbox/GitHub/gappa/doc/png/workflow_phat.png"
+   inkscape:export-xdpi="134.48701"
+   inkscape:export-ydpi="134.48701">
   <defs
      id="defs4">
     <marker
@@ -315,18 +315,18 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1.5042508"
-     inkscape:cx="213.66537"
+     inkscape:cx="85.362297"
      inkscape:cy="68.298625"
      inkscape:document-units="px"
      inkscape:current-layer="g950"
-     showgrid="true"
-     inkscape:window-width="1694"
-     inkscape:window-height="1028"
-     inkscape:window-x="51"
-     inkscape:window-y="24"
+     showgrid="false"
+     inkscape:window-width="1692"
+     inkscape:window-height="1384"
+     inkscape:window-x="56"
+     inkscape:window-y="28"
      inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-nodes="true"
@@ -353,7 +353,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>

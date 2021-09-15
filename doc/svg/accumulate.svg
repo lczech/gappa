@@ -13,9 +13,9 @@
    height="78.936516mm"
    id="svg4344"
    version="1.1"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="accumulate.svg"
-   inkscape:export-filename="/home/lucas/github/gappa/doc/png/accumulate.png"
+   inkscape:export-filename="/home/lucas/Dropbox/GitHub/gappa/doc/png/accumulate.png"
    inkscape:export-xdpi="87.416939"
    inkscape:export-ydpi="87.416939">
   <sodipodi:namedview
@@ -23,10 +23,10 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="285.138"
+     inkscape:cx="294.41305"
      inkscape:cy="106.2114"
      inkscape:document-units="px"
      inkscape:current-layer="layer14"
@@ -36,10 +36,10 @@
      fit-margin-left="0.6"
      fit-margin-right="0.6"
      fit-margin-bottom="0.6"
-     inkscape:window-width="1694"
-     inkscape:window-height="1387"
-     inkscape:window-x="1744"
-     inkscape:window-y="24"
+     inkscape:window-width="1692"
+     inkscape:window-height="1384"
+     inkscape:window-x="56"
+     inkscape:window-y="28"
      inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-paths="true"
@@ -322,7 +322,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>

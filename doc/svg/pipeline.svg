@@ -13,9 +13,9 @@
    height="113.25"
    id="svg2"
    version="1.1"
-   inkscape:version="0.92.3 (unknown)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="pipeline.svg"
-   inkscape:export-filename="/home/lucas/github/gappa/doc/img/png/pipeline.png"
+   inkscape:export-filename="/home/lucas/Dropbox/GitHub/gappa/doc/png/pipeline.png"
    inkscape:export-xdpi="132.61"
    inkscape:export-ydpi="132.61">
   <defs
@@ -89,18 +89,18 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1.5042508"
-     inkscape:cx="46.75009"
-     inkscape:cy="-45.819928"
+     inkscape:cx="357.65295"
+     inkscape:cy="147.81135"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     showgrid="true"
+     showgrid="false"
      inkscape:window-width="1694"
-     inkscape:window-height="1388"
-     inkscape:window-x="51"
-     inkscape:window-y="24"
+     inkscape:window-height="1384"
+     inkscape:window-x="56"
+     inkscape:window-y="28"
      inkscape:window-maximized="0"
      inkscape:snap-bbox="true"
      inkscape:bbox-nodes="true"
@@ -127,7 +127,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>

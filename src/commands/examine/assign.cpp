@@ -151,6 +151,15 @@ void setup_assign( CLI::App& app )
         "If not specified, those parts of the tree remain unlabelled, and their placements unassigned."
     )->group("Settings");
 
+    sub->add_flag(
+        "--distant-label",
+        opt->distant_label,
+        "Take into account the pendant length of the placements, assigning the LWR to a new label called 'DISTANT' "
+        "in proportion to the pendant length. Assigns no LWR to 'DISTANT' if the pednant length is below the "
+        "insertion branch length, and assigns all LWR to 'DISTANT' is the pendant length exceeds the radius of the "
+        "reference tree."
+    )->group("Settings");
+
     // Output
     opt->file_output.add_default_output_opts_to_app( sub );
 
@@ -1115,9 +1124,11 @@ static void assign( Sample const& sample,
             auto const pendant_length = p.pendant_length;
 
             // how close is the pendant length?
-            double const closeness_ratio = proximity(   pendant_length,
+            double const closeness_ratio = options.distant_label ? 
+                                            proximity(  pendant_length,
                                                         attachment_branch_length,
-                                                        outlier_length );
+                                                        outlier_length )
+                                            : 1.0;
 
             // sap away LWR based on the distance of the pendant
             auto pendant_portion = lwr * (1.0 - closeness_ratio);

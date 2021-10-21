@@ -61,6 +61,7 @@ public:
     bool                best_hit= false;
     bool                resolve_missing_labels = false;
     bool                per_query_results = false;
+    bool                distant_label = false;
 
     std::string         sample_id = "";
 };

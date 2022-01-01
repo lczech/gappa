@@ -1,9 +1,9 @@
-#ifndef GAPPA_OPTIONS_COLOR_COLOR_MAP_H_
-#define GAPPA_OPTIONS_COLOR_COLOR_MAP_H_
+#ifndef GAPPA_OPTIONS_COLOR_MAP_H_
+#define GAPPA_OPTIONS_COLOR_MAP_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,12 +19,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "CLI/CLI.hpp"
+
+#include "tools/cli_option.hpp"
 
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/map.hpp"
@@ -40,7 +42,7 @@
 
 /**
  * @brief Helper class to add command line parameter to use a color map,
- * that is, to select colors for output.
+ * that is, to select color palettes and gradients for output.
  */
 class ColorMapOptions
 {
@@ -70,20 +72,43 @@ public:
      * The function takes either a name of a list, a file containing colors, or a comma separated
      * list of colors. Colors can be specified as names (web and xkcd), or as hex, using a leading #.
      */
-    CLI::Option* add_color_list_opt_to_app(
+    void add_color_list_opt_to_app(
         CLI::App* sub,
-        std::string const& default_color_list
+        std::string const& default_color_list,
+        std::string const& group = "Color",
+        std::string const& name = ""
     );
 
-    CLI::Option* add_under_color_opt_to_app( CLI::App* sub, std::string const& default_color = "" );
-    CLI::Option* add_over_color_opt_to_app(  CLI::App* sub, std::string const& default_color = "" );
-    CLI::Option* add_mask_color_opt_to_app(  CLI::App* sub, std::string const& default_color = "" );
+    void add_under_opt_to_app(
+        CLI::App* sub,
+        std::string const& default_color = "",
+        std::string const& group = "Color",
+        std::string const& name = ""
+    );
+
+    void add_over_opt_to_app(
+        CLI::App* sub,
+        std::string const& default_color = "",
+        std::string const& group = "Color",
+        std::string const& name = ""
+    );
+
+    void add_clip_opt_to_app(
+        CLI::App* sub,
+        std::string const& group = "Color",
+        std::string const& name = ""
+    );
+
+    void add_mask_opt_to_app(
+        CLI::App* sub,
+        std::string const& default_color = "",
+        std::string const& group = "Color",
+        std::string const& name = ""
+    );
 
     // -------------------------------------------------------------------------
     //     Run Functions
     // -------------------------------------------------------------------------
-
-public:
 
     /**
      * @brief Get the color map with all settings applied that were provided by the user.
@@ -119,29 +144,23 @@ private:
 
 private:
 
-    // Helper members that store the user input for (list of) colors.
-    // We need this, because this cannot bind directly to the properties of the color objects,
-    // and because we take colors as strings of differnet format and need to convert first.
-    std::string palette_param_;
-    std::string under_color_param_;
-    std::string over_color_param_;
-    std::string mask_color_param_;
-
+    // We internally build a proper color map with all the options,
+    // and then hand this over to where it is needed.
     mutable genesis::utils::ColorMap color_map_;
 
 public:
 
-    CLI::Option* color_list_option = nullptr;
-    CLI::Option* reverse_color_list_option = nullptr;
+    CliOption<std::string> color_list_option;
+    CliOption<bool> reverse_color_list_option {false};
 
-    CLI::Option* under_color_option = nullptr;
-    CLI::Option* clip_under_option = nullptr;
+    CliOption<std::string> under_color_option;
+    CliOption<bool> clip_under_option {false};
 
-    CLI::Option* over_color_option = nullptr;
-    CLI::Option* clip_over_option = nullptr;
+    CliOption<std::string> over_color_option;
+    CliOption<bool> clip_over_option {false};
 
-    CLI::Option* clip_option = nullptr;
-    CLI::Option* mask_color_option = nullptr;
+    CliOption<bool> clip_option {false};
+    CliOption<std::string> mask_color_option;
 
 };
 

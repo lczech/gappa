@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
-#include "options/color/color_norm.hpp"
+#include "options/color_norm.hpp"
 
 #include "options/global.hpp"
 
@@ -33,94 +33,90 @@
 //      Setup Functions
 // =================================================================================================
 
-CLI::Option* ColorNormOptions::add_log_scaling_opt_to_app( CLI::App* sub )
-{
-    // Correct setup check.
-    if( log_scaling_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorNormOptions object multiple times." );
-    }
-
-    sub->add_flag(
-        "--log-scaling",
-        log_scaling_,
+CLI::Option* ColorNormOptions::add_log_scaling_opt_to_app(
+    CLI::App* sub,
+    std::string const& group,
+    std::string const& name
+) {
+    log_scaling_option = sub->add_flag(
+        name.empty() ? "--log-scaling" : "--" + name + "-log-scaling",
+        log_scaling_option.value(),
         "If set, the sequential color list is logarithmically scaled instead of linearily."
-    )->group( "Color" );
+    );
+    log_scaling_option.option()->group( group );
 
-    return log_scaling_option;
+    return log_scaling_option.option();
 }
 
-CLI::Option* ColorNormOptions::add_min_value_opt_to_app( CLI::App* sub )
-{
-    // Correct setup check.
-    if( min_value_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorNormOptions object multiple times." );
-    }
-
+CLI::Option* ColorNormOptions::add_min_value_opt_to_app(
+    CLI::App* sub,
+    std::string const& group,
+    std::string const& name
+) {
     // Min
     min_value_option = sub->add_option(
-        "--min-value",
-        min_value_,
+        name.empty() ? "--min-value" : "--" + name + "-min-value",
+        min_value_option.value(),
         "Minimum value that is represented by the color scale. "
-        "If not set, the minimum value in the data is used."
-    )->group( "Color" );
+        "If not set, the minimum value of the data is used."
+    );
+    min_value_option.option()->group( group );
 
-    return min_value_option;
+    return min_value_option.option();
 }
 
-CLI::Option* ColorNormOptions::add_mid_value_opt_to_app( CLI::App* sub )
-{
-    // Correct setup check.
-    if( mid_value_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorNormOptions object multiple times." );
-    }
-
-    // Min
+CLI::Option* ColorNormOptions::add_mid_value_opt_to_app(
+    CLI::App* sub,
+    std::string const& group,
+    std::string const& name
+) {
+    // Mid
     mid_value_option = sub->add_option(
-        "--mid-value",
-        mid_value_,
+        name.empty() ? "--mid-value" : "--" + name + "-mid-value",
+        mid_value_option.value(),
         "Mid value that is represented by the diverging color scale. "
-        "If not set, the mid value in the data is used."
-    )->group( "Color" );
+        "If not set, the mid value of the data is used."
+    );
+    mid_value_option.option()->group( group );
 
-    return mid_value_option;
+    return mid_value_option.option();
 }
 
-CLI::Option* ColorNormOptions::add_max_value_opt_to_app( CLI::App* sub )
-{
-    // Correct setup check.
-    if( max_value_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorNormOptions object multiple times." );
-    }
-
+CLI::Option* ColorNormOptions::add_max_value_opt_to_app(
+    CLI::App* sub,
+    std::string const& group,
+    std::string const& name
+) {
     // Max
     max_value_option = sub->add_option(
-        "--max-value",
-        max_value_,
+        name.empty() ? "--max-value" : "--" + name + "-max-value",
+        max_value_option.value(),
         "Maximum value that is represented by the color scale. "
-        "If not set, the maximum value in the data is used."
-    )->group( "Color" );
+        "If not set, the maximum value of the data is used."
+    );
+    max_value_option.option()->group( group );
 
-    return max_value_option;
+    return max_value_option.option();
 }
 
-CLI::Option* ColorNormOptions::add_mask_value_opt_to_app( CLI::App* sub )
-{
-    // Correct setup check.
-    if( mask_value_option != nullptr ) {
-        throw std::domain_error( "Cannot use the same ColorNormOptions object multiple times." );
-    }
-
+CLI::Option* ColorNormOptions::add_mask_value_opt_to_app(
+    CLI::App* sub,
+    std::string const& group,
+    std::string const& name
+) {
     // Mask
     mask_value_option = sub->add_option(
-        "--mask-value",
-        mask_value_,
-        "Mask value that identifies invalid values. "
-        "Value in the data that compare equal to the mask value are colored using --mask-color. "
+        name.empty() ? "--mask-value" : "--" + name + "-mask-value",
+        mask_value_option.value(),
+        "Mask value that identifies invalid values (in addition to infinities and NaN values, "
+        "which are always considered invalid, and hence always masked). "
+        "Value of the data that compare equal to the mask value are colored using --mask-color. "
         "This is meant as a simple means of filtering and visualizing invalid values. "
         "If not set, no masking value is applied."
-    )->group( "Color" );
+    );
+    mask_value_option.option()->group( group );
 
-    return mask_value_option;
+    return mask_value_option.option();
 }
 
 // =================================================================================================
@@ -132,7 +128,7 @@ std::unique_ptr<genesis::utils::ColorNormalizationLinear> ColorNormOptions::get_
     using namespace genesis::utils;
     std::unique_ptr<ColorNormalizationLinear> res;
 
-    if( log_scaling_ ) {
+    if( log_scaling_option.value() ) {
         res = make_unique<ColorNormalizationLogarithmic>();
         apply_options( static_cast<ColorNormalizationLogarithmic&>( *res ) );
     } else {
@@ -158,14 +154,17 @@ void ColorNormOptions::apply_options( genesis::utils::ColorNormalizationLinear& 
     // that is, whether the command uses it, and then, whether the user also specified a value.
     // Only if both are true, we use the value to overwrite the norm value.
 
-    if( min_value_option && *min_value_option ) {
-        norm.min_value( min_value_ );
+    // if( min_value_option.option() && *min_value_option.option() ) {
+    if( min_value_option ) {
+        norm.min_value( min_value_option.value() );
     }
-    if( max_value_option && *max_value_option ) {
-        norm.max_value( max_value_ );
+    // if( max_value_option.option() && *max_value_option.option() ) {
+    if( max_value_option ) {
+        norm.max_value( max_value_option.value() );
     }
-    if( mask_value_option && *mask_value_option ) {
-        norm.mask_value( mask_value_ );
+    // if( mask_value_option.option() && *mask_value_option.option() ) {
+    if( mask_value_option ) {
+        norm.mask_value( mask_value_option.value() );
     }
 }
 
@@ -180,7 +179,7 @@ void ColorNormOptions::apply_options( genesis::utils::ColorNormalizationDivergin
     apply_options( static_cast<genesis::utils::ColorNormalizationLinear&>( norm ));
 
     // Then special divergent options.
-    if( mid_value_option && *mid_value_option ) {
-        norm.mid_value( mid_value_ );
+    if( mid_value_option ) {
+        norm.mid_value( mid_value_option.value() );
     }
 }

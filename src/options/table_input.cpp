@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2021 Lucas Czech
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "options/table_input.hpp"
@@ -45,31 +45,31 @@ void TableInputOptions::add_table_input_opt_to_app(
     CLI::App* sub,
     bool required
 ) {
-    table_input_opt.option = sub->add_option(
+    table_input_opt = sub->add_option(
         "--" + name + ( name.empty() ? "" : "-" ) + "table-file",
-        table_input_opt.value,
+        table_input_opt.value(),
         "Tabular char-separated input file."
     );
-    table_input_opt.option->group( group );
+    table_input_opt.option()->group( group );
 
     if( required ) {
-        table_input_opt.option->required();
+        table_input_opt.option()->required();
     }
-    table_input_opt.option->check( CLI::ExistingFile );
+    table_input_opt.option()->check( CLI::ExistingFile );
 }
 
 void TableInputOptions::add_separator_char_opt_to_app(
     CLI::App* sub
 ) {
-    separator_char_opt.option = sub->add_option(
+    separator_char_opt = sub->add_option(
         "--" + name + ( name.empty() ? "" : "-" ) + "separator-char",
-        separator_char_opt.value,
+        separator_char_opt.value(),
         "Separator char for tabular data.",
         true
     )->transform(
         CLI::IsMember({ "comma", "tab", "space", "semicolon" }, CLI::ignore_case )
     );
-    separator_char_opt.option->group( group );
+    separator_char_opt.option()->group( group );
 }
 
 void TableInputOptions::add_column_selection_opts_to_app(
@@ -79,28 +79,28 @@ void TableInputOptions::add_column_selection_opts_to_app(
     auto const scn = "--" + name + ( name.empty() ? "" : "-" ) + "separator-char";
 
     // Add two complementary ways of selecting columns.
-    select_columns_opt.option = sub->add_option(
+    select_columns_opt = sub->add_option(
         "--" + name + ( name.empty() ? "" : "-" ) + "select-columns",
-        select_columns_opt.value,
+        select_columns_opt.value(),
         "Set the columns to select, by their name in the first (header) line of the table. "
         "All others columns are ignored. The options expects either a file with one column name "
         "per line, or an actual list of column names separated by " + scn,
         true
     );
-    select_columns_opt.option->group( group );
-    ignore_columns_opt.option = sub->add_option(
+    select_columns_opt.option()->group( group );
+    ignore_columns_opt = sub->add_option(
         "--" + name + ( name.empty() ? "" : "-" ) + "ignore-columns",
-        ignore_columns_opt.value,
+        ignore_columns_opt.value(),
         "Set the columns to ignore, by their name in the first (header) line of the table. "
         "All others columns are selected. The options expects either a file with one column name "
         "per line, or an actual list of column names separated by " + scn,
         true
     );
-    ignore_columns_opt.option->group( group );
+    ignore_columns_opt.option()->group( group );
 
     // Make the ways mutally exclusive.
-    select_columns_opt.option->excludes( ignore_columns_opt.option );
-    ignore_columns_opt.option->excludes( select_columns_opt.option );
+    select_columns_opt.option()->excludes( ignore_columns_opt.option() );
+    ignore_columns_opt.option()->excludes( select_columns_opt.option() );
 }
 
 // =================================================================================================
@@ -116,11 +116,11 @@ genesis::utils::CsvReader::Table TableInputOptions::read_table(
 
     // If we do not use the header line, simply read everything and return it.
     if( ! use_header_line ) {
-        return reader.read( from_file( table_input_opt.value ));
+        return reader.read( from_file( table_input_opt.value() ));
     }
 
     // Otherwise, do line by line. First the header, then all remaining rows.
-    InputStream table_is( from_file( table_input_opt.value ));
+    InputStream table_is( from_file( table_input_opt.value() ));
     auto const header_line = reader.parse_line( table_is );
 
     // Get the columns that we want.
@@ -178,7 +178,7 @@ genesis::utils::Dataframe TableInputOptions::read_double_dataframe(
     });
 
     // Do the reading.
-    auto df = reader.read( from_file( table_input_opt.value ));
+    auto df = reader.read( from_file( table_input_opt.value() ));
 
     // Filter columns.
     if( filter_by_header_line ) {
@@ -248,7 +248,7 @@ genesis::utils::Dataframe TableInputOptions::read_string_dataframe(
 
     // Do the reading.
     auto reader = DataframeReader<std::string>( csv_reader() );
-    auto df = reader.read( from_file( table_input_opt.value ));
+    auto df = reader.read( from_file( table_input_opt.value() ));
 
     // Filter columns.
     if( filter_by_header_line ) {
@@ -275,18 +275,18 @@ genesis::utils::Dataframe TableInputOptions::read_string_dataframe(
 std::string TableInputOptions::separator_char() const
 {
     // Set char.
-    if( separator_char_opt.value == "comma" ) {
+    if( separator_char_opt.value() == "comma" ) {
         return ",";
-    } else if( separator_char_opt.value == "tab" ) {
+    } else if( separator_char_opt.value() == "tab" ) {
         return "\t";
-    } else if( separator_char_opt.value == "space" ) {
+    } else if( separator_char_opt.value() == "space" ) {
         return " ";
-    } else if( separator_char_opt.value == "semicolon" ) {
+    } else if( separator_char_opt.value() == "semicolon" ) {
         return ";";
     } else {
         throw CLI::ValidationError(
             "--" + name + ( name.empty() ? "" : "-" ) + "separator-char",
-            "Invalid separator char '" + separator_char_opt.value + "'."
+            "Invalid separator char '" + separator_char_opt.value() + "'."
         );
     }
 }
@@ -406,7 +406,7 @@ std::unordered_set<std::string> TableInputOptions::get_column_names_(
 
     // Fill a list of column indices that we want to have.
     std::unordered_set<std::string> result;
-    if( ! select_columns_opt.value.empty() && ! ignore_columns_opt.value.empty() ) {
+    if( ! select_columns_opt.value().empty() && ! ignore_columns_opt.value().empty() ) {
 
         // Edge case, should not happen, because CLI alreadu takes care of this.
         assert( false );
@@ -414,11 +414,11 @@ std::unordered_set<std::string> TableInputOptions::get_column_names_(
             "Internal Error: Cannot use select and ignore columns at the same time."
         );
 
-    } else if( ! select_columns_opt.value.empty() ) {
+    } else if( ! select_columns_opt.value().empty() ) {
 
         // Fill it with the ones that are present in the select columns list.
         option_name = "--" + name + ( name.empty() ? "" : "-" ) + "select-columns";
-        column_list = get_col_list( select_columns_opt.value );
+        column_list = get_col_list( select_columns_opt.value() );
         for( auto const& entry : header_line ) {
             if( column_list.count( entry ) > 0 ) {
                 assert( result.count( entry ) == 0 );
@@ -427,11 +427,11 @@ std::unordered_set<std::string> TableInputOptions::get_column_names_(
             }
         }
 
-    } else if( ! ignore_columns_opt.value.empty() ) {
+    } else if( ! ignore_columns_opt.value().empty() ) {
 
         // Fill it with the ones that are NOT present in the ignore columns list.
         option_name = "--" + name + ( name.empty() ? "" : "-" ) + "ignore-columns";
-        column_list = get_col_list( ignore_columns_opt.value );
+        column_list = get_col_list( ignore_columns_opt.value() );
         for( auto const& entry : header_line ) {
             if( column_list.count( entry ) == 0 ) {
                 assert( result.count( entry ) == 0 );

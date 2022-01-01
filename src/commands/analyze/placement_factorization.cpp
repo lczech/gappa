@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "commands/analyze/placement_factorization.hpp"
@@ -81,26 +81,26 @@ void setup_placement_factorization( CLI::App& app )
     //     Balance Settings
     // -----------------------------------------------------------
 
-    sub->add_option(
+    opt->factors = sub->add_option(
         "--factors",
-        opt->factors.value,
+        opt->factors.value(),
         "Number of phylogenetic factors to compute.",
         true
     )->group( "Settings" );
 
     // Taxon weights
-    sub->add_option(
+    opt->taxon_weight_tendency = sub->add_option(
         "--taxon-weight-tendency",
-        opt->taxon_weight_tendency.value,
+        opt->taxon_weight_tendency.value(),
         "Tendency term to use for calculating taxon weights.",
         true
     )->group( "Settings" )
     ->transform(
         CLI::IsMember({ "geometric-mean", "arithmetic-mean", "median", "none" }, CLI::ignore_case )
     );
-    sub->add_option(
+    opt->taxon_weight_norm = sub->add_option(
         "--taxon-weight-norm",
-        opt->taxon_weight_norm.value,
+        opt->taxon_weight_norm.value(),
         "Norm term to use for calculating taxon weights.",
         true
     )->group( "Settings" )
@@ -109,15 +109,15 @@ void setup_placement_factorization( CLI::App& app )
     );
 
     // Pseudo counts
-    sub->add_option(
+    opt->pseudo_count_summand_all = sub->add_option(
         "--pseudo-count-summand-all",
-        opt->pseudo_count_summand_all.value,
+        opt->pseudo_count_summand_all.value(),
         "Constant that is added to all taxon masses to avoid zero counts.",
         true
     )->group( "Settings" );
-    sub->add_option(
+    opt->pseudo_count_summand_zeros = sub->add_option(
         "--pseudo-count-summand-zeros",
-        opt->pseudo_count_summand_zeros.value,
+        opt->pseudo_count_summand_zeros.value(),
         "Constant that is added to taxon masses that are zero, to avoid zero counts.",
         true
     )->group( "Settings" );
@@ -135,7 +135,7 @@ void setup_placement_factorization( CLI::App& app )
 
     // sub->add_option(
     //     "--factor-tree-file",
-    //     opt->factor_tree_file.value,
+    //     opt->factor_tree_file.value(),
     //     "If a path is provided, an svg file with a tree colored by the factors is written.",
     //     true
     // )->group( "Output" );
@@ -203,42 +203,42 @@ genesis::tree::BalanceSettings get_balance_settings( PlacementFactorizationOptio
     BalanceSettings result;
 
     // Tendency
-    if( options.taxon_weight_tendency.value == "geometric-mean" ) {
+    if( options.taxon_weight_tendency.value() == "geometric-mean" ) {
         result.tendency = BalanceSettings::WeightTendency::kGeometricMean;
-    } else if( options.taxon_weight_tendency.value == "arithmetic-mean" ) {
+    } else if( options.taxon_weight_tendency.value() == "arithmetic-mean" ) {
         result.tendency = BalanceSettings::WeightTendency::kArithmeticMean;
-    } else if( options.taxon_weight_tendency.value == "median" ) {
+    } else if( options.taxon_weight_tendency.value() == "median" ) {
         result.tendency = BalanceSettings::WeightTendency::kMedian;
-    } else if( options.taxon_weight_tendency.value == "none" ) {
+    } else if( options.taxon_weight_tendency.value() == "none" ) {
         result.tendency = BalanceSettings::WeightTendency::kNone;
     } else {
         throw CLI::ValidationError(
-            "--taxon-weight-tendency (" + options.taxon_weight_tendency.value + ")",
+            "--taxon-weight-tendency (" + options.taxon_weight_tendency.value() + ")",
             "Invalid option selected for taxon weight tendency term."
         );
     }
 
     // Norm
-    if( options.taxon_weight_norm.value == "manhattan" ) {
+    if( options.taxon_weight_norm.value() == "manhattan" ) {
         result.norm = BalanceSettings::WeightNorm::kManhattan;
-    } else if( options.taxon_weight_norm.value == "euclidean" ) {
+    } else if( options.taxon_weight_norm.value() == "euclidean" ) {
         result.norm = BalanceSettings::WeightNorm::kEuclidean;
-    } else if( options.taxon_weight_norm.value == "maximum" ) {
+    } else if( options.taxon_weight_norm.value() == "maximum" ) {
         result.norm = BalanceSettings::WeightNorm::kMaximum;
-    } else if( options.taxon_weight_norm.value == "aitchison" ) {
+    } else if( options.taxon_weight_norm.value() == "aitchison" ) {
         result.norm = BalanceSettings::WeightNorm::kAitchison;
-    } else if( options.taxon_weight_norm.value == "none" ) {
+    } else if( options.taxon_weight_norm.value() == "none" ) {
         result.norm = BalanceSettings::WeightNorm::kNone;
     } else {
         throw CLI::ValidationError(
-            "--taxon-weight-norm (" + options.taxon_weight_norm.value + ")",
+            "--taxon-weight-norm (" + options.taxon_weight_norm.value() + ")",
             "Invalid option selected for taxon weight norm term."
         );
     }
 
     // Pseudo Counts
-    result.pseudo_count_summand_all   = options.pseudo_count_summand_all.value;
-    result.pseudo_count_summand_zeros = options.pseudo_count_summand_zeros.value;
+    result.pseudo_count_summand_all   = options.pseudo_count_summand_all.value();
+    result.pseudo_count_summand_zeros = options.pseudo_count_summand_zeros.value();
 
     return result;
 }
@@ -265,7 +265,7 @@ void write_factor_tree(
 ) {
     using namespace genesis::tree;
 
-    // if( options.factor_tree_file.value.empty() ) {
+    // if( options.factor_tree_file.value().empty() ) {
     //     return;
     // }
 
@@ -406,7 +406,7 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
     std::vector<std::pair<std::string, std::string>> files_to_check;
     for( auto const& e : options.tree_output.get_extensions() ) {
         files_to_check.push_back({ "factors_tree", e });
-        for( size_t i = 0; i < options.factors.value; ++i ) {
+        for( size_t i = 0; i < options.factors.value(); ++i ) {
             files_to_check.push_back({ "factor_edges_" + std::to_string( i+1 ), e });
             files_to_check.push_back({ "objective_values_" + std::to_string( i+1 ), e });
         }
@@ -456,7 +456,7 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
 
             return fit.null_deviance - fit.deviance;
         },
-        options.factors.value,
+        options.factors.value(),
         []( size_t iteration, size_t max_iterations ){
             LOG_MSG1 << "Iteration " << iteration << " of " << max_iterations;
         }

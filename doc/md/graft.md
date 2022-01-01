@@ -28,22 +28,22 @@ Using this method, the new nodes of the resulting tree are easier to distinguish
 
 ### With `--fully-resolve`
 
-If `--fully-resolve` is provided, all placements per branch are turned into single leaf nodes:
+If `--fully-resolve` is provided, all placements per branch are turned into individual single leaf nodes:
 
 ![Fully resolved grafted tree.](https://github.com/lczech/genesis/blob/master/doc/png/placement/labelled_tree_fully_resolved.png?raw=true)
 
 This method is similar to the way [`guppy tog`]((http://matsen.github.io/pplacer/generated_rst/guppy_tog.html#guppy-tog)) produces a grafted tree.
 
-The original edge is splitted into separate parts where each placement edge is attached. The branch lengths between those parts are calculated using the proximal length of the placements, while the branch lengths of the placement edges use their pendant length.
+The original edge is split into separate parts where each placement edge is attached. The branch lengths between those parts are calculated using the proximal length of the placements, while the branch lengths of the placement edges use their pendant length.
 
-Using this method gives maximum information, but results in a more crowded tree. The new placement edges are "sorted" along the original edge by their proximal length. For this reason in the example image above, "Query 2" is closer to "Node A" then "Query 1": it has a higher proximal length. This information was lost in the multifurcating tree shown before.
+Using this method gives the most detailled information, but results in a more crowded tree. The new placement edges are "sorted" along the original edge by their proximal length. For this reason in the example image above, "Query 2" is closer to "Node A" then "Query 1": it has a higher proximal length. This information was lost in the multifurcating tree shown before (without `--fully-resolve`).
 
 ### Further Details
 
-For edges that contain only a single placement (or none at all), both versions of fully resolve behave the same. In this case, the placement is simply attached using its proximal length and pendant length.
+For edges that contain only a single placement (or none at all), both versions (with and without `--fully-resolve`) behave the same. In this case, the placement is simply attached using its proximal length and pendant length.
 
 Pqueries with multiple names are treated as if each name is a separate placement, i.e., for each of them, a new (identical) edge is added to the Tree. If using `--fully-resolve`, this results in a branch length of 0.0 between the nodes of those placements.
 
 ### `--name-prefix`
 
-Specify a prefix to be added to all new leaf nodes (the ones that represent placements). This is useful if a pquery name also occurs as a name in the original tree. By default, empty. In order to get the same naming as grafted trees as produced by RAxML, use `QUERY___`.
+Specify a prefix to be added to all new leaf nodes (the ones that represent placements). This is useful if a pquery name also occurs as a name in the original tree. By default, empty. In order to get the same naming as grafted trees as produced by RAxML, use `--name-prefix "QUERY___"`.

@@ -4,6 +4,8 @@
 
 bin/
 build/
+test/log/
+test/out/
 
 # --------------------------------------------------------------------
 #   C++ Compiled Object files

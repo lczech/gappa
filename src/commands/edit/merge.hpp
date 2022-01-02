@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_EDIT_H_
-#define GAPPA_COMMANDS_EDIT_H_
+#ifndef GAPPA_COMMANDS_EDIT_MERGE_H_
+#define GAPPA_COMMANDS_EDIT_MERGE_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,41 +26,33 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/edit/accumulate.hpp"
-#include "commands/edit/filter.hpp"
-#include "commands/edit/merge.hpp"
-#include "commands/edit/multiplicity.hpp"
-#include "commands/edit/split.hpp"
-
-#include "options/global.hpp"
-#include "tools/cli_setup.hpp"
+#include "options/jplace_input.hpp"
+#include "options/file_output.hpp"
+#include "tools/cli_option.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class MergeOptions
+{
+public:
+
+    JplaceInputOptions   jplace_input;
+
+    // CliOption<std::string> reference_tree;
+
+    FileOutputOptions    jplace_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-inline void setup_edit( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "edit",
-        "Commands for editing and manipulating files like jplace, fasta or newick."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_accumulate( *sub );
-    setup_filter( *sub );
-    setup_merge( *sub );
-    setup_multiplicity( *sub );
-    setup_split( *sub );
-
-    // Add the global options to each of the above subcommands.
-    global_options.add_to_module( *sub );
-    set_module_help_group( *sub );
-}
+void setup_merge( CLI::App& app );
+void run_merge( MergeOptions const& options );
 
 #endif // include guard

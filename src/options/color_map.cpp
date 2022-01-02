@@ -182,7 +182,7 @@ void ColorMapOptions::add_clip_opt_to_app(
         "by setting values outside of that interval to the nearest boundary of it. "
         "This option is a shortcut to set `" +
         ( name.empty() ? "--clip-under" : "--" + name + "-clip-under" ) +
-        "` and " +
+        "` and `" +
         ( name.empty() ? "--clip-over" : "--" + name + "-clip-over" ) +
         "` at once."
     );

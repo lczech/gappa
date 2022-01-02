@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "CLI/CLI.hpp"
@@ -54,6 +54,15 @@ public:
         auto const lcol = make_option_name(opt, is_positional) + make_option_opts(opt);
         auto const rcol = make_option_desc(opt);
         return format_columns( "  " + lcol, rcol, get_column_width() );
+    }
+
+    virtual std::string make_option_opts( CLI::Option const* opt ) const override
+    {
+        auto res = CLI::Formatter::make_option_opts( opt );
+        if(opt->get_type_size() == 0) {
+            res = "FLAG " + res;
+        }
+        return res;
     }
 
 };

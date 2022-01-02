@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2021 Lucas Czech
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "commands/tools/wiki.hpp"
@@ -110,6 +110,9 @@ std::string codify_markdown( std::string const& text )
     // so we have control over what arguments we call it with. Let's hence be on the safe side,
     // and only replace stuff that we know is good.
     if( cnt % 2 != 0 ) {
+
+        // Need to know where the offense happend, so dump all content.
+        std::cout << "\n\n" << result << "\n\n";
         throw std::runtime_error( "Invalid markdown with uneven number of backticks." );
     }
 
@@ -435,6 +438,7 @@ void make_wiki_home_page( WikiOptions const& options )
             continue;
         }
 
+        os << "<br /><br />\n";
         os << "### Module `" << sc->get_name() << "`\n\n";
         os << sc->get_description() << "\n\n";
         make_subcommands_table( get_sorted_subcommands( sc ), os );

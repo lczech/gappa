@@ -31,7 +31,8 @@ The values of the columns can be numerical, boolean, or categorical:
    analyses. They can be given in several formats: `true`/`false`, `1`/`0`, `on`/`off`, or `yes`/`no`.
  * Categorical values is everything else, for example strings,
    and can be used to describe body sites, locations, or the like.
-   Such data is transformed into a set of dummy variables in order to work with Generalized Linear Models.
+   Such data is transformed into a set of dummy variables (called "factors" in R)
+   in order to work with Generalized Linear Models.
 
 The command only supports to use the meta-data features directly as provided.
 That is, transformations or interactions, which are often used in analyses with Generalized Linear Models,

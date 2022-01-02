@@ -321,7 +321,7 @@ void run_filter( FilterOptions const& options )
 
     // User output.
     LOG_MSG1 << "Reading " << options.jplace_input.file_count() << " sample"
-    << ( options.jplace_input.file_count() > 1 ? "s" : "" ) << ".";
+             << ( options.jplace_input.file_count() > 1 ? "s" : "" ) << ".";
 
     // Get all queries of all samples. Requires that all have the same ref tree.
     auto sample = options.jplace_input.merged_samples();

@@ -314,7 +314,7 @@ void run_filter( FilterOptions const& options )
     using namespace genesis::utils;
 
     // Check if any of the files we are going to produce already exists. If so, fail early.
-    options.jplace_output.check_output_files_nonexistence( "filtered", "jplace" );
+    options.jplace_output.check_output_files_nonexistence( "filter", "jplace" );
 
     // Print some user output.
     options.jplace_input.print();
@@ -332,6 +332,6 @@ void run_filter( FilterOptions const& options )
     // Write the new sample to a file.
     JplaceWriter().write(
         sample,
-        options.jplace_output.get_output_target( "filtered", "jplace" )
+        options.jplace_output.get_output_target( "filter", "jplace" )
     );
 }

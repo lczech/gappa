@@ -6,7 +6,7 @@ ${GAPPA} edit filter \
     --file-suffix "-a" \
     --out-dir ${OUTDIR}
 
-testfile "${OUTDIR}/filtered-a.jplace" 153624 || return 1
+testfile "${OUTDIR}/filter-a.jplace" 153624 || return 1
 
 ${GAPPA} edit filter \
     --jplace-path "data/jplace/sample_0_0.jplace.gz" \
@@ -15,4 +15,4 @@ ${GAPPA} edit filter \
     --file-suffix "-b" \
     --out-dir ${OUTDIR}
 
-testfile "${OUTDIR}/filtered-b.jplace" 148026 || return 1
+testfile "${OUTDIR}/filter-b.jplace" 148026 || return 1

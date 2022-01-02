@@ -6,4 +6,4 @@ ${GAPPA} edit filter \
     --file-suffix "-a" \
     --out-dir ${OUTDIR}
 
-testfile "${OUTDIR}/filtered-a.jplace" 198337 || return 1
+testfile "${OUTDIR}/filter-a.jplace" 198337 || return 1

@@ -438,7 +438,7 @@ void make_wiki_home_page( WikiOptions const& options )
             continue;
         }
 
-        os << "<br />\n";
+        os << "<br />\n\n";
         os << "### Module `" << sc->get_name() << "`\n\n";
         os << sc->get_description() << "\n\n";
         make_subcommands_table( get_sorted_subcommands( sc ), os );

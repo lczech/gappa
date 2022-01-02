@@ -1,5 +1,5 @@
-#ifndef GAPPA_COMMANDS_EDIT_H_
-#define GAPPA_COMMANDS_EDIT_H_
+#ifndef GAPPA_COMMANDS_EDIT_FILTER_H_
+#define GAPPA_COMMANDS_EDIT_FILTER_H_
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
@@ -26,39 +26,48 @@
 
 #include "CLI/CLI.hpp"
 
-#include "commands/edit/accumulate.hpp"
-#include "commands/edit/filter.hpp"
-#include "commands/edit/multiplicity.hpp"
-#include "commands/edit/split.hpp"
-
-#include "options/global.hpp"
-#include "tools/cli_setup.hpp"
+#include "options/jplace_input.hpp"
+#include "options/file_output.hpp"
+#include "tools/cli_option.hpp"
 
 #include <string>
 #include <vector>
 
 // =================================================================================================
+//      Options
+// =================================================================================================
+
+class FilterOptions
+{
+public:
+
+    JplaceInputOptions jplace_input;
+    // CliOption<bool>    merge_input;
+
+    // Before filter processing
+    CliOption<bool> normalize_before;
+
+    // Placement property filters
+    CliOption<double> min_accumulated_mass;
+    CliOption<double> min_mass_threshold;
+    CliOption<size_t> max_n_placements;
+
+    // After filter processing
+    CliOption<bool> normalize_after;
+    CliOption<bool> no_remove_empty;
+
+    // Name filters
+    CliOption<std::string> keep_names;
+    CliOption<std::string> remove_names;
+
+    FileOutputOptions jplace_output;
+};
+
+// =================================================================================================
 //      Functions
 // =================================================================================================
 
-inline void setup_edit( CLI::App& app )
-{
-    // Create the module subcommand objects.
-    auto sub = app.add_subcommand(
-        "edit",
-        "Commands for editing and manipulating files like jplace, fasta or newick."
-    );
-    sub->require_subcommand( 1 );
-
-    // Add module subcommands.
-    setup_accumulate( *sub );
-    setup_filter( *sub );
-    setup_multiplicity( *sub );
-    setup_split( *sub );
-
-    // Add the global options to each of the above subcommands.
-    global_options.add_to_module( *sub );
-    set_module_help_group( *sub );
-}
+void setup_filter( CLI::App& app );
+void run_filter( FilterOptions const& options );
 
 #endif // include guard

@@ -36,17 +36,17 @@
 
 void GlobalOptions::initialize( int const argc, char const* const* argv )
 {
-    // By default, use the hardware threads, taking hypterthreding into account
-    opt_threads.value() = genesis::utils::Options::get().guess_number_of_threads(false);
+    // By default, use the OpenMP or hardware threads, taking hypterthreding into account.
+    opt_threads_ = genesis::utils::Options::get().guess_number_of_threads();
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to the above function fails.
-    if( opt_threads.value() == 0 ) {
-        opt_threads.value() = 1;
+    if( opt_threads_ == 0 ) {
+        opt_threads_ = 1;
     }
 
     // Set number of threads for genesis.
-    genesis::utils::Options::get().number_of_threads( opt_threads.value() );
+    genesis::utils::Options::get().number_of_threads( opt_threads_ );
 
     // Set verbosity to max, just in case.
     genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kDebug4 );
@@ -68,37 +68,37 @@ void GlobalOptions::add_to_module( CLI::App& module )
 void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 {
     // Allow to overwrite files.
-    opt_allow_file_overwriting = subcommand.add_flag(
+    auto opt_allow_file_overwriting = subcommand.add_flag(
         // "--allow-file-overwriting",
         allow_file_overwriting_flag,
-        opt_allow_file_overwriting.value(),
+        opt_allow_file_overwriting_,
         "Allow to overwrite existing output files instead of aborting the command."
     );
-    opt_allow_file_overwriting.option()->group( "Global Options" );
+    opt_allow_file_overwriting->group( "Global Options" );
 
     // Verbosity
-    opt_verbose = subcommand.add_flag(
+    auto opt_verbose = subcommand.add_flag(
         "--verbose",
-        opt_verbose.value(),
+        opt_verbose_,
         "Produce more verbose output."
     );
-    opt_verbose.option()->group( "Global Options" );
+    opt_verbose->group( "Global Options" );
 
     // Threads
-    opt_threads = subcommand.add_option(
+    auto opt_threads = subcommand.add_option(
         "--threads",
-        opt_threads.value(),
+        opt_threads_,
         "Number of threads to use for calculations."
     );
-    opt_threads.option()->group( "Global Options" );
+    opt_threads->group( "Global Options" );
 
     // Log File
-    opt_log_file = subcommand.add_option(
+    auto opt_log_file = subcommand.add_option(
         "--log-file",
-        opt_log_file.value(),
+        opt_log_file_,
         "Write all output to a log file, in addition to standard output to the terminal."
     );
-    opt_log_file.option()->group( "Global Options" );
+    opt_log_file->group( "Global Options" );
 
     // TODO add random seed option
 }
@@ -110,32 +110,33 @@ void GlobalOptions::add_to_subcommand( CLI::App& subcommand )
 void GlobalOptions::run_global()
 {
     // If user did not provide number, use hardware value.
-    if( opt_threads.value() == 0 ) {
-        opt_threads.value() = std::thread::hardware_concurrency();
+    if( opt_threads_ == 0 ) {
+        opt_threads_ = genesis::utils::Options::get().guess_number_of_threads();
+        // opt_threads_ = std::thread::hardware_concurrency();
     }
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to hardware_concurrency fails.
-    if( opt_threads.value() == 0 ) {
-        opt_threads.value() = 1;
+    if( opt_threads_ == 0 ) {
+        opt_threads_ = 1;
     }
 
     // Set number of threads for genesis.
-    genesis::utils::Options::get().number_of_threads( opt_threads.value() );
+    genesis::utils::Options::get().number_of_threads( opt_threads_ );
 
     // Allow to overwrite files. Has to be done before adding the log file (coming below),
     // as this might already fail if the log file exists.
-    if( opt_allow_file_overwriting.value() ) {
+    if( opt_allow_file_overwriting_ ) {
         genesis::utils::Options::get().allow_file_overwriting( true );
     }
 
     // Set log file.
-    if( ! opt_log_file.value().empty() ) {
-        genesis::utils::Logging::log_to_file( opt_log_file.value() );
+    if( ! opt_log_file_.empty() ) {
+        genesis::utils::Logging::log_to_file( opt_log_file_ );
     }
 
     // Set verbosity level for logging output.
-    if( opt_verbose.value() ) {
+    if( opt_verbose_ ) {
         genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage2 );
     } else {
         genesis::utils::Logging::max_level( genesis::utils::Logging::LoggingLevel::kMessage1 );

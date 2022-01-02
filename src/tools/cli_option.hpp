@@ -74,7 +74,10 @@ public:
     CliOption& operator =( CLI::Option* opt )
     {
         if( option_ ) {
-            throw std::domain_error( "Internal error: Option set multiple times." );
+            throw std::domain_error(
+                "Internal error: Option set multiple times: " +
+                option_->get_lnames()[0]
+            );
         }
         option_ = opt;
         return *this;

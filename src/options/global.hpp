@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2021 Lucas Czech
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "CLI/CLI.hpp"
@@ -80,12 +80,19 @@ public:
     //     Option Members
     // -------------------------------------------------------------------------
 
-    CliOption<bool>        opt_verbose = false;
-    CliOption<size_t>      opt_threads = 0;
-    CliOption<std::string> opt_log_file = "";
-    CliOption<bool>        opt_allow_file_overwriting = false;
-
 private:
+
+    // Store variables where the global options store their values as set by the user.
+    // We use these exact instances of the variabls for ALL subcommands at the same time,
+    // which works, as only one subcommand is called when the program is run, and so they
+    // do not conflict. This however means that we cannot use our CliOption class here,
+    // as this checks that each option is only set once, which is not the case here.
+    // In other words, each subcommand gets its own option added via CLI11, and all of them
+    // bind to these variables here.
+    bool        opt_allow_file_overwriting_ = false;
+    bool        opt_verbose_ = false;
+    size_t      opt_threads_ = 0;
+    std::string opt_log_file_ = "";
 
     std::vector<std::string> command_line_;
 
@@ -108,7 +115,7 @@ extern GlobalOptions global_options;
  * @brief Store the option name for the flag that allows gappa to overwrite files.
  *
  * We do this in order to have this name available to other parts of the program,
- * for exmple to give a nice and helpful error message when a file already exists.
+ * for example to give a nice and helpful error message when a file already exists.
  */
 extern std::string const allow_file_overwriting_flag;
 

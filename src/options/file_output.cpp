@@ -138,7 +138,7 @@ CLI::Option* FileOutputOptions::add_filefix_opt_(
         target_var,
         "File " + fixname + " for " + ( optionname_.empty() ? "output" : optionname_ ) + " files. "
         "Most gappa commands use the command name as the base name for file output. "
-        "Using this option, the base name can be amended to distinguish runs with different data.",
+        "This option amends the base name, to distinguish runs with different data.",
         true
     );
     target_opt->check([fixname]( std::string const& fix ){

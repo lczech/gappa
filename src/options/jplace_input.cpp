@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2021 Lucas Czech
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ CLI::Option* JplaceInputOptions::add_ignore_multiplicities_opt_to_app( CLI::App*
         "--ignore-multiplicities",
         ignore_multiplicities_,
         "Set the multiplicity of each pquery to 1.0. The multiplicity is the equvalent of "
-        "abundances for placements."
+        "abundances for placements, and hence ignored with this flag."
     )->group( "Settings" );
 
     return ignore_multiplicities_option;
@@ -106,9 +106,11 @@ CLI::Option* JplaceInputOptions::add_mass_norm_opt_to_app( CLI::App* sub, bool r
         "--mass-norm",
         mass_norm_,
         "Set the per-sample normalization method. With `absolute`, the total mass is not changed, "
-        "so that input jplace samples with more pqueries have a higher influence on the result. "
+        "so that input jplace samples with more pqueries (more placed sequences) have a higher "
+        "influence on the result. "
         "With `relative`, the total mass of each sample is normalized to 1.0, so that each "
-        "sample has the same influence on the result.",
+        "sample has the same influence on the result, independent of its number of sequences "
+        "and their abundances.",
         true
     )->group( "Settings" )
     ->transform(CLI::IsMember({ "absolute", "relative" }, CLI::ignore_case));

@@ -105,7 +105,9 @@ void setup_dispersion( CLI::App& app )
     sub->add_option(
         "--edge-values",
         options->edge_values,
-        "Values per edge used to calculate the dispersion.",
+        "Values per edge used to calculate the dispersion. "
+        "Using `masses` focuses on per-branch dispersion, while using `imbalances` focuses on "
+        "per-clade dispersion; see the paper for details.",
         true
     )->group( "Settings" )
     ->transform(
@@ -116,13 +118,15 @@ void setup_dispersion( CLI::App& app )
     sub->add_option(
         "--method",
         options->method,
-        "Method of dispersion. Either all (as far as they are applicable), or any of: "
-        "coefficient of variation (cv, standard deviation divided by mean), "
-        "coefficient of variation log-scaled (cv-log), "
-        "standard deviation (sd), standard deviation log-scaled (sd-log)"
-        "variance (var), variance log-scaled (var-log), "
-        "variance to mean ratio (vmr, also called Index of Dispersion), "
-        "variance to mean ratio log-scaled (vmr-log).",
+        "Method of dispersion. Either `all` (as far as they are applicable), or any of: "
+        "coefficient of variation (`cv`, standard deviation divided by mean), "
+        "coefficient of variation log-scaled (`cv-log`), "
+        "standard deviation (`sd`), standard deviation log-scaled (`sd-log`)"
+        "variance (`var`), variance log-scaled (`var-log`), "
+        "variance to mean ratio (`vmr`, also called Index of Dispersion), "
+        "variance to mean ratio log-scaled (`vmr-log`). "
+        "It typically is useful to use `all`, in order to spot all patterns "
+        "that can emerge from this method.",
         true
     )->group( "Settings" )
     ->transform(

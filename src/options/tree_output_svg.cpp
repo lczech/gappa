@@ -30,42 +30,54 @@
 //      Setup Functions
 // =================================================================================================
 
-void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub )
+void SvgTreeOutputOptions::add_svg_tree_output_opts_to_app( CLI::App* sub, CLI::Option* svg_tree_opt )
 {
-    sub->add_option(
+    // Shape
+    auto shape_opt = sub->add_option(
         "--svg-tree-shape",
         shape_,
         "Shape of the tree.",
         // "Shape of the tree, 'circular' or 'rectangular'.",
         true
-    )->group( "Svg Tree Output" )
-    ->transform(
+    );
+    shape_opt->group( "Svg Tree Output" );
+    shape_opt->transform(
         CLI::IsMember({ "circular", "rectangular" }, CLI::ignore_case )
     );
+    shape_opt->needs( svg_tree_opt );
 
-    sub->add_option(
+    // Type
+    auto type_opt = sub->add_option(
         "--svg-tree-type",
         type_,
-        "Type of the tree.",
+        "Type of the tree, either using branch lengths (`phylogram`), or not (`cladogram`).",
         // "Type of the tree, 'cladogram' or 'phylogram'.",
         true
-    )->group( "Svg Tree Output" )
-    ->transform(
+    );
+    type_opt->group( "Svg Tree Output" );
+    type_opt->transform(
         CLI::IsMember({ "cladogram", "phylogram" }, CLI::ignore_case )
     );
+    type_opt->needs( svg_tree_opt );
 
-    sub->add_option(
+    // Stroke width
+    auto stroke_width_opt = sub->add_option(
         "--svg-tree-stroke-width",
         stroke_width_,
         "Svg stroke width for the branches of the tree.",
         true
-    )->group( "Svg Tree Output" );
+    );
+    stroke_width_opt->group( "Svg Tree Output" );
+    stroke_width_opt->needs( svg_tree_opt );
 
-    sub->add_flag(
+    // Ladderize
+    auto ladderize_opt = sub->add_flag(
         "--svg-tree-ladderize",
         ladderize_,
         "If set, the tree is ladderized."
-    )->group( "Svg Tree Output" );
+    );
+    ladderize_opt->group( "Svg Tree Output" );
+    ladderize_opt->needs( svg_tree_opt );
 }
 
 // =================================================================================================

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2021 Lucas Czech
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "options/file_output.hpp"
@@ -92,7 +92,7 @@ CLI::Option* FileOutputOptions::add_output_dir_opt_to_app(
     out_dir_option = sub->add_option(
         optname,
         out_dir_,
-        "Directory to write " + optionname_ + ( optionname_.empty() ? "" : " " ) + "files to",
+        "Directory to write output " + optionname_ + ( optionname_.empty() ? "" : " " ) + "files to.",
         true
     );
     // out_dir_option->check( CLI::ExistingDirectory );
@@ -136,7 +136,9 @@ CLI::Option* FileOutputOptions::add_filefix_opt_(
     target_opt = sub->add_option(
         optname,
         target_var,
-        "File " + fixname + " for " + ( optionname_.empty() ? "output" : optionname_ ) + " files",
+        "File " + fixname + " for " + ( optionname_.empty() ? "output" : optionname_ ) + " files. "
+        "Most gappa commands use the command name as the base name for file output. "
+        "Using this option, the base name can be amended to distinguish runs with different data.",
         true
     );
     target_opt->check([fixname]( std::string const& fix ){

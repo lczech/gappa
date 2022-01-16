@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "commands/prepare/taxonomy_tree.hpp"
@@ -115,6 +115,17 @@ void setup_taxonomy_tree( CLI::App& app )
         opt->max_level,
         "Maximum taxonomic level to process (0-based). "
         "Taxa below this level are not added to the tree."
+    )->group( "Settings" );
+
+    // replace invalid chars
+    sub->add_flag(
+        "--replace-invalid-chars",
+        opt->replace_invalid_chars,
+        "Replace invalid characters in node labels (` ,:;\"()[]`) by underscores, which can "
+        "occur if the input taxonomic paths contain such characters. "
+        "The Newick format requires node labels to be wrapped in double quotation marks "
+        "if they contain these characters, but many parsers cannot handle this. "
+        "For such cases, replacing the characters can help."
     )->group( "Settings" );
 
     // -----------------------------------------------------------
@@ -223,28 +234,50 @@ void run_taxonomy_tree( TaxonomyTreeOptions const& options )
             && c != '"'
         ;
     };
-    bool warned_bad_chars = false;
-    for( auto const& node : tree.nodes() ) {
-        auto const& name = node.data<CommonNodeData>().name;
-
-        // Check validity of name, and warn if needed.
-        bool valid_name = true;
-        for( size_t i = 0; i < name.size(); ++i ) {
-            if( ! is_valid_name_char( name[i] ) ) {
-                valid_name = false;
-                break;
+    if( options.replace_invalid_chars ) {
+        size_t inval_cnt = 0;
+        size_t total_cnt = 0;
+        for( auto& node : tree.nodes() ) {
+            auto& name = node.data<CommonNodeData>().name;
+            bool valid_name = true;
+            for( size_t i = 0; i < name.size(); ++i ) {
+                if( ! is_valid_name_char( name[i] ) ) {
+                    valid_name = false;
+                    name[i] = '_';
+                }
             }
+            if( !valid_name ) {
+                ++inval_cnt;
+            }
+            ++total_cnt;
         }
-        if( ! valid_name && ! warned_bad_chars ) {
-            warned_bad_chars = true;
-            LOG_WARN << "Warning: Taxonomy contains characters that are not valid in Newick "
-                     << "files: ' ,:;\"()[]'. We can handle this, and they get wrapped in "
-                     << "quotation marks in the output, according to the Newick standard. "
-                     << "However, many downstream tools do not correctly interpret such names. "
-                     << "We hence recommend to remove them from the input taxonomy.";
-        }
-        if( ! valid_name ) {
-            LOG_WARN << " - Invalid name: \"" << name << "\"";
+        LOG_MSG1 << "Replaced invalid characters in " << inval_cnt
+                 << " of " << total_cnt << " node labels.";
+    } else {
+        bool warned_bad_chars = false;
+        for( auto const& node : tree.nodes() ) {
+            auto const& name = node.data<CommonNodeData>().name;
+
+            // Check validity of name, and warn if needed.
+            bool valid_name = true;
+            for( size_t i = 0; i < name.size(); ++i ) {
+                if( ! is_valid_name_char( name[i] ) ) {
+                    valid_name = false;
+                    break;
+                }
+            }
+            if( ! valid_name && ! warned_bad_chars ) {
+                warned_bad_chars = true;
+                LOG_WARN << "Warning: Taxonomy contains characters that are not valid in Newick "
+                << "files: ' ,:;\"()[]'. We can handle this, and they get wrapped in "
+                << "quotation marks in the output, according to the Newick standard. "
+                << "However, many downstream tools do not correctly interpret such names. "
+                << "We hence recommend to remove them from the input taxonomy, or to use the "
+                << "--replace-invalid-chars option to automatically replace them by underscores.";
+            }
+            if( ! valid_name ) {
+                LOG_WARN << " - Invalid name: \"" << name << "\"";
+            }
         }
     }
 

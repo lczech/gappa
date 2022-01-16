@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2021 Lucas Czech
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "CLI/CLI.hpp"
 
 #include "commands/prepare/chunkify.hpp"
+#include "commands/prepare/clean_tree.hpp"
 #include "commands/prepare/extract.hpp"
 #include "commands/prepare/phat.hpp"
 #include "commands/prepare/taxonomy_tree.hpp"
@@ -54,6 +55,7 @@ inline void setup_prepare( CLI::App& app )
 
     // Add module subcommands.
     setup_chunkify( *sub );
+    setup_clean_tree( *sub );
     setup_extract( *sub );
     setup_phat( *sub );
     setup_taxonomy_tree( *sub );

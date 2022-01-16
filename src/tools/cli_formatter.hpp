@@ -60,7 +60,7 @@ public:
     {
         auto res = CLI::Formatter::make_option_opts( opt );
         if(opt->get_type_size() == 0) {
-            res = "FLAG " + res;
+            res = " FLAG " + res;
         }
         return res;
     }

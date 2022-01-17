@@ -113,6 +113,22 @@ void setup_filter( CLI::App& app )
     );
     options->max_n_placements.option()->group( "Placement Filters" );
 
+    // Min pendant length
+    options->min_pendant_len = sub->add_option(
+        "--min-pendant-len",
+        options->min_pendant_len.value(),
+        "Only keep placements with at least the given pendant length."
+    );
+    options->min_pendant_len.option()->group( "Placement Filters" );
+
+    // Max pendant length
+    options->max_pendant_len = sub->add_option(
+        "--max-pendant-len",
+        options->max_pendant_len.value(),
+        "Only keep placements with at most the given pendant length."
+    );
+    options->max_pendant_len.option()->group( "Placement Filters" );
+
     // Remove empty
     options->no_remove_empty = sub->add_flag(
         "--no-remove-empty",
@@ -234,6 +250,30 @@ void filter_sample( FilterOptions const& options, genesis::placement::Sample& sa
         assert( new_placement_count <= placement_count );
         LOG_MSG1 << "Removed " << ( placement_count - new_placement_count ) << " placement locations "
                  << "due to " << options.max_n_placements.option()->get_name() << " filtering.";
+        placement_count = new_placement_count;
+    }
+
+    // Min pendant length
+    if( options.min_pendant_len ) {
+        filter_min_pendant_length( sample, options.min_pendant_len.value() );
+
+        // User output
+        auto new_placement_count = total_placement_count( sample );
+        assert( new_placement_count <= placement_count );
+        LOG_MSG1 << "Removed " << ( placement_count - new_placement_count ) << " placement locations "
+                 << "due to " << options.min_pendant_len.option()->get_name() << " filtering.";
+        placement_count = new_placement_count;
+    }
+
+    // Max pendant length
+    if( options.max_pendant_len ) {
+        filter_max_pendant_length( sample, options.max_pendant_len.value() );
+
+        // User output
+        auto new_placement_count = total_placement_count( sample );
+        assert( new_placement_count <= placement_count );
+        LOG_MSG1 << "Removed " << ( placement_count - new_placement_count ) << " placement locations "
+                 << "due to " << options.max_pendant_len.option()->get_name() << " filtering.";
         placement_count = new_placement_count;
     }
 

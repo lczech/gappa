@@ -51,6 +51,8 @@ public:
     CliOption<double> min_accumulated_mass;
     CliOption<double> min_mass_threshold;
     CliOption<size_t> max_n_placements;
+    CliOption<double> min_pendant_len;
+    CliOption<double> max_pendant_len;
 
     // After filter processing
     CliOption<bool> normalize_after;

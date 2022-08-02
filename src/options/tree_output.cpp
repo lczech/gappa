@@ -43,22 +43,22 @@ void TreeOutputOptions::add_tree_output_opts_to_app( CLI::App* sub )
     sub->add_flag(
         "--write-newick-tree",
         write_newick_tree_,
-        "If set, the tree is written to a Newick file."
+        "If set, the tree is written to a Newick file. This format cannot store color information."
     )->group( "Tree Output" );
     sub->add_flag(
         "--write-nexus-tree",
         write_nexus_tree_,
-        "If set, the tree is written to a Nexus file."
+        "If set, the tree is written to a Nexus file. This can for example be opened in FigTree."
     )->group( "Tree Output" );
     sub->add_flag(
         "--write-phyloxml-tree",
         write_phyloxml_tree_,
-        "If set, the tree is written to a Phyloxml file."
+        "If set, the tree is written to a Phyloxml file. This can for example be used in Archaeopteryx."
     )->group( "Tree Output" );
     auto svg_tree_opt = sub->add_flag(
         "--write-svg-tree",
         write_svg_tree_,
-        "If set, the tree is written to a Svg file."
+        "If set, the tree is written to a SVG file. This gives a file for vector graphics editors."
     )->group( "Tree Output" );
 
     svg_tree_output.add_svg_tree_output_opts_to_app( sub, svg_tree_opt );
@@ -266,8 +266,8 @@ void TreeOutputOptions::write_tree_to_files(
                      << label << "', Color " << col_str;
         }
 
-        LOG_MSG1 << "Alternatively, use the option --write-svg-tree to create an Svg file "
-                 << "from which the color legend can be copied.";
+        LOG_MSG1 << "Alternatively, use the option --write-svg-tree to create an SVG file "
+                 << "from which the color legend can be copied using a vector graphics editor.";
         LOG_BOLD;
     }
 }

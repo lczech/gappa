@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "commands/examine/graft.hpp"
@@ -70,6 +70,7 @@ void setup_graft( CLI::App& app )
 
     // Add output options.
     opt->file_output.add_default_output_opts_to_app( sub );
+    opt->newick_tree_output.add_newick_tree_quote_invalid_chars_opt_to_app( sub, nullptr );
 
     // Set the run function as callback to be called when this subcommand is issued.
     // Hand over the options by copy, so that their shared ptr stays alive in the lambda.
@@ -120,10 +121,15 @@ void run_graft( GraftOptions const& options )
         auto const tog    = labelled_tree( sample, options.fully_resolve, options.name_prefix );
 
         // Write output to file.
-        tree::CommonTreeNewickWriter().write(
+        options.newick_tree_output.write_tree(
             tog, options.file_output.get_output_target(
                 out_tree_files[i].first, out_tree_files[i].second
             )
         );
+        // tree::CommonTreeNewickWriter().write(
+        //     tog, options.file_output.get_output_target(
+        //         out_tree_files[i].first, out_tree_files[i].second
+        //     )
+        // );
     }
 }

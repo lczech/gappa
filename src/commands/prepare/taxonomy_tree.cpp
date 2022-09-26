@@ -133,6 +133,7 @@ void setup_taxonomy_tree( CLI::App& app )
     // -----------------------------------------------------------
 
     opt->file_output.add_default_output_opts_to_app( sub );
+    opt->newick_tree_output.add_newick_tree_quote_invalid_chars_opt_to_app( sub, nullptr );
 
     // -----------------------------------------------------------
     //     Callback
@@ -284,6 +285,10 @@ void run_taxonomy_tree( TaxonomyTreeOptions const& options )
     // Create a newick tree from it.
     auto nw = CommonTreeNewickWriter();
     nw.enable_branch_lengths( false );
-    nw.replace_name_spaces( false );
-    nw.write( tree, options.file_output.get_output_target( "taxonomy_tree", "newick" ));
+    options.newick_tree_output.write_tree(
+        nw, tree, options.file_output.get_output_target( "taxonomy_tree", "newick" )
+    );
+
+    // nw.replace_name_spaces( false );
+    // nw.write( tree, options.file_output.get_output_target( "taxonomy_tree", "newick" ));
 }

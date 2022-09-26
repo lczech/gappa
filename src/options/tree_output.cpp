@@ -40,7 +40,7 @@
 
 void TreeOutputOptions::add_tree_output_opts_to_app( CLI::App* sub )
 {
-    sub->add_flag(
+    auto newick_tree_opt = sub->add_flag(
         "--write-newick-tree",
         write_newick_tree_,
         "If set, the tree is written to a Newick file. This format cannot store color information."
@@ -61,6 +61,7 @@ void TreeOutputOptions::add_tree_output_opts_to_app( CLI::App* sub )
         "If set, the tree is written to a SVG file. This gives a file for vector graphics editors."
     )->group( "Tree Output" );
 
+    newick_tree_output.add_newick_tree_output_opts_to_app( sub, newick_tree_opt );
     svg_tree_output.add_svg_tree_output_opts_to_app( sub, svg_tree_opt );
 }
 
@@ -115,7 +116,10 @@ void TreeOutputOptions::write_tree_to_files(
     assert( !file_output_options.compress() );
 
     if( write_newick_tree_ ) {
-        write_tree_to_newick_file( tree, file_output_options.get_output_filename( infix, "newick" ));
+        newick_tree_output.write_tree(
+            tree, file_output_options.get_output_target( infix, "newick" )
+        );
+        // write_tree_to_newick_file( tree, file_output_options.get_output_filename( infix, "newick" ));
     }
 
     if( write_nexus_tree_ ) {
@@ -155,9 +159,12 @@ void TreeOutputOptions::write_tree_to_files(
                      << "Use another format such as nexus, phyloxml, or svg to get a colored tree!";
         }
 
-        write_tree_to_newick_file(
-            tree, file_output_options.get_output_filename( infix, "newick" )
+        newick_tree_output.write_tree(
+            tree, file_output_options.get_output_target( infix, "newick" )
         );
+        // write_tree_to_newick_file(
+        //     tree, file_output_options.get_output_filename( infix, "newick" )
+        // );
     }
 
     if( write_nexus_tree_ ) {
@@ -209,9 +216,12 @@ void TreeOutputOptions::write_tree_to_files(
                      << "Use another format such as nexus, phyloxml, or svg to get a colored tree!";
         }
 
-        write_tree_to_newick_file(
-            tree, file_output_options.get_output_filename( infix, "newick" )
+        newick_tree_output.write_tree(
+            tree, file_output_options.get_output_target( infix, "newick" )
         );
+        // write_tree_to_newick_file(
+        //     tree, file_output_options.get_output_filename( infix, "newick" )
+        // );
     }
 
     if( write_nexus_tree_ ) {

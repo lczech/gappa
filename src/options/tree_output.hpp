@@ -26,6 +26,7 @@
 
 #include "CLI/CLI.hpp"
 
+#include "options/tree_output_newick.hpp"
 #include "options/tree_output_svg.hpp"
 #include "options/file_output.hpp"
 
@@ -133,6 +134,7 @@ private:
     bool write_phyloxml_tree_ = false;
     bool write_svg_tree_      = false;
 
+    NewickTreeOutputOptions newick_tree_output;
     SvgTreeOutputOptions svg_tree_output;
 
 };

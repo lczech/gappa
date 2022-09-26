@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Pierre Barbera, Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Pierre Barbera, Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 #include "commands/examine/assign.hpp"
@@ -58,6 +58,7 @@
 #include "genesis/placement/pquery/placement.hpp"
 #include "genesis/placement/function/manipulation.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <unordered_map>
 #include <vector>
@@ -404,7 +405,7 @@ void postorder_label( PlacementTree const& tree,
 
 void print_labelled( PlacementTree const& tree,
                             std::vector<Taxopath> const& node_labels,
-                            std::string const& file_name )
+                            std::shared_ptr<genesis::utils::BaseOutputTarget> target )
 {
     CommonTreeNewickWriter writer;
     writer.node_to_element_plugins.push_back(
@@ -414,7 +415,7 @@ void print_labelled( PlacementTree const& tree,
             );
         }
     );
-    writer.write( tree, genesis::utils::to_file( file_name ));
+    writer.write( tree, target );
 }
 
 std::vector<Taxopath> assign_leaf_taxopaths(PlacementTree const& tree,
@@ -1042,7 +1043,8 @@ double proximity( double const length, double const close, double const distant 
 static void assign( Sample const& sample,
                     std::vector<Taxopath> const& node_labels,
                     AssignOptions const& options,
-                    std::string per_pquery_result_file )
+                    std::shared_ptr<genesis::utils::BaseOutputTarget> per_pquery_result_file_target
+                    )
 {
     bool    const   auto_ratio = ( options.dist_ratio < 0.0 );
     double  const   dist_ratio = options.dist_ratio;
@@ -1052,12 +1054,13 @@ static void assign( Sample const& sample,
 
     Taxonomy diversity;
 
-    std::ofstream per_pquery_out_stream;
+    std::ostream* per_pquery_out_stream = nullptr;
     bool const per_query_results = options.per_query_results;
 
     if ( per_query_results ) {
-        genesis::utils::file_output_stream( per_pquery_result_file, per_pquery_out_stream );
-        per_pquery_out_stream << "name\tLWR\tfract\taLWR\tafract\ttaxopath\n";
+        // genesis::utils::file_output_stream( per_pquery_result_file, per_pquery_out_stream );
+        per_pquery_out_stream = &per_pquery_result_file_target->ostream();
+        (*per_pquery_out_stream) << "name\tLWR\tfract\taLWR\tafract\ttaxopath\n";
     }
 
     std::ofstream sativa_out_stream;
@@ -1124,7 +1127,7 @@ static void assign( Sample const& sample,
             auto const pendant_length = p.pendant_length;
 
             // how close is the pendant length?
-            double const closeness_ratio = options.distant_label ? 
+            double const closeness_ratio = options.distant_label ?
                                             proximity(  pendant_length,
                                                         attachment_branch_length,
                                                         outlier_length )
@@ -1168,7 +1171,8 @@ static void assign( Sample const& sample,
                 }
                 composite_name += name;
             }
-            print_taxonomy_with_lwr(per_pquery_out_stream,
+            assert( per_pquery_out_stream );
+            print_taxonomy_with_lwr(*per_pquery_out_stream,
                                     composite_name,
                                     per_pq_assignments,
                                     0,
@@ -1343,12 +1347,12 @@ void run_assign( AssignOptions const& options )
     // print taxonomically labelled tree as intermediate result
     print_labelled(
         tree, node_labels,
-        options.file_output.get_output_filename( "labelled_tree", "newick"  )
+        options.file_output.get_output_target( "labelled_tree", "newick"  )
     );
 
     // per rank LWR score eval
     assign(
         sample, node_labels, options,
-        options.file_output.get_output_filename( "per_query", "tsv"  )
+        options.file_output.get_output_target( "per_query", "tsv"  )
     );
 }

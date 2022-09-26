@@ -25,6 +25,7 @@
 
 #include "tools/version.hpp"
 
+#include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 
@@ -37,7 +38,7 @@
 void GlobalOptions::initialize( int const argc, char const* const* argv )
 {
     // By default, use the OpenMP or hardware threads, taking hypterthreding into account.
-    opt_threads_ = genesis::utils::Options::get().guess_number_of_threads();
+    opt_threads_ = genesis::utils::guess_number_of_threads();
 
     // If hardware value is not available, just use 1 thread.
     // This is executed if the call to the above function fails.
@@ -111,7 +112,7 @@ void GlobalOptions::run_global()
 {
     // If user did not provide number, use hardware value.
     if( opt_threads_ == 0 ) {
-        opt_threads_ = genesis::utils::Options::get().guess_number_of_threads();
+        opt_threads_ = genesis::utils::guess_number_of_threads();
         // opt_threads_ = std::thread::hardware_concurrency();
     }
 

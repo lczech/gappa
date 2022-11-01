@@ -106,8 +106,35 @@ and
 > <!-- bioRxiv, 2019. https://doi.org/10.1101/346353 -->
 
 At the same time, it offers some commands that are also implemented in the excellent
-[guppy](http://matsen.github.io/pplacer/generated_rst/guppy.html) tool.
+[guppy](http://matsen.github.io/pplacer/generated_rst/guppy.html) tool. When using these commands, please also cite
+
+> pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree.<br />
+> Frederick A Matsen, Robin B Kodner, and Virginia Armbrust.<br />
+> BMC Bioinformatics, 2010. https://doi.org/10.1186/1471-2105-11-538
+
 However, being written in C++, our gappa is much faster and needs less memory for most of the tasks.
+
+Furthermore, some methods build heavily on previous work of others. When using the KR distance computation, please cite
+
+> The phylogenetic Kantorovich-Rubinstein metric for environmental sequence samples.<br />
+> Steven Evans and Frederick Matsen.<br />
+> Journal of the Royal Statistical Society, 2012. https://doi.org/10.1111/j.1467-9868.2011.01018.x
+
+The Placement-Factorization heavily borrows from methods presented in
+
+> Phylogenetic Factorization of Compositional Data Yields Lineage-Level Associations in Microbiome Datasets.<br />
+> Alex Washburne, Justin Silverman, Jonathan Leff, Dominic Bennett, John Darcy, Sayan Mukherjee, Noah Fierer, and Lawrence David.<br />
+> PeerJ, 2017. https://doi.org/10.7717/peerj.2969
+
+The respetive commands in gappa also output information on which references need to be cited.
+
+Lastly, we recommend reading our comprehensive review of the topic
+
+> Metagenomic Analysis Using Phylogenetic Placement—A Review of the First Decade.<br />
+> Lucas Czech, Alexandros Stamatakis, Micah Dunthorn, and Pierre Barbera.<br />
+> Frontiers in Bioinformatics, 2022. https://doi.org/10.3389/fbinf.2022.871393  
+
+to get an overview of phylogenetic placement and its methods.
 
 Behind the scenes
 -------------------

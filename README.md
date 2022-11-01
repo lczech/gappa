@@ -81,52 +81,14 @@ and for user support for our software tools, such as [EPA-ng](https://github.com
 Citation
 -------------------
 
-When using gappa commands, they will output the necessary citations for the command.
-
 **To generally cite gappa, please use**
 
 > Genesis and Gappa: processing, analyzing and visualizing phylogenetic (placement) data.<br />
 > Lucas Czech, Pierre Barbera, and Alexandros Stamatakis.<br />
 > Bioinformatics, 2020. https://doi.org/10.1093/bioinformatics/btaa070<br />
 
-Furthermore, the command [`gappa tools citation`](https://github.com/lczech/gappa/wiki/Subcommand:-citation) can be used to obtain a full list of relevant references.
-
-Many commands in gappa are implementations of our novel methods as described in
-
-> Methods for Inference of Automatic Reference Phylogenies and Multilevel Phylogenetic Placement.<br />
-> Lucas Czech, Pierre Barbera, and Alexandros Stamatakis.<br />
-> Bioinformatics, 2018. https://doi.org/10.1093/bioinformatics/bty767<br />
-> <!-- bioRxiv, 2018. https://doi.org/10.1101/299792 -->
-
-and
-
-> Scalable Methods for Analyzing and Visualizing Phylogenetic Placement of Metagenomic Samples.<br />
-> Lucas Czech and Alexandros Stamatakis.<br />
-> PLOS One, 2019. https://doi.org/10.1371/journal.pone.0217050<br />
-> <!-- bioRxiv, 2019. https://doi.org/10.1101/346353 -->
-
-At the same time, it offers some commands that are also implemented in the excellent
-[guppy](http://matsen.github.io/pplacer/generated_rst/guppy.html) tool. When using these commands, please also cite
-
-> pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree.<br />
-> Frederick A Matsen, Robin B Kodner, and Virginia Armbrust.<br />
-> BMC Bioinformatics, 2010. https://doi.org/10.1186/1471-2105-11-538
-
-However, being written in C++, our gappa is much faster and needs less memory for most of the tasks.
-
-Furthermore, some methods build heavily on previous work of others. When using the KR distance computation, please cite
-
-> The phylogenetic Kantorovich-Rubinstein metric for environmental sequence samples.<br />
-> Steven Evans and Frederick Matsen.<br />
-> Journal of the Royal Statistical Society, 2012. https://doi.org/10.1111/j.1467-9868.2011.01018.x
-
-The Placement-Factorization heavily borrows from methods presented in
-
-> Phylogenetic Factorization of Compositional Data Yields Lineage-Level Associations in Microbiome Datasets.<br />
-> Alex Washburne, Justin Silverman, Jonathan Leff, Dominic Bennett, John Darcy, Sayan Mukherjee, Noah Fierer, and Lawrence David.<br />
-> PeerJ, 2017. https://doi.org/10.7717/peerj.2969
-
-The respetive commands in gappa also output information on which references need to be cited.
+Each command also prints out the relevant references for that command. Then, the command [`gappa tools citation`](https://github.com/lczech/gappa/wiki/Subcommand:-citation) can be used to obtain details on those references. See also our Wiki page [Citation and References
+](https://github.com/lczech/gappa/wiki/Citation-and-References) for a list of all references.
 
 Lastly, we recommend reading our comprehensive review of the topic
 

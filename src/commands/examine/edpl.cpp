@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,7 +74,8 @@ void setup_edpl( CLI::App& app )
         true
     )->group( "Settings" );
 
-    // Histogram max.
+    // Histogram max.  If the option name is ever changed, it needs to be changed
+    // in the warnings in the run function as well.
     sub->add_option(
         "--histogram-max",
         opt->histogram_max,
@@ -244,6 +245,17 @@ void run_edpl( EdplOptions const& options )
                  << "the maximal value actually found in the samples. Hence, the highest bins "
                  << "of the histogram will be empty. If this is intentional, you can ignore this "
                  << "warning.\n";
+    }
+    if( ! std::isfinite( max_edpl ) || max_edpl == 0.0 ) {
+        LOG_WARN << "Warning: The maximum EDPL value found in the samples is 0.0 (or NaN), "
+                 << "indicating that all placements in the samples only contain single "
+                 << "placement locations, or exhibit some other weird characteristics. "
+                 << "We recommend checking the input file(s), just in case. "
+                 << "In order to still produce a valid output table, we now set the maximum "
+                 << "value used for the output histogram to 1.0, so that we can produce a valid "
+                 << "histogram. That histogram is empty except for the first bin, which contains "
+                 << "the 0.0 values. Use `--histogram-max` to change the max value if needed.\n";
+        max_edpl = 1.0;
     }
     auto const hist_max = options.histogram_max < 0.0 ? max_edpl : options.histogram_max;
 

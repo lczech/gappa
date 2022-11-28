@@ -117,6 +117,11 @@ IF(GAPPA_BUILD_STATIC)
 ENDIF()
 message( STATUS "Static linking of system libraries: ${GAPPA_BUILD_STATIC}")
 
+# Genesis uses LTO, and so do we.
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
+    cmake_policy(SET CMP0069 NEW)
+endif()
+
 # --------------------------------------------------------------------------------------------------
 #   Download Dependencies
 # --------------------------------------------------------------------------------------------------
@@ -128,7 +133,7 @@ include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/DownloadDependency.cmake" )
 # These are replaced by tools/cmake/update_dependencies.sh to the hashes that are currently checked out.
 # Thus, do not replace the hashes manually!
 SET( CLI11_COMMIT_HASH "13becaddb657eacd090537719a669d66d393b8b2" ) #CLI11_COMMIT_HASH#
-SET( genesis_COMMIT_HASH "a09d32d67b4a0f87807d8c657bdabc01ead2d139" ) #genesis_COMMIT_HASH#
+SET( genesis_COMMIT_HASH "4bfcf0894b6c15500d6c7ae4e217f04563269468" ) #genesis_COMMIT_HASH#
 SET( sparsepp_COMMIT_HASH "6bfe3b4bdb364993e612d6bb729d680cf4c77649" ) #sparsepp_COMMIT_HASH#
 
 # Call the github download function, which takes four arguments:
@@ -193,16 +198,8 @@ add_executable( gappa ${gappa_sources} )
 # Link it against Genesis, and against all dependencies of Genesis.
 target_link_libraries ( gappa ${GENESIS_LINK_LIBRARIES} )
 
-# For now, copied from genesis, as GENESIS_HAS_LTO is not exported yet. Will fix later.
-if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
-    message(STATUS "Checking for LTO/IPO support")
-    cmake_policy(SET CMP0069 NEW)
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT GAPPA_HAS_LTO)
-else()
-    set(GAPPA_HAS_LTO OFF)
-endif()
-if(GAPPA_HAS_LTO)
+# We have to use LTO for gappa as well for some compilers to properly link, I think.
+if(GENESIS_HAS_LTO)
     message(STATUS "Building with LTO/IPO support")
     set_property(TARGET gappa PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()

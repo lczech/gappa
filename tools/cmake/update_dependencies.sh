@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # gappa - Genesis Applications for Phylogenetic Placement Analysis
-# Copyright (C) 2017-2019 Lucas Czech and HITS gGmbH
+# Copyright (C) 2017-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lczech@carnegiescience.edu>
+# Department of Plant Biology, Carnegie Institution For Science
+# 260 Panama Street, Stanford, CA 94305, USA
 
 ####################################################################################################
 #    Update Git Submodule Commit Hashes
@@ -44,8 +44,9 @@ function get_commit_hash() {
     # Use two methods for checking.
     # This fails if the submodule is checked out, but not commited.
     # In that case, we only print a warning.
+    local branch=`git rev-parse --abbrev-ref HEAD`
     local hash_a=`git ls-files -s libs/${libname} | cut -d" " -f 2`
-    local hash_b=`git ls-tree master libs/${libname} | awk -F "[ \t]" '{print $3}'`
+    local hash_b=`git ls-tree ${branch} libs/${libname} | awk -F "[ \t]" '{print $3}'`
 
     if [[ ${hash_a} != ${hash_b} ]]; then
         echo -e "\e[31mProblem with commit hash for ${libname}: ${hash_a} != ${hash_b}\e[0m"

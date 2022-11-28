@@ -29,7 +29,6 @@ if [[ $OSTYPE == 'darwin'* ]]; then
         echo "Program 'gdate' not found. Cannot run this script on MacOS."
         exit
     fi
-    alias date='gdate'
 fi
 
 # Color the spectrum!
@@ -75,6 +74,15 @@ testfile() {
     return ${RESULT}
 }
 
+# For macos, we need a different date function that is gnu compatible and supports nanoseconds.
+nanotime() {
+    if [[ $OSTYPE == 'darwin'* ]]; then
+        gdate +%s%N
+    else
+        date +%s%N
+    fi
+}
+
 # ==================================================================================================
 #      Find Binary
 # ==================================================================================================
@@ -106,7 +114,7 @@ printf "${COLOR_GREEN}[==========]${COLOR_END} ${TESTCOUNT} tests\n\n"
 
 # Status: How often did we fail? How long did we need in total?
 FAILCOUNT=0
-STARTTIME=`date +%s%N`
+STARTTIME=`nanotime`
 
 # Run all 'em scripts!
 for SCRIPT in ${SCRIPTS} ; do
@@ -125,10 +133,10 @@ for SCRIPT in ${SCRIPTS} ; do
 
     # Run the test, embedded in measurement tools and user printouts.
     # We source the test scripts, so that they have access to all helper functions and vars here.
-    STIME=`date +%s%N`
+    STIME=`nanotime`
     source "${SCRIPT}" "${GAPPA}" > ${LOGDIR}/${TESTNAME}.log 2>&1
     RESULT=$?
-    ETIME=`date +%s%N`
+    ETIME=`nanotime`
     DURATION=`echo "scale=3;(${ETIME} - ${STIME})/(10^09)" | bc | awk '{printf "%.3f", $0}'`
 
     # Final user printout for the test
@@ -141,7 +149,7 @@ for SCRIPT in ${SCRIPTS} ; do
 done
 
 # Some user output.
-ENDTIME=`date +%s%N`
+ENDTIME=`nanotime`
 TOTALDURATION=`echo "scale=3;(${ENDTIME} - ${STARTTIME})/(10^09)" | bc | awk '{printf "%.3f", $0}'`
 printf "\n${COLOR_GREEN}[==========]${COLOR_END} ${TOTALDURATION}s\n"
 

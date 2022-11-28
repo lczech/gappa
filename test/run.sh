@@ -21,6 +21,17 @@ if [ -z "`which bc`" ] ; then
     exit
 fi
 
+# On MacOS, the default `date` does not support nanoseconds, which we however use here...
+# So make sure that we have the gnu core utils version available, and alias this.
+# See https://apple.stackexchange.com/a/47181
+if [[ $OSTYPE == 'darwin'* ]]; then
+    if [ -z "`which gdate`" ] ; then
+        echo "Program 'gdate' not found. Cannot run this script on MacOS."
+        exit
+    fi
+    alias date='gdate'
+fi
+
 # Color the spectrum!
 COLOR_RED="\033[31m"
 COLOR_GREEN="\033[32m"

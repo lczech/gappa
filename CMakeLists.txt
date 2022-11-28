@@ -193,5 +193,20 @@ add_executable( gappa ${gappa_sources} )
 # Link it against Genesis, and against all dependencies of Genesis.
 target_link_libraries ( gappa ${GENESIS_LINK_LIBRARIES} )
 
+# For now, copied from genesis, as it's not exported yet. Will fix later.
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
+    cmake_policy(SET CMP0069 NEW)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT GENESIS_HAS_LTO)
+else()
+    set(GENESIS_HAS_LTO OFF)
+endif()
+if(GENESIS_HAS_LTO)
+    message(STATUS "Building with LTO/IPO support")
+    set_property(TARGET gappa PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "Building without LTO/IPO support")
+endif()
+
 message( STATUS "CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}" )
 message( STATUS "GENESIS_LINK_LIBRARIES ${GENESIS_LINK_LIBRARIES}" )

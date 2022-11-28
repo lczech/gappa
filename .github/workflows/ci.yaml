@@ -158,6 +158,13 @@ jobs:
         run: |
           sudo apt-get install libtinfo5
 
+      - name: Install Dependencies - MacOS
+        if: runner.os == 'macos'
+        # For our test script, we need gdate, see https://apple.stackexchange.com/a/47181
+        # and see ./test/run.sh for details.
+        run: |
+          brew install coreutils
+
       # -------------------------------------------------------
       #     Configure
       # -------------------------------------------------------

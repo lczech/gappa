@@ -40,6 +40,24 @@ COLOR_END="\033[0m"
 #      Helper Functions
 # ==================================================================================================
 
+# For macos, we need a different date function that is gnu compatible and supports nanoseconds.
+nanotime() {
+    if [[ $OSTYPE == 'darwin'* ]]; then
+        gdate +%s%N
+    else
+        date +%s%N
+    fi
+}
+
+# For macos, we also need a different file size function.
+filesize() {
+    if [[ $OSTYPE == 'darwin'* ]]; then
+        stat -f%z ${1}
+    else
+        stat --printf="%s" ${1}
+    fi
+}
+
 # Test that file ${1} exists and has correct size ${2}, or between ${2} and ${3}.
 # The latter is needed for gz files, which can differ slighly in size depending on content,
 # which changes due to creation time stamps being part of many of our output files,
@@ -51,7 +69,7 @@ testfile() {
     # See if file exists and get its size.
     local RESULT=0
     [[ -f ${1} ]] || RESULT=1
-    local SIZE=`stat --printf="%s" ${1}`
+    local SIZE=`filesize ${1}`
 
     # If three args given, use ${2} and ${3} and min max, otherwise expect exactly ${2}
     local MIN=${2}

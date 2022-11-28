@@ -200,3 +200,12 @@ jobs:
       - name: Tests
         run: |
           ./test/run.sh
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.compiler }}
+          path: |
+            test/log
+            test/out

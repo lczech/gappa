@@ -32,6 +32,11 @@
 #include "genesis/placement/formats/jplace_writer.hpp"
 #include "genesis/placement/sample.hpp"
 
+#include "genesis/sequence/sequence.hpp"
+#include "genesis/sequence/sequence_set.hpp"
+#include "genesis/sequence/functions/labels.hpp"
+#include "genesis/sequence/formats/fasta_writer.hpp"
+
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/json/document.hpp"
@@ -126,6 +131,7 @@ void setup_unchunkify( CLI::App& app )
         sub, "abundances", "json(\\.gz)?", "json[.gz]"
     );
     opt->jplace_input.add_jplace_input_opt_to_app( sub, false )->group( "Input" );
+    opt->sequence_input.add_sequence_input_opt_to_app( sub, false )->group( "Input" );
 
     // -----------------------------------------------------------
     //     Fill in custom options
@@ -541,6 +547,46 @@ void add_sequence_names_and_abundances(
 }
 
 /**
+ * @brief Write the actual sequences associated with this sequence hash to the output file.
+ */
+void write_all_seqs_of_hash(
+    genesis::utils::JsonDocument const&     seq_entry,
+    genesis::sequence::SequenceSet const&   msa,
+    std::ofstream&                          outstream,
+    std::string const&                      map_filename
+) {
+    using namespace genesis::sequence;
+
+    assert( outstream.is_open() );
+
+    // get the hash name and its associated sequence
+    auto const hash = seq_entry[0].get_string();
+    auto const seq_ptr = find_sequence( msa, hash );
+
+    if ( seq_ptr == nullptr ) {
+        throw std::runtime_error( "Sequence did not occur in the given query MSA: " + hash );
+    }
+
+    // if found, make a mutable copy
+    Sequence seq = *seq_ptr;
+
+    // get the actual names for this hash, add all those sequences to the output file
+    auto const& mult_arr = seq_entry[2].get_object();
+    for( auto const& mult_obj : mult_arr ) {
+        auto const& label = mult_obj.first;
+        if( ! mult_obj.second.is_number_unsigned() ) {
+            throw std::runtime_error( "Invalid abundance map: " + map_filename );
+        }
+
+        // adjust the label
+        seq.label( label );
+
+        // write out
+        FastaWriter().write_sequence( seq, outstream );
+    }
+}
+
+/**
  * @brief Main work function. Loops over all abundance map files and writes a per-sample jplace file
  * for each of them.
  */
@@ -549,9 +595,14 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
 {
     using namespace genesis::placement;
     using namespace genesis::utils;
+    using namespace genesis::sequence;
 
     // Get run mode
     auto const mode = get_unchunkify_mode( options );
+
+    // do we want to write per sample MSAs?
+    auto const hashed_msa = options.sequence_input.sequence_set_all();
+    bool const write_per_sample_MSAs = not hashed_msa.empty();
 
     // -----------------------------------------------------------
     //     Prepare Helper Data
@@ -625,6 +676,18 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
         // Create empty sample.
         Sample sample;
 
+        // Get sample name.
+        auto sample_name_it = doc.find( "sample" );
+        if( sample_name_it == doc.end() || ! sample_name_it->is_string() ) {
+            throw std::runtime_error( "Invalid abundance map: " + map_filename );
+        }
+        auto const& sample_name = sample_name_it->get_string();
+
+        // if we are to write per-sample MSAs, prepare a FastaWriter for this sample
+        std::ofstream per_sample_msa = write_per_sample_MSAs
+            ? std::ofstream(options.file_output.out_dir() + sample_name + ".fasta")
+            : std::ofstream();
+
         // Loop over mapped sequences and add them to the sample.
         for( auto seq_entry_it = abun_it->begin(); seq_entry_it != abun_it->end(); ++seq_entry_it ) {
             #pragma omp atomic
@@ -651,14 +714,11 @@ void run_unchunkify_with_hash( UnchunkifyOptions const& options )
             // Fill in the sequence, with labels and abundances.
             auto& pquery = sample.add( chunk->sample.at( pquery_idx ));
             add_sequence_names_and_abundances( *seq_entry_it, pquery, map_filename );
-        }
 
-        // Get sample name.
-        auto sample_name_it = doc.find( "sample" );
-        if( sample_name_it == doc.end() || ! sample_name_it->is_string() ) {
-            throw std::runtime_error( "Invalid abundance map: " + map_filename );
+            if ( write_per_sample_MSAs ) {
+                write_all_seqs_of_hash( *seq_entry_it, hashed_msa, per_sample_msa, map_filename );
+            }
         }
-        auto const& sample_name = sample_name_it->get_string();
 
         // We are done with the map/sample. Write it.
         jplace_writer.write(

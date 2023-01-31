@@ -182,6 +182,13 @@ if( NOT OPENMP_FOUND )
     "${Esc}[0m" )
 endif()
 
+# Special treatment of static OpenMP linking, see comment here
+# https://stackoverflow.com/questions/74569611/cannot-build-statically-linked-binary-c-debian-ubuntu#comment131650188_74569611
+if( GAPPA_BUILD_STATIC AND OPENMP_FOUND )
+    message( STATUS "Attempting static linking of OpenMP")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ldl")
+endif()
+
 # Add CLI11 as dependency. It's header-only, so this is easy.
 include_directories( SYSTEM "libs/CLI11/include" )
 

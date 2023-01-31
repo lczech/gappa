@@ -5,12 +5,13 @@
 [![Conda install](https://img.shields.io/conda/vn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 [![Downloads](https://img.shields.io/conda/dn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 [![Release](https://img.shields.io/github/v/release/lczech/gappa.svg)](https://github.com/lczech/gappa/releases)
+[![DOI](https://img.shields.io/badge/doi-10.1093%2Fbioinformatics%2Fbtaa070-blue)](https://doi.org/10.1093/bioinformatics/btaa070)
+<br />
 [![CI](https://github.com/lczech/gappa/workflows/CI/badge.svg?branch=master)](https://github.com/lczech/gappa/actions)
 [![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 [![Platforms](https://img.shields.io/conda/pn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
-[![DOI](https://img.shields.io/badge/doi-10.1093%2Fbioinformatics%2Fbtaa070-blue)](https://doi.org/10.1093/bioinformatics/btaa070)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
 <!-- [![Build Status](https://travis-ci.org/lczech/gappa.svg?branch=master)](https://travis-ci.org/lczech/gappa) -->
 
 Features
@@ -52,7 +53,7 @@ archive. Unpack, and call `make` in the main directory to build everything.
 
 Requirements:
 
- *  [Make](https://www.gnu.org/software/make/) and [CMake](https://cmake.org/) 2.8.12 or higher.
+ *  [Make](https://www.gnu.org/software/make/) and [CMake](https://cmake.org/) 3.1 or higher.
  *  A fairly up-to-date C++11 compiler, e.g.,
     [clang++ 3.6](http://clang.llvm.org/) or [GCC 4.9](https://gcc.gnu.org/), or higher.
 

@@ -33,7 +33,7 @@
 inline std::string gappa_version()
 {
     // Do not change manually. Automatically updated by the tools/deploy/release.sh script.
-    return "v0.8.3"; // #GAPPA_VERSION#
+    return "v0.8.4"; // #GAPPA_VERSION#
 }
 
 inline std::string gappa_header()

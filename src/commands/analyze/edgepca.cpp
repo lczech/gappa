@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2022 Lucas Czech
+    Copyright (C) 2017-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,10 +25,15 @@
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"
+#include "tools/misc.hpp"
 
 #include "CLI/CLI.hpp"
 
 #include "genesis/placement/function/epca.hpp"
+#include "genesis/tree/formats/newick/simple_reader.hpp"
+#include "genesis/tree/formats/newick/simple_tree.hpp"
+#include "genesis/tree/formats/newick/simple_writer.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
 #include <fstream>
@@ -116,9 +121,15 @@ void run_edgepca( EdgepcaOptions const& options )
     using namespace genesis::placement;
     using namespace genesis::utils;
 
+    // -------------------------------------------------------------
+    //     Checks and preparation
+    // -------------------------------------------------------------
+
     // Check if any of the general files we are going to produce already exists. If so, fail early.
     options.file_output.check_output_files_nonexistence({
-        { "projection", "csv" }, { "transformation", "csv" }
+        { "projection", "csv" }, { "transformation", "csv" },
+        { "eigenvalues", "csv" }, { "eigenvectors", "csv" },
+        { "edge_indices", "newick" }, { "eigenvector_", "newick" }
     });
 
     // Same for tree files.
@@ -139,9 +150,15 @@ void run_edgepca( EdgepcaOptions const& options )
         throw std::runtime_error( "Cannot run Edge PCA with fewer than 2 samples." );
     }
 
+    // -------------------------------------------------------------
+    //     Processing
+    // -------------------------------------------------------------
+
     // Read samples
     auto const sample_set = options.jplace_input.sample_set();
-    assert( sample_set.size() >= 2 );
+    if(  sample_set.size() < 2 ) {
+        throw std::runtime_error("Need at least two input jplace files to compute EdgePCA");
+    }
 
     // TODO check kappa and epsilon ranges!
     // TODO edge pca technically only needs the imbalance matrix. could refactor this to save mem!
@@ -149,6 +166,45 @@ void run_edgepca( EdgepcaOptions const& options )
     // Run, Forrest, run!
     LOG_MSG1 << "Running Edge PCA";
     auto const epca_data = epca( sample_set, options.kappa, options.epsilon, options.components );
+
+    // Some checks
+    internal_check(
+        epca_data.eigenvalues.size()  == options.components,
+        "Edge PCA data invalid. epca_data.eigenvalues.size() != options.components"
+    );
+    internal_check(
+        epca_data.eigenvectors.rows() == epca_data.edge_indices.size(),
+        "Edge PCA data invalid. epca_data.eigenvectors.rows() != epca_data.edge_indices.size()"
+    );
+    internal_check(
+        epca_data.eigenvectors.cols() == options.components,
+        "Edge PCA data invalid. epca_data.eigenvectors.cols() != options.components"
+    );
+    internal_check(
+        epca_data.projection.rows()   == sample_set.size(),
+        "Edge PCA data invalid. epca_data.projection.rows() != sample_set.size()"
+    );
+    internal_check(
+        epca_data.projection.cols()   == options.components,
+        "Edge PCA data invalid. epca_data.projection.cols() != options.components"
+    );
+
+    // -------------------------------------------------------------
+    //     Output and File Writing
+    // -------------------------------------------------------------
+
+    // Some helpful user output.
+    auto const& tree = sample_set.at(0).tree();
+    LOG_BOLD;
+    LOG_MSG1 << "Tree contains a total of " << tree.edge_count() << " edges, thereof "
+             << genesis::tree::inner_edge_count( tree ) << " inner edges (not leading to a leaf). "
+             << "Out of these, " << epca_data.edge_indices.size() << " have been used for computing "
+             << "the Edge PCA; the remaining ones were filtered out, as they only contained "
+             << "constant edge imbalance values, which are not useful for running a PCA. "
+             << "The `eigenvectors.newick` tree file contains node labels at the outer nodes of "
+             << "those edges that show the edge indices, corresponding to the first column of "
+             << "the `eigenvectors.csv` table.";
+    LOG_BOLD;
 
     LOG_MSG1 << "Writing result files";
 
@@ -163,26 +219,82 @@ void run_edgepca( EdgepcaOptions const& options )
         proj_os << "\n";
     }
 
-    // Eigenvalues and Eigenvectors
+    // Eigenvalues and Eigenvectors, transformation as in guppy
     auto const trans_target = options.file_output.get_output_target( "transformation", "csv" );
     auto& trans_os = trans_target->ostream();
     for( size_t r = 0; r < epca_data.eigenvalues.size(); ++r ) {
         trans_os << epca_data.eigenvalues[r];
         for( size_t e = 0; e < epca_data.eigenvectors.rows(); ++e ) {
-            trans_os << "," << epca_data.eigenvectors( r, e );
+            trans_os << "," << epca_data.eigenvectors.at( e, r );
         }
         trans_os << "\n";
     }
 
+    // Also write out eigenvalues as individual file, for user convenience
+    auto const eigenvalues_target = options.file_output.get_output_target( "eigenvalues", "csv" );
+    auto& eigenvalues_os = eigenvalues_target->ostream();
+    for( size_t r = 0; r < epca_data.eigenvalues.size(); ++r ) {
+        eigenvalues_os << epca_data.eigenvalues[r] << "\n";
+    }
+
+    // Same for eigenvectors, including their indices
+    auto const eigenvectors_target = options.file_output.get_output_target( "eigenvectors", "csv" );
+    auto& eigenvectors_os = eigenvectors_target->ostream();
+    eigenvectors_os << "edge_index";
+    for( size_t c = 0; c < epca_data.eigenvectors.cols(); ++c ) {
+        eigenvectors_os << ",component_" << c;
+    }
+    eigenvectors_os << "\n";
+    for( size_t r = 0; r < epca_data.eigenvectors.rows(); ++r ) {
+        eigenvectors_os << epca_data.edge_indices[r];
+        for( size_t c = 0; c < epca_data.eigenvectors.cols(); ++c ) {
+            eigenvectors_os << "," << epca_data.eigenvectors.at( r, c );
+        }
+        eigenvectors_os << "\n";
+    }
+
+    // Also, write a newick tree with the inner edge indices
+    auto edge_index_tree = sample_set[0].tree();
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        using genesis::tree::CommonNodeData;
+        if( genesis::tree::is_leaf(tree.edge_at(i)) ) {
+            continue;
+        }
+        internal_check( tree.edge_at(i).index() == i, "wrong tree edge indices" );
+        auto& name = edge_index_tree.edge_at( i ).secondary_node().data<CommonNodeData>().name;
+        name = std::to_string( tree.edge_at(i).index() );
+    }
+    auto nw = genesis::tree::CommonTreeNewickWriter();
+    nw.write( edge_index_tree, options.file_output.get_output_target( "edge_indices", "newick" ));
+
     // Trees
-    auto const& tree = sample_set.at(0).tree();
     for( size_t c = 0; c < epca_data.projection.cols(); ++c ) {
-        LOG_BOLD;
+        // LOG_BOLD;
         LOG_MSG1 << "Writing tree for component " << c;
 
+        // Prepare a list of all eigenvector componentes, for the whole tree, using 0 when that
+        // edge has not been used in the PCA (filtered out, or leaf edge).
+        auto eigenvector_comps = std::vector<double>( tree.edge_count(), 0.0);
+        for( size_t r = 0; r < epca_data.edge_indices.size(); ++r ) {
+            eigenvector_comps.at( epca_data.edge_indices[r] ) = epca_data.eigenvectors.at( r, c );
+        }
+
+        // Write a tree with those values annotated in NHX-style at the edges.
+        auto nw = genesis::tree::CommonTreeNewickWriter();
+        nw.edge_to_element_plugins.push_back(
+            [&]( genesis::tree::TreeEdge const& edge, genesis::tree::NewickBrokerElement& element ){
+                element.comments.push_back(
+                    "&&NHX:eigen=" + std::to_string( eigenvector_comps[ edge.index() ])
+                );
+            }
+        );
+        nw.write( tree, options.file_output.get_output_target(
+            "eigenvector_" + std::to_string( c ), "newick"
+        ));
+
+        // Prepare the color trees
         auto color_map = options.color_map.color_map();
         auto color_norm = options.color_norm.get_diverging_norm();
-
         color_norm.autoscale( epca_data.eigenvectors.col( c ));
         color_norm.make_centric();
 

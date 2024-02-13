@@ -73,7 +73,8 @@ struct CorrelationVariant
     enum CorrelationMethod
     {
         kPearson,
-        kSpearman
+        kSpearman,
+        kKendall
     };
 
     CorrelationVariant( std::string const& n, EdgeValues m, CorrelationMethod d )
@@ -130,7 +131,7 @@ void setup_correlation( CLI::App& app )
         true
     )->group( "Settings" )
     ->transform(
-        CLI::IsMember({ "all", "pearson", "spearman" }, CLI::ignore_case )
+        CLI::IsMember({ "all", "pearson", "spearman", "kendall" }, CLI::ignore_case )
     );
 
     // Color. We allow max, but not min, as this is always 0.
@@ -178,6 +179,11 @@ std::vector<CorrelationVariant> get_variants( CorrelationOptions const& options 
                 "masses_spearman", CorrelationVariant::kMasses, CorrelationVariant::kSpearman
             });
         }
+        if(( options.method == "all" ) || ( options.method == "kendall" )) {
+            variants.push_back({
+                "masses_kendall", CorrelationVariant::kMasses, CorrelationVariant::kKendall
+            });
+        }
     }
     if(( options.edge_values == "both" ) || ( options.edge_values == "imbalances" )) {
         if(( options.method == "all" ) || ( options.method == "pearson" )) {
@@ -188,6 +194,11 @@ std::vector<CorrelationVariant> get_variants( CorrelationOptions const& options 
         if(( options.method == "all" ) || ( options.method == "spearman" )) {
             variants.push_back({
                 "imbalances_spearman", CorrelationVariant::kImbalances, CorrelationVariant::kSpearman
+            });
+        }
+        if(( options.method == "all" ) || ( options.method == "kendall" )) {
+            variants.push_back({
+                "imbalances_kendall", CorrelationVariant::kImbalances, CorrelationVariant::kKendall
             });
         }
     }
@@ -323,6 +334,13 @@ void run_with_matrix(
                     corrname = "Spearman";
                     break;
                 }
+                case CorrelationVariant::kKendall: {
+                    corrname = "Kendall";
+                    break;
+                }
+                default: {
+                    throw std::runtime_error( "Internal Error: Invalid correlation variant." );
+                }
             }
             LOG_MSG1 << "Writing " << corrname << " correlation with meta-data column "
                      << meta_col.name() << ".";
@@ -343,6 +361,13 @@ void run_with_matrix(
                     }
                     case CorrelationVariant::kSpearman: {
                         corr_vec[e] = spearmans_rank_correlation_coefficient(
+                            meta_dbl.begin(), meta_dbl.end(),
+                            edge_values.col( e ).begin(), edge_values.col( e ).end()
+                        );
+                        break;
+                    }
+                    case CorrelationVariant::kKendall: {
+                        corr_vec[e] = kendalls_tau_correlation_coefficient(
                             meta_dbl.begin(), meta_dbl.end(),
                             edge_values.col( e ).begin(), edge_values.col( e ).end()
                         );

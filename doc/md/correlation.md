@@ -2,7 +2,7 @@
 
 The command takes a set of `jplace` files (called samples), as well as a table containing metadata features for each sample. It then calculates and visualizes the Edge Correlation with the metadata features per edge of the reference tree. The files need to have the same reference tree.
 
-Edge Correlation is explained and evaluated in detail in our article (in preparation). The following figure and its caption are an example adapted from this article:
+Edge Correlation is explained and evaluated in detail in our article ([doi:10.1371/journal.pone.0217050](https://doi.org/10.1371/journal.pone.0217050)). The following figure and its caption are an example adapted from this article:
 
 <br>
 
@@ -46,7 +46,7 @@ Controls whether to use masses or imbalances. By default, trees using both of th
 
 ### Correlation Method (`--method`)
 
-Controls which method of correlation is used for the visualization. By default, Pearsons and Spearmans are used, that is, trees for each of them are created.
+Controls which method of correlation is used for the visualization. We offer Pearson's `r`, Spearman's `rho`, and Kendall's `tau` (in the tau-b variant) correlation coefficients. By default, trees for all of them are created.
 
 ### Normalization (`--mass-norm`)
 

@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2022 Lucas Czech
+    Copyright (C) 2017-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ int main( int argc, char** argv )
             LOG_BOLD << message;
         }
 
-    } catch( genesis::except::ExistingFileError const& error ) {
+    } catch( genesis::utils::ExistingFileError const& error ) {
 
         // Special case for existing files: This is very common, and we want a nice and useful
         // error messsage for this one!
@@ -162,7 +162,7 @@ int main( int argc, char** argv )
         ;
         LOG_BOLD << message;
         LOG_BOLD;
-        throw genesis::except::ExistingFileError( message, error.filename() );
+        throw genesis::utils::ExistingFileError( message, error.filename() );
 
     } catch( std::exception const& error ) {
 

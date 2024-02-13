@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2022 Lucas Czech
+    Copyright (C) 2017-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/math/correlation.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/text/string.hpp"

@@ -16,7 +16,7 @@ The correspondence of eigenvectors to edges is a bit tricky: Only the inner edge
 
 Hence, for the correspondence between the (inner, non-constant imbalance) edges and the eigenvector components of the PCA, we need some extra work. The `edge_indices.newick` tree contains an annotated tree with inner nodes labeled according to the edge index. This edge index is the first column in `eigenvectors.csv`, making it possible to link the two. Note that we label the nodes in that file, and not the edges, as the Newick file format does not support the latter; see [here](https://doi.org/10.1093/molbev/msx055) for this shortcoming of the Newick file format, and resulting issues. You can for example use [Dendroscope](https://doi.org/10.1186/1471-2105-8-460) to examine the newick file, or use some programmatic way.
 
-Furthermore, we produce separate Newick files for each PCA component, named `eigenvector_*.newick`. These are in NHX format, and annotate the components of the eigenvectors onto the edges, using `0.0` for leaf edges and those that were filtered out for the PCA. They can for example be displayed by (iTOL)[https://itol.embl.de/]; search for NHX in the iTOL help to see how those values can be displayed.
+Furthermore, we produce separate Newick files for each PCA component, named `eigenvector_*.newick`. These are in NHX format, and annotate the components of the eigenvectors onto the edges, using `0.0` for leaf edges and those that were filtered out for the PCA. They can for example be displayed by [iTOL](https://itol.embl.de/); search for NHX in the iTOL help to see how those values can be displayed.
 
 ### Plotting and Analysis
 

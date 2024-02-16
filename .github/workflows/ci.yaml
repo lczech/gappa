@@ -141,7 +141,7 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        uses: aminya/setup-cpp@v0.36.1
+        uses: aminya/setup-cpp@v0.36.2
         if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
@@ -203,7 +203,7 @@ jobs:
 
       - name: Upload Logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: logs-${{ matrix.os }}-${{ matrix.compiler }}
           path: |

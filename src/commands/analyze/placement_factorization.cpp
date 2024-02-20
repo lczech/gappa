@@ -43,7 +43,9 @@
 #include "genesis/utils/color/color.hpp"
 #include "genesis/utils/color/list_sequential.hpp"
 
+#include <cmath>
 #include <fstream>
+#include <limits>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
@@ -162,8 +164,17 @@ void setup_placement_factorization( CLI::App& app )
 //      Input Reading
 // =================================================================================================
 
-genesis::utils::Matrix<double> read_meta_data( PlacementFactorizationOptions const& options )
+struct MetaMatrix
 {
+    genesis::utils::Matrix<double> matrix;
+    std::vector<std::string> column_names;
+    std::vector<std::string> row_names;
+};
+
+MetaMatrix read_meta_data( PlacementFactorizationOptions const& options )
+{
+    MetaMatrix result;
+
     // Get the metadata.
     // options.metadata_input.print();
     auto df = options.metadata_input.read_string_dataframe();
@@ -180,18 +191,21 @@ genesis::utils::Matrix<double> read_meta_data( PlacementFactorizationOptions con
     // Convert as needed for phylo factorization.
     std::string report;
     auto meta = glm_prepare_dataframe( df, report );
+    result.column_names = meta.col_names();
     LOG_MSG1 << report;
 
     // TODO use glm_convert_dataframe instead?!
 
     // Copy the meta data in the correct sample order.
     auto const jplace_count = options.jplace_input.file_count();
-    auto result = genesis::utils::Matrix<double>( jplace_count, meta.cols() );
+    result.matrix = genesis::utils::Matrix<double>( jplace_count, meta.cols() );
+    result.row_names.resize( jplace_count );
     assert( meta.rows() == jplace_count );
     for( size_t i = 0; i < jplace_count; ++i ) {
         for( size_t c = 0; c < meta.cols(); ++c ) {
-            result( i, c ) = meta[ c ].as<double>()[ options.jplace_input.base_file_name(i) ];
+            result.matrix( i, c ) = meta[ c ].as<double>()[ options.jplace_input.base_file_name(i) ];
         }
+        result.row_names[i] = options.jplace_input.base_file_name(i);
     }
 
     return result;
@@ -252,6 +266,23 @@ genesis::tree::BalanceData read_balance_data( PlacementFactorizationOptions cons
     // Use the trees for getting balance data.
     auto const settings = get_balance_settings( options );
     return mass_balance_data( mass_trees, settings );
+}
+
+struct GlmCoefficients
+{
+    using Coefficients = std::vector<double>;
+    std::vector<Coefficients> edge_coefficients;
+};
+
+std::vector<GlmCoefficients> prepare_glm_coefficients(
+    PlacementFactorizationOptions const& options,
+    genesis::tree::BalanceData const& balances
+) {
+    auto result = std::vector<GlmCoefficients>( options.factors.value() );
+    for( auto& factor : result ) {
+        factor.edge_coefficients.resize( balances.tree.edge_count() );
+    }
+    return result;
 }
 
 // =================================================================================================
@@ -337,8 +368,13 @@ void write_factor_taxa(
     using namespace genesis::tree;
     using namespace genesis::utils;
 
-    auto factor_taxa_of = options.file_output.get_output_target( "factor_taxa", "txt" );
-    auto write_taxa_list = [&]( std::unordered_set<size_t> indices ) {
+    // Open the file
+    auto factor_taxa_of = options.file_output.get_output_target( "factor_taxa", "csv" );
+
+    // Write a line to the file. Factor index, then taxon name, then indicator of which side
+    auto write_taxa_list = [&](
+        size_t factor, std::unordered_set<size_t> indices, std::string const& side
+    ) {
         std::unordered_set<std::string> edge_names;
         for( auto const ei : indices ) {
             auto const& ed = tree.edge_at( ei ).secondary_link().node().data<CommonNodeData>();
@@ -347,19 +383,15 @@ void write_factor_taxa(
             }
         }
         for( auto const& en : edge_names ) {
-            (*factor_taxa_of) << en << "\n";
+            (*factor_taxa_of) << factor << "\t" << en << "\t" << side << "\n";
         }
-        (*factor_taxa_of) << "\n";
     };
 
+    // Write the table, for each factor, and for each side of it the
+    (*factor_taxa_of) << "Factor\tTaxon\tRootSide\n";
     for( size_t i = 0; i < factors.size(); ++i ) {
-        auto const& factor = factors[i];
-
-        (*factor_taxa_of) << "Factor " << (i+1) << ", root side:\n";
-        write_taxa_list( factor.edge_indices_primary );
-
-        (*factor_taxa_of) << "Factor " << (i+1) << ", non-root side:\n";
-        write_taxa_list( factor.edge_indices_secondary );
+        write_taxa_list( i+1, factors[i].edge_indices_primary, "1" );
+        write_taxa_list( i+1, factors[i].edge_indices_secondary, "0" );
     }
 }
 
@@ -390,6 +422,35 @@ void write_balances_table(
     );
 }
 
+void write_glm_coefficients(
+    PlacementFactorizationOptions const& options,
+    std::vector<genesis::tree::PhyloFactor> const& factors,
+    MetaMatrix const& meta,
+    std::vector<GlmCoefficients> const& glm_coeffs
+) {
+    auto target = options.file_output.get_output_target( "factor_glm_coefficients", "csv" );
+
+    // Write the header. One column per meta
+    (*target) << "Factor\tIntercept";
+    for( auto const& col_name : meta.column_names ) {
+        (*target) << "\t" << col_name;
+    }
+    (*target) << "\n";
+
+    // Write the coefficients of the winning edge.
+    assert( glm_coeffs.size() == factors.size() );
+    for( size_t i = 0; i < factors.size(); ++i ) {
+        auto const winning_edge_idx = factors[i].edge_index;
+        assert( glm_coeffs[i].edge_coefficients.size() == factors[i].all_objective_values.size() );
+        auto const& edge_vals = glm_coeffs[i].edge_coefficients[winning_edge_idx];
+        (*target) << (i+1);
+        for( auto v : edge_vals ) {
+            (*target) << "\t" << v;
+        }
+        (*target) << "\n";
+    }
+}
+
 // =================================================================================================
 //      Run
 // =================================================================================================
@@ -397,6 +458,8 @@ void write_balances_table(
 void run_placement_factorization( PlacementFactorizationOptions const& options )
 {
     using namespace genesis;
+    using namespace genesis::tree;
+    using namespace genesis::utils;
 
     // -------------------------------------------------------------------------
     //     Preparations
@@ -411,8 +474,9 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
             files_to_check.push_back({ "objective_values_" + std::to_string( i+1 ), e });
         }
     }
-    files_to_check.push_back({ "factor_taxa", "txt" });
+    files_to_check.push_back({ "factor_taxa", "csv" });
     files_to_check.push_back({ "factor_balances", "csv" });
+    files_to_check.push_back({ "factor_glm_coefficients", "csv" });
     options.file_output.check_output_files_nonexistence( files_to_check );
 
     // Print some user output.
@@ -432,27 +496,27 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
     //     Calculations and Output
     // -------------------------------------------------------------------------
 
-    auto const factors = tree::phylogenetic_factorization(
+    // We capture the GLM coefficients of all factors and edges. The outer vector has elements
+    // per factor (iteration), and the inner per edge index.
+    auto glm_coeffs = prepare_glm_coefficients( options, balances );
+
+    // Ruuuuuun!
+    auto const factors = phylogenetic_factorization(
         balances,
-        [&]( std::vector<double> const& balances ){
-            auto const fit = glm_fit( meta, balances, utils::glm_family_gaussian() );
+        [&]( size_t iteration, size_t edge_index, std::vector<double> const& balances ){
+            auto const fit = glm_fit( meta.matrix, balances, glm_family_gaussian() );
 
-            // TODO return nan in the follwing cases. but make sure that this works with
-            // the phylofactor implementation first!
+            // Store the coefficients computed from the fitting
+            assert( iteration < glm_coeffs.size() );
+            assert( edge_index < glm_coeffs[iteration].size() );
+            auto& coeff = glm_coeffs[iteration].edge_coefficients[edge_index];
+            coeff = glm_coefficients( meta.matrix, balances, fit );
 
-            // if( !fit.converged ) {
-            //     LOG_DBG << "did not converge";
-            // }
-            // if( ! std::isfinite(fit.null_deviance) ) {
-            //     LOG_DBG << "fit.null_deviance " << fit.null_deviance;
-            // }
-            // if( ! std::isfinite(fit.deviance) ) {
-            //     LOG_DBG << "fit.deviance " << fit.deviance;
-            // }
-            // if( ! std::isfinite(fit.null_deviance) || ! std::isfinite(fit.deviance) ) {
-            //     LOG_DBG << "data.meta_vals_mat " << join( data.meta_vals_mat );
-            //     LOG_DBG << "balances " << join( balances );
-            // }
+            // If something did not work in the GLM, we return a nan,
+            // so that this edge is not considered downstream.
+            if( !fit.converged || !std::isfinite(fit.null_deviance) || !std::isfinite(fit.deviance) ) {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
 
             return fit.null_deviance - fit.deviance;
         },
@@ -467,4 +531,5 @@ void run_placement_factorization( PlacementFactorizationOptions const& options )
     write_factor_objective_values( options, factors, balances.tree );
     write_factor_taxa( options, factors, balances.tree );
     write_balances_table( options, factors );
+    write_glm_coefficients( options, factors, meta, glm_coeffs );
 }

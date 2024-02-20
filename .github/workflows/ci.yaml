@@ -39,6 +39,7 @@ jobs:
           - gcc-10
           - gcc-11
           - gcc-12
+          - gcc-13
           - llvm-5
           - llvm-6
           - llvm-7
@@ -57,6 +58,8 @@ jobs:
           # Newer GCC versions are not available on all Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
+          - os: ubuntu-20.04
+            compiler: gcc-13
           - os: ubuntu-20.04
             compiler: llvm-13
 
@@ -141,7 +144,7 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        uses: aminya/setup-cpp@v0.36.2
+        uses: aminya/setup-cpp@v0.37.0
         if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
@@ -181,7 +184,13 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP}
+          # For static builds, set the according CMake option
+          export GAPPA_BUILD_STATIC=""
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" == "gcc-13" ]]; then
+            export GAPPA_BUILD_STATIC="-DGAPPA_BUILD_STATIC=ON"
+          fi
+
+          cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} ${GAPPA_BUILD_STATIC}
 
       # -------------------------------------------------------
       #     Build & Test
@@ -209,3 +218,16 @@ jobs:
           path: |
             test/log
             test/out
+            build/**/*.log
+
+      # -------------------------------------------------------
+      #     Upload Binaries
+      # -------------------------------------------------------
+
+      - name: Upload Binaries
+        if: (  matrix.os == 'ubuntu-22.04' && matrix.compiler == 'gcc-13' ) || matrix.compiler == 'apple'
+        uses: actions/upload-artifact@v3
+        with:
+          name: binary-${{ matrix.os }}
+          path: |
+            bin/gappa

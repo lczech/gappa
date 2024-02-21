@@ -3,7 +3,7 @@
 The command runs [Placement-Factorization](https://doi.org/10.1371/journal.pone.0217050)
 on a set of `jplace` input samples.
 
-Placement-Factorization is an adaptation of PhyloFactorization to phylogenetic placement data. It iteratively finds edges in the tree across which the abundances in the samples exhibit a strong relationship with given meta-data (such as environmental variables).
+Placement-Factorization is an adaptation of [PhyloFactorization](https://doi.org/10.1002/ecm.1353) to phylogenetic placement data. It iteratively finds edges in the tree across which the abundances in the samples exhibit a strong relationship with given meta-data (such as environmental variables).
 
 The command can be understood as an extension of the [correlation](../wiki/Subcommand:-correlation) command. There, we compute a simple correlation between per-edge or per-clade abundance measures and one meta-data feature. Here, we also find nested relationships (by breaking down the tree into smaller clades in each iteration), and we allow to use multiple meta-data features at once (by using a GLM instead of a simple correlation coefficient).
 
@@ -42,11 +42,10 @@ The values of the columns can be numerical, boolean, or categorical:
    in order to work with Generalized Linear Models.
 
 The command only supports to use the meta-data features directly as provided.
-That is, transformations or interactions, which are often used in analyses with Generalized Linear Models, are not directly supported.It would be cumbersome to offer such procedures via a command line.
-Hence, if these are needed, such procedures have to be applied beforehand to the data,
-and directly put into the table as additional columns. For instance, for a given column `X`,
+That is, transformations or interactions, which are often used in analyses with Generalized Linear Models, are not directly supported. It would be tricky to offer such procedures via a command line.
+Hence, if these are needed, any transformation or interaction terms have to be applied beforehand to the data, and directly put into the table as additional columns. For instance, for a given column `X`,
 add a column `X^2` with all squared values of the `X` column, so that the GLM can use the squares
-as a predictor as well.
+as a predictor as well. By examining the GLM coefficients later (see below), one can then disentangle these terms again.
 
 ### Algorithm
 
@@ -101,8 +100,7 @@ The `factor_edges_n` trees provide some more detail about these clades, visualiz
 
 Any clade that had been split in a previous iteration does not partake in that split any more, and is hence grayed out in these trees.
 
-Lastly, the `factor_taxa.csv` table contains the taxa (names of the tree tips) for each factor, indicating
-whether the taxon is on the root side or non-root side of the split. This can be useful to downstream process the splits.
+Lastly, the `factor_taxa.csv` table contains the taxa (names of the tree tips) for each factor, indicating whether the taxon is on the root side or non-root side of the split. This can be useful to downstream process the splits.
 
 #### Factor Balances
 
@@ -110,8 +108,9 @@ The `factor_balances.csv` table contains the balances of the winning edge of eac
 
 ![Example of an ordination using the balances aross the first two factors.](https://github.com/lczech/gappa/blob/master/doc/png/pf-balances-ordination.png?raw=true)
 
-The figure shows ordination-visualization plots of the balances of the first two factors, (a) with and
-(b) without taxon weighting (`--taxon-weight-tendency	none --taxon-weight-norm none`). That is, the axes correspond to the splits induced by the first two factors, while values along the axes are the balances of each sample calculated on the sets of edges of each split. Samples are colored by one of the meta-data features used, for visualization pirposes.
+The figure shows the ordination visualization plots of the balances of the first two factors, (a) with and (b) without taxon weighting (`--taxon-weight-tendency	none --taxon-weight-norm none`). That is, the axes correspond to the splits induced by the first two factors, while values along the axes are the balances of each sample calculated on the sets of edges of each split - simply a scatter plot of the first two columns of the `factor_balances.csv` table. Samples are colored by one of the meta-data features used, for visualization purposes.
+
+For details on and effects of taxon weighting, see the original [article](https://doi.org/10.1371/journal.pone.0217050) or better Chapter 6 of the [PhD Thesis](https://doi.org/10.5445/IR/1000105237) describing them. In short, the default taxon weighting scheme downweights the influence of low abundant taxa, which can have spurious data and more noise. We recommend to run the algorithm at least once with the the defaults and once without taxon weighting, to see the effects.
 
 #### GLM Coefficients
 
@@ -121,4 +120,6 @@ Lastly, the `factor_glm_coefficients.csv` table provides the coefficients of the
 
 We provide an [R script](https://github.com/lczech/gappa/blob/master/scripts/plot-pf-glm-coeffs.R) to visualize these fits. We currently only allow the Gaussian/normal family and identity link function for the GLM. Hence, the model can be simply computed as a linear combination of the meta-data features and the balances.
 
-NB: Our underlying implementation supports other links as well, and other objective functions, but that would be cumbersome to specify via a command line interface. If this is relevant to you, please open an [issue](https://github.com/lczech/gappa/issues), or check out the underlying C++ implementation in [genesis](https://github.com/lczech/genesis).
+Examining the coefficients allows to disentangle the effects of each meta-data feature. This also allows to work "backwards" from interaction terms. In the example from above, a feature `X` was amended by a feature `X^2` in the meta-data table to include this term in the GLM as well. The model will then output coefficients for both, allowing to express the model fit as `Intercept + a * X + b * X^2`.
+
+NB: Our underlying implementation supports other links as well, and other objective functions, similar to the [article](https://doi.org/10.1002/ecm.1353) on the underlying idea of PhyloFactorization. However, it would be cumbersome to specify those via a command line interface. If this is relevant to you, please open an [issue](https://github.com/lczech/gappa/issues), or check out the underlying C++ implementation in [genesis](https://github.com/lczech/genesis).

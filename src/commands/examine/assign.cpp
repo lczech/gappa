@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2022 Pierre Barbera, Lucas Czech and HITS gGmbH
+    Copyright (C) 2017-2024 Pierre Barbera and Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -997,7 +997,7 @@ void print_krona(
     });
 }
 
-Taxon& get_subtaxonomy( Taxonomy tax, AssignOptions const& options )
+Taxon const& get_subtaxonomy( Taxonomy const& tax, AssignOptions const& options )
 {
     // This function is only called if the option for sub tax is spefied.
     assert( ! options.sub_taxopath.empty() );

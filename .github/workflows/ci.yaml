@@ -185,10 +185,12 @@ jobs:
           fi
 
           # For static builds, set the according CMake option
+          # Deactivated for now, as static building with OpenMP is not possible.
+          # Will have to wait for gappa to use the genesis ThreadPool instead.
           export GAPPA_BUILD_STATIC=""
-          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" == "gcc-13" ]]; then
-            export GAPPA_BUILD_STATIC="-DGAPPA_BUILD_STATIC=ON"
-          fi
+          # if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" == "gcc-13" ]]; then
+          #   export GAPPA_BUILD_STATIC="-DGAPPA_BUILD_STATIC=ON"
+          # fi
 
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} ${GAPPA_BUILD_STATIC}
 

@@ -2,7 +2,7 @@
 
 The command takes a set of `jplace` files, and calculates and visualizes the Edge Dispersion per edge of the reference tree. The files need to have the same reference tree.
 
-Edge Dispersion is explained and evaluated in detail in our article (in preparation). The following figure and its caption are an example adapted from this article:
+Edge Dispersion is explained and evaluated in detail in our article (doi:[10.1371/journal.pone.0217050](https://doi.org/10.1371/journal.pone.0217050)). The following figure and its caption are an example adapted from this article:
 
 <br>
 

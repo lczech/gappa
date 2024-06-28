@@ -405,6 +405,14 @@ void run_dispersion( DispersionOptions const& options )
 
     // Get the data. Read all samples and calcualte the matrices.
     auto const profile = options.jplace_input.placement_profile();
+    assert( profile.edge_masses.rows() == profile.edge_imbalances.rows() );
+    assert( profile.edge_masses.cols() == profile.edge_imbalances.cols() );
+    if( profile.edge_masses.rows() <= 1 ) {
+        throw std::runtime_error(
+            "Cannot compute edge dispersion of a single sample, as the method is meant to visualize "
+            "dispersion (variance) across a set of samples."
+        );
+    }
 
     LOG_MSG2 << "Calculating dispersions and writing files.";
 

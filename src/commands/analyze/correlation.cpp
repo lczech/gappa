@@ -435,6 +435,14 @@ void run_correlation( CorrelationOptions const& options )
 
     // Get the data. Read all samples and calcualte the matrices.
     auto const profile = options.jplace_input.placement_profile();
+    assert( profile.edge_masses.rows() == profile.edge_imbalances.rows() );
+    assert( profile.edge_masses.cols() == profile.edge_imbalances.cols() );
+    if( profile.edge_masses.rows() <= 1 ) {
+        throw std::runtime_error(
+            "Cannot compute edge correlation of a single sample, as the method is meant to relate "
+            "a set of samples to their meta-data features."
+        );
+    }
 
     LOG_MSG1 << "Calculating correlations and writing files.";
 

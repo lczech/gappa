@@ -117,6 +117,15 @@ jobs:
           - os: macos-12
             compiler: llvm-13
 
+          # We need to also deactivate some defunct MacOS gcc builds,
+          # as MacOS does not support those properly.
+          - os: macos-12
+            compiler: gcc-7
+          - os: macos-12
+            compiler: gcc-8
+          - os: macos-12
+            compiler: gcc-13
+
         # -------------------------------------------------------
         #     include
         # -------------------------------------------------------

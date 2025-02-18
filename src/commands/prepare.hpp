@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2022 Lucas Czech
+    Copyright (C) 2017-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,16 +19,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 #include "CLI/CLI.hpp"
 
 #include "commands/prepare/chunkify.hpp"
 #include "commands/prepare/clean_tree.hpp"
-#include "commands/prepare/extract.hpp"
 #include "commands/prepare/phat.hpp"
 #include "commands/prepare/taxonomy_tree.hpp"
 #include "commands/prepare/unchunkify.hpp"
@@ -56,7 +55,6 @@ inline void setup_prepare( CLI::App& app )
     // Add module subcommands.
     setup_chunkify( *sub );
     setup_clean_tree( *sub );
-    setup_extract( *sub );
     setup_phat( *sub );
     setup_taxonomy_tree( *sub );
     setup_unchunkify( *sub );
@@ -68,6 +66,7 @@ inline void setup_prepare( CLI::App& app )
     set_module_help_group( *sub );
 
     // Add legacy commands.
+    add_legacy_command( *sub, "extract", "edit extract" );
     add_legacy_command( *sub, "random-alignment" , "simulate random-alignment" );
     add_legacy_command( *sub, "random-placements", "simulate random-placements" );
     add_legacy_command( *sub, "random-tree",       "simulate random-tree" );

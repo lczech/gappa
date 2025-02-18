@@ -21,7 +21,7 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-#include "commands/prepare/extract.hpp"
+#include "commands/edit/extract.hpp"
 
 #include "options/global.hpp"
 #include "tools/cli_setup.hpp"

@@ -3,7 +3,7 @@
 
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2017-2022 Lucas Czech
+    Copyright (C) 2017-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,14 +19,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 #include "CLI/CLI.hpp"
 
 #include "commands/edit/accumulate.hpp"
+#include "commands/edit/extract.hpp"
 #include "commands/edit/filter.hpp"
 #include "commands/edit/merge.hpp"
 #include "commands/edit/multiplicity.hpp"
@@ -53,6 +54,7 @@ inline void setup_edit( CLI::App& app )
 
     // Add module subcommands.
     setup_accumulate( *sub );
+    setup_extract( *sub );
     setup_filter( *sub );
     setup_merge( *sub );
     setup_multiplicity( *sub );

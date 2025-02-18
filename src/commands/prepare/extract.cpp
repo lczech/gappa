@@ -1,6 +1,6 @@
 /*
     gappa - Genesis Applications for Phylogenetic Placement Analysis
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 #include "commands/prepare/extract.hpp"
@@ -117,7 +117,7 @@ void setup_extract( CLI::App& app )
     // Other Input files.
     options->sequence_input.add_fasta_input_opt_to_app( sub, false );
 
-    // Other options
+    // Threshold
     auto threshold_opt = sub->add_option(
         "--threshold",
         options->threshold,
@@ -126,6 +126,34 @@ void setup_extract( CLI::App& app )
     );
     threshold_opt->check( CLI::Range( 0.5, 1.0 ));
     threshold_opt->group( "Settings" );
+
+    // Exclude clade stems
+    sub->add_flag(
+        "--exclude-clade-stems",
+        options->exclude_clade_stems,
+        "By default, the branch connecting a specified clade to the rest of the tree is considered "
+        "part of the clade. With this option, these branches are excluded, and instead considered "
+        "as basal branches."
+    )->group( "Settings" );
+
+    // Special clade name: basal
+    auto basal_clade_name_opt = sub->add_option(
+        "--basal-clade-name",
+        options->basal_clade_name,
+        "The name of the clade used for queries that do not fall into one of the specified clades.",
+        true
+    );
+    basal_clade_name_opt->group( "Settings" );
+
+    // Special clade name: uncertain
+    auto uncertain_clade_name_opt = sub->add_option(
+        "--uncertain-clade-name",
+        options->uncertain_clade_name,
+        "The name of the clade used for queries that do not fall into any clade "
+        "with more than the threshold amount of their mass.",
+        true
+    );
+    uncertain_clade_name_opt->group( "Settings" );
 
     // Make this a settings option.
     options->jplace_input.add_point_mass_opt_to_app( sub );
@@ -212,15 +240,17 @@ CladeTaxaList get_clade_taxa_lists( ExtractOptions const& options )
         clades[ clade ].push_back( taxon );
     }
 
-    // We will use two speciled clades later. Check here that they are not in there yet.
+    // We will use two special clades later. Check here that they are not in there yet.
     if( clades.count( options.basal_clade_name ) > 0 ) {
         throw std::runtime_error(
-            "Clade file contains reserved clade name \"" + options.basal_clade_name + "\": " + clade_filename
+            "Clade file contains reserved clade name \"" + options.basal_clade_name + "\": " + clade_filename + ". Please rename eithe the clade in you file, " +
+            "or use the corresponding option to rename the basal clade name."
         );
     }
     if( clades.count( options.uncertain_clade_name ) > 0 ) {
         throw std::runtime_error(
-            "Clade file contains reserved clade name \"" + options.uncertain_clade_name + "\": " + clade_filename
+            "Clade file contains reserved clade name \"" + options.uncertain_clade_name + "\": " + clade_filename + ". Please rename eithe the clade in you file, " +
+            "or use the corresponding option to rename the uncertain clade name."
         );
     }
 
@@ -281,7 +311,9 @@ CladeEdgeList get_clade_edges(
         }
 
         // Find the edges that are part of the monophyletic subtrees of this clade.
-        auto const subedges = find_monophyletic_subtree_edges( tree, bipartitions, node_list );
+        auto const subedges = find_monophyletic_subtree_edges(
+            tree, bipartitions, node_list, ! options.exclude_clade_stems
+        );
 
         // Add to the list.
         // For now, we convert to an unordered map here by hand.

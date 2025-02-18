@@ -1,18 +1,19 @@
-![gappa](/doc/logo/logo_readme.png?raw=true "gappa")
-
 <!-- Genesis Applications for Phylogenetic Placement Analysis -->
 
 [![Conda install](https://img.shields.io/conda/vn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 [![Downloads](https://img.shields.io/conda/dn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 [![Release](https://img.shields.io/github/v/release/lczech/gappa.svg)](https://github.com/lczech/gappa/releases)
-[![DOI](https://img.shields.io/badge/doi-10.1093%2Fbioinformatics%2Fbtaa070-blue)](https://doi.org/10.1093/bioinformatics/btaa070)
+[![CI](https://github.com/lczech/gappa/actions/workflows/ci.yaml/badge.svg)](https://github.com/lczech/gappa/actions/workflows/ci.yaml)
 <br />
-[![CI](https://github.com/lczech/gappa/workflows/CI/badge.svg?branch=master)](https://github.com/lczech/gappa/actions)
-[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
-![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
-[![Platforms](https://img.shields.io/conda/pn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
+[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
+[![DOI](https://img.shields.io/badge/doi-10.1093%2Fbioinformatics%2Fbtaa070-blue)](https://doi.org/10.1093/bioinformatics/btaa070)
+<!-- [![Platforms](https://img.shields.io/conda/pn/bioconda/gappa)](https://anaconda.org/bioconda/gappa) -->
+<!-- ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg) -->
+<!-- [![CI](https://github.com/lczech/gappa/workflows/CI/badge.svg?branch=master)](https://github.com/lczech/gappa/actions) -->
 <!-- [![Build Status](https://travis-ci.org/lczech/gappa.svg?branch=master)](https://travis-ci.org/lczech/gappa) -->
+
+![gappa](/doc/logo/logo_readme.png?raw=true "gappa")
 
 Features
 -------------------

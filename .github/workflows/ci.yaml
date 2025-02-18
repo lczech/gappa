@@ -24,119 +24,243 @@ jobs:
       #     matrix
       # -------------------------------------------------------
 
+      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
+
       matrix:
         os:
-          # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
-          - ubuntu-20.04
-          - ubuntu-22.04
-          - macos-11
-          - macos-12
+          - ubuntu-latest
+          - macos-latest
 
         compiler:
-          - gcc-7
-          - gcc-8
-          - gcc-9
-          - gcc-10
-          - gcc-11
-          - gcc-12
-          - gcc-13
-          - llvm-5
-          - llvm-6
-          - llvm-7
-          - llvm-8
-          - llvm-9
-          - llvm-10
-          - llvm-11
-          - llvm-12
-          - llvm-13
-
-        # -------------------------------------------------------
-        #     exclude
-        # -------------------------------------------------------
-
-        exclude:
-          # Newer GCC versions are not available on all Ubuntu
-          - os: ubuntu-20.04
-            compiler: gcc-12
-          - os: ubuntu-20.04
-            compiler: gcc-13
-          - os: ubuntu-20.04
-            compiler: llvm-13
-
-          # Older GCC versions are not supported by Ubuntu any more
-          - os: ubuntu-22.04
-            compiler: gcc-7
-          - os: ubuntu-22.04
-            compiler: gcc-8
-
-          # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
-          # Need to investiage further at some point. We used setup-cpp locally to install
-          # the very same version of llvm-9, and got tons of segfauls for all kind of functions...
-          - os: ubuntu-20.04
-            compiler: llvm-9
-          - os: ubuntu-22.04
-            compiler: llvm-9
-
-          # We also currently exclude clang from macos, as it fails with different types of
-          # linker errors. As this is merely a problem in the setup, we defer solving this for now.
-          # Wildcards do not work here, so we have to list them all... :-(
-          - os: macos-11
-            compiler: llvm-5
-          - os: macos-11
-            compiler: llvm-6
-          - os: macos-11
-            compiler: llvm-7
-          - os: macos-11
-            compiler: llvm-8
-          - os: macos-11
-            compiler: llvm-9
-          - os: macos-11
-            compiler: llvm-10
-          - os: macos-11
-            compiler: llvm-11
-          - os: macos-11
-            compiler: llvm-12
-          - os: macos-11
-            compiler: llvm-13
-          - os: macos-12
-            compiler: llvm-5
-          - os: macos-12
-            compiler: llvm-6
-          - os: macos-12
-            compiler: llvm-7
-          - os: macos-12
-            compiler: llvm-8
-          - os: macos-12
-            compiler: llvm-9
-          - os: macos-12
-            compiler: llvm-10
-          - os: macos-12
-            compiler: llvm-11
-          - os: macos-12
-            compiler: llvm-12
-          - os: macos-12
-            compiler: llvm-13
-
-          # We need to also deactivate some defunct MacOS gcc builds,
-          # as MacOS does not support those properly.
-          - os: macos-12
-            compiler: gcc-7
-          - os: macos-12
-            compiler: gcc-8
-          - os: macos-12
-            compiler: gcc-13
+          - gcc
+          - llvm
 
         # -------------------------------------------------------
         #     include
         # -------------------------------------------------------
 
+        # Instead of a matrix where we only have some combinations that work, and others that do not,
+        # we just directly opt for a list of all combinations that we actually want to test.
+        # Easier to reason about, easier to maintain, easier to extend.
+
+        # Newer compiler versions are not available on all Ubuntu, so some are excluded.
+        # Older GCC versions are also not supported by older OSs any more.
+        # We also currently exclude clang from macos, as it fails with different types of
+        # linker errors. As this is merely a problem in the setup, we defer solving this for now.
+
         include:
-          # We test AppleClang as well, as a special case.
-          # - os: macos-10.15
-          #   compiler: apple
-          - os: macos-11
+
+          # -------------------------------
+          #     Ubuntu 22.04
+          # -------------------------------
+
+          # Too old
+          # - os: ubuntu-22.04
+          #   compiler: gcc-7
+          # - os: ubuntu-22.04
+          #   compiler: gcc-8
+          - os: ubuntu-22.04
+            compiler: gcc-9
+          - os: ubuntu-22.04
+            compiler: gcc-10
+          - os: ubuntu-22.04
+            compiler: gcc-11
+          - os: ubuntu-22.04
+            compiler: gcc-12
+          - os: ubuntu-22.04
+            compiler: gcc-13
+          # Setup fails
+          # - os: ubuntu-22.04
+          #   compiler: gcc-14
+          - os: ubuntu-22.04
+            compiler: llvm-6
+          - os: ubuntu-22.04
+            compiler: llvm-7
+          - os: ubuntu-22.04
+            compiler: llvm-8
+          # Weird segfault
+          # - os: ubuntu-22.04
+          #   compiler: llvm-9
+          - os: ubuntu-22.04
+            compiler: llvm-10
+          - os: ubuntu-22.04
+            compiler: llvm-11
+          - os: ubuntu-22.04
+            compiler: llvm-12
+          - os: ubuntu-22.04
+            compiler: llvm-13
+          - os: ubuntu-22.04
+            compiler: llvm-14
+          - os: ubuntu-22.04
+            compiler: llvm-15
+          - os: ubuntu-22.04
+            compiler: llvm-16
+          - os: ubuntu-22.04
+            compiler: llvm-17
+          # Setup fails
+          # - os: ubuntu-22.04
+          #   compiler: llvm-18
+
+          # -------------------------------
+          #     Ubuntu 24.04
+          # -------------------------------
+
+          # Too old
+          # - os: ubuntu-24.04
+          #   compiler: gcc-7
+          # - os: ubuntu-24.04
+          #   compiler: gcc-8
+          - os: ubuntu-24.04
+            compiler: gcc-9
+          - os: ubuntu-24.04
+            compiler: gcc-10
+          - os: ubuntu-24.04
+            compiler: gcc-11
+          - os: ubuntu-24.04
+            compiler: gcc-12
+          - os: ubuntu-24.04
+            compiler: gcc-13
+          - os: ubuntu-24.04
+            compiler: gcc-14
+          # Setup fails
+          # - os: ubuntu-24.04
+          #   compiler: llvm-6
+          # - os: ubuntu-24.04
+          #   compiler: llvm-7
+          # - os: ubuntu-24.04
+          #   compiler: llvm-8
+          # - os: ubuntu-24.04
+          #   compiler: llvm-9
+          # - os: ubuntu-24.04
+          #   compiler: llvm-10
+          # - os: ubuntu-24.04
+          #   compiler: llvm-11
+          # - os: ubuntu-24.04
+          #   compiler: llvm-12
+          # - os: ubuntu-24.04
+          #   compiler: llvm-13
+          # - os: ubuntu-24.04
+          #   compiler: llvm-14
+          # - os: ubuntu-24.04
+          #   compiler: llvm-15
+          # - os: ubuntu-24.04
+          #   compiler: llvm-16
+          # - os: ubuntu-24.04
+          #   compiler: llvm-17
+          - os: ubuntu-24.04
+            compiler: llvm-18
+
+          # -------------------------------
+          #     MacOS 13
+          # -------------------------------
+
+          # Setup fails
+          # - os: macos-13
+          #   compiler: gcc-7
+          # - os: macos-13
+          #   compiler: gcc-8
+          - os: macos-13
+            compiler: gcc-9
+          - os: macos-13
+            compiler: gcc-10
+          - os: macos-13
+            compiler: gcc-11
+          - os: macos-13
+            compiler: gcc-12
+          # Weird compiler errors
+          # - os: macos-13
+          #   compiler: gcc-13
+          - os: macos-13
+            compiler: gcc-14
+          # Setup fails
+          # - os: macos-13
+          #   compiler: llvm-6
+          # - os: macos-13
+          #   compiler: llvm-7
+          # - os: macos-13
+          #   compiler: llvm-8
+          # - os: macos-13
+          #   compiler: llvm-9
+          # Weird compiler errors
+          # - os: macos-13
+          #   compiler: llvm-10
+          # - os: macos-13
+          #   compiler: llvm-11
+          # - os: macos-13
+          #   compiler: llvm-12
+          - os: macos-13
+            compiler: llvm-13
+          - os: macos-13
+            compiler: llvm-14
+          - os: macos-13
+            compiler: llvm-15
+          # Setup fails
+          # - os: macos-13
+          #   compiler: llvm-16
+          # - os: macos-13
+          #   compiler: llvm-17
+          # - os: macos-13
+          #   compiler: llvm-18
+
+          # -------------------------------
+          #     MacOS 14
+          # -------------------------------
+
+          # Setup fails for all
+          # - os: macos-14
+          #   compiler: gcc-7
+          # - os: macos-14
+          #   compiler: gcc-8
+          # - os: macos-14
+          #   compiler: gcc-9
+          # - os: macos-14
+          #   compiler: gcc-10
+          # - os: macos-14
+          #   compiler: gcc-11
+          # - os: macos-14
+          #   compiler: gcc-12
+          # - os: macos-14
+          #   compiler: gcc-13
+          # - os: macos-14
+          #   compiler: gcc-14
+          # - os: macos-14
+          #   compiler: llvm-6
+          # - os: macos-14
+          #   compiler: llvm-7
+          # - os: macos-14
+          #   compiler: llvm-8
+          # - os: macos-14
+          #   compiler: llvm-9
+          # - os: macos-14
+          #   compiler: llvm-10
+          # - os: macos-14
+          #   compiler: llvm-11
+          # - os: macos-14
+          #   compiler: llvm-12
+          # - os: macos-14
+          #   compiler: llvm-13
+          # - os: macos-14
+          #   compiler: llvm-14
+          # - os: macos-14
+          #   compiler: llvm-15
+          # - os: macos-14
+          #   compiler: llvm-16
+          # - os: macos-14
+          #   compiler: llvm-17
+          # - os: macos-14
+          #   compiler: llvm-18
+
+          # -------------------------------
+          #     AppleClang
+          # -------------------------------
+
+          - os: macos-13
             compiler: apple
-          - os: macos-12
+          - os: macos-14
+            compiler: apple
+          - os: macos-15
+            compiler: apple
+          - os: macos-latest
             compiler: apple
 
     # ==========================================================================
@@ -154,10 +278,16 @@ jobs:
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
         uses: aminya/setup-cpp@v0.37.0
-        if: matrix.compiler != 'apple'
+        if: ${{ matrix.compiler != 'apple' && matrix.os != 'macos-latest' }}
         with:
           compiler: ${{ matrix.compiler }}
           cmake: true
+          make: true
+
+      - name: Setup C++ - AppleClang
+        if: matrix.compiler == 'apple'
+        run: |
+          brew install cmake
 
       # -------------------------------------------------------
       #     Dependencies
@@ -165,17 +295,29 @@ jobs:
 
       - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
-        # clang on ubuntu 22 is not properly set up, we need libtinfo5,
-        # see https://github.com/aminya/setup-cpp/issues/149
+        # 1: htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
+        # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5,
+        #    see https://github.com/aminya/setup-cpp/issues/149
         run: |
-          sudo apt-get install libtinfo5
+          sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
+          if [[ ${{ matrix.os }} != ubuntu-24.04 ]] && [[ ${{ matrix.os }} != ubuntu-latest ]] ; then
+            sudo apt-get install libtinfo5
+          fi
 
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
-        # For our test script, we need gdate, see https://apple.stackexchange.com/a/47181
-        # and see ./test/run.sh for details.
+        #  - Install simple dependencies of htslib
+        #  - For our test script, we might need gdate, see https://apple.stackexchange.com/a/47181
+        #    This is not used at the moment, but we keep it here for the future.
+        #  - switch xcode mode, see https://stackoverflow.com/a/67654877
         run: |
+          brew install autoconf automake libdeflate
           brew install coreutils
+
+          if [[ "${{ matrix.compiler }}" == gcc* ]]; then
+            echo "Patching xcode gcc issues"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
 
       # -------------------------------------------------------
       #     Configure
@@ -204,11 +346,16 @@ jobs:
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} ${GAPPA_BUILD_STATIC}
 
       # -------------------------------------------------------
-      #     Build & Test
+      #     Build
       # -------------------------------------------------------
 
       - name: Build
         run: |
+          # Weird workarounds. On some CI builds, this is needed somehow for LLVM under Ubuntu.
+          if [[ "${RUNNER_OS}" != "macOS" ]] && [[ ! -f /usr/bin/gmake ]]; then
+            sudo ln -s /usr/bin/make /usr/bin/gmake
+          fi
+
           # Need to set the xcode patch here as well, as job steps don't keep status.
           if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == gcc* ]]; then
             echo "Patching xcode gcc issues"
@@ -216,10 +363,6 @@ jobs:
           fi
 
           cmake --build ./build -- -j 2
-
-      - name: Tests
-        run: |
-          ./test/run.sh
 
       - name: Upload Logs
         if: always()
@@ -236,9 +379,34 @@ jobs:
       # -------------------------------------------------------
 
       - name: Upload Binaries
-        if: (  matrix.os == 'ubuntu-22.04' && matrix.compiler == 'gcc-13' ) || matrix.compiler == 'apple'
+        if: matrix.compiler == 'apple'
+        # if: (  matrix.os == 'ubuntu-22.04' && matrix.compiler == 'gcc-13' ) || matrix.compiler == 'apple'
         uses: actions/upload-artifact@v3
         with:
           name: binary-${{ matrix.os }}
           path: |
             bin/gappa
+
+      # -------------------------------------------------------
+      #     Test
+      # -------------------------------------------------------
+
+      - name: Run Test
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        run: |
+          cd ./test
+          ./run.sh
+          cd ..
+
+          # We need to manually compress the test result files here, as there are many files,
+          # and we run into https://github.com/actions/upload-artifact/issues/485
+          tar -czf ./test.tar.gz ./test
+
+      - name: Upload Tests
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-${{ matrix.os }}-${{ matrix.compiler }}
+          path: |
+            # test
+            ./test.tar.gz

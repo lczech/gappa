@@ -199,12 +199,35 @@ void run_accumulate( AccumulateOptions const& options )
             place.proximal_length = bl * masses[ result_edge ];
 
             // Clamp, to fix potential rounding errors, https://github.com/lczech/gappa/issues/34
+            auto const eps = 100.0 * std::numeric_limits<double>::epsilon()
+                * std::max( 1.0, std::abs( bl ));
+
+            if( place.proximal_length < 0.0 && place.proximal_length > -eps ) {
+                place.proximal_length = 0.0;
+            }
+            if( place.proximal_length > bl && place.proximal_length < bl + eps ) {
+                place.proximal_length = bl;
+            }
+
+            // Hard clamp any remaining small/normal out-of-bounds cases.
             if( place.proximal_length < 0.0 ) {
                 place.proximal_length = 0.0;
             }
             if( place.proximal_length > bl ) {
                 place.proximal_length = bl;
             }
+
+            // Additional endpoint clamp for tiny / zero-length branches.
+            // JplaceWriter writes distal_length = branch_length - proximal_length.
+            // If the branch is effectively zero-length, make the distal value exactly zero.
+            auto const distal_length = bl - place.proximal_length;
+            if( std::abs( bl ) < eps && std::abs( distal_length ) < eps ) {
+                place.proximal_length = bl;
+            }
+            else if( distal_length >= 0.0 && distal_length < eps ) {
+                place.proximal_length = bl;
+            }
+
         } else {
             removal_collector.push_back( i );
         }
